@@ -107,6 +107,8 @@ const FormInput = ({
                         required={required}
                         className="input outline-0 w-full text-[#969998] py-2.5"
                         style={{fontSize: 'var(--P2-size)'}}
+                        value={value}
+                        onChange={onChange}
                     >
                         <option className='' value="">{placeholder || 'Select option'}</option>
                         {options.map((opt, idx) => (

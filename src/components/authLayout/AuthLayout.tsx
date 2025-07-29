@@ -22,13 +22,13 @@ const AuthLayout = ({
         <div className="flex flex-col items-center justify-center px-4 py-6">
             <div className="w-full max-w-[608px] mx-auto md:py-8">
                 {/* Logo/Image (only if provided) */}
-                {imageSrc && (
+                {/* {imageSrc && (
                     <div className="flex justify-center mb-6">
                         <div className="bg-black rounded-full p-3 flex justify-center items-center">
                             <Image src={imageSrc} alt={imageAlt} width={24} height={24} />
                         </div>
                     </div>
-                )}
+                )} */}
 
                 {/* Heading */}
                 <h2
