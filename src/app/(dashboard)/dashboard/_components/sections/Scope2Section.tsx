@@ -4,6 +4,134 @@ import { useState } from 'react';
 
 export default function Scope2Section() {
   const [activeChart, setActiveChart] = useState('this-year');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingData, setEditingData] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    month: '',
+    year: '',
+    facilityId: '',
+    energyType: '',
+    gridLocation: '',
+    consumedUnits: '',
+    amountOfConsumption: '',
+    customEmissionFactor: '',
+    emissions: ''
+  });
+
+  // Sample data array for Purchased Electricity table
+  const purchasedElectricityData = [
+    {
+      id: 1,
+      month: 'January',
+      year: '2024',
+      facilityId: 'FAC-001',
+      energyType: 'Grid Electricity',
+      gridLocation: 'Main Campus',
+      consumedUnits: 'MWh',
+      amountOfConsumption: '2,847',
+      customEmissionFactor: '0.199 kg CO₂e/kWh',
+      emissions: '567.3'
+    },
+    {
+      id: 2,
+      month: 'January',
+      year: '2024',
+      facilityId: 'FAC-002',
+      energyType: 'Solar Power',
+      gridLocation: 'Production Plant',
+      consumedUnits: 'MWh',
+      amountOfConsumption: '1,200',
+      customEmissionFactor: '0.0 kg CO₂e/kWh',
+      emissions: '0.0'
+    },
+    {
+      id: 3,
+      month: 'January',
+      year: '2024',
+      facilityId: 'FAC-003',
+      energyType: 'Wind Power',
+      gridLocation: 'Office Building',
+      consumedUnits: 'MWh',
+      amountOfConsumption: '850',
+      customEmissionFactor: '0.0 kg CO₂e/kWh',
+      emissions: '0.0'
+    }
+  ];
+
+  // Energy type options for dropdown
+  const energyTypeOptions = [
+    'Grid Electricity',
+    'Solar Power',
+    'Wind Power',
+    'Hydroelectric',
+    'Biomass',
+    'Geothermal',
+    'Nuclear'
+  ];
+
+  // Unit options for dropdown
+  const unitOptions = [
+    'MWh',
+    'kWh',
+    'GJ',
+    'MJ',
+    'BTU'
+  ];
+
+  const handleAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('New Purchased Electricity Data:', formData);
+    setIsAddModalOpen(false);
+    // Reset form
+    setFormData({
+      month: '',
+      year: '',
+      facilityId: '',
+      energyType: '',
+      gridLocation: '',
+      consumedUnits: '',
+      amountOfConsumption: '',
+      customEmissionFactor: '',
+      emissions: ''
+    });
+  };
+
+  const handleEdit = (rowData: any) => {
+    setEditingData(rowData);
+    setFormData({
+      month: rowData.month,
+      year: rowData.year,
+      facilityId: rowData.facilityId,
+      energyType: rowData.energyType,
+      gridLocation: rowData.gridLocation,
+      consumedUnits: rowData.consumedUnits,
+      amountOfConsumption: rowData.amountOfConsumption,
+      customEmissionFactor: rowData.customEmissionFactor,
+      emissions: rowData.emissions
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Updated Purchased Electricity Data:', formData);
+    console.log('Original Data:', editingData);
+    setIsEditModalOpen(false);
+    setEditingData(null);
+    // Reset form
+    setFormData({
+      month: '',
+      year: '',
+      facilityId: '',
+      energyType: '',
+      gridLocation: '',
+      consumedUnits: '',
+      amountOfConsumption: '',
+      customEmissionFactor: '',
+      emissions: ''
+    });
+  };
 
   // Dynamic data arrays for Scope 2 charts
   const scope2BreakdownData = [
@@ -426,49 +554,62 @@ export default function Scope2Section() {
         </div>
       </div>
 
-      {/* Data Table */}
+      {/* Purchased Electricity Table */}
       <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
         <div className="flex justify-between items-center p-6 border-b border-green-100">
-          <div className="text-lg font-semibold text-green-800">Scope 2 Energy Sources Detail</div>
+          <div className="text-lg font-semibold text-green-800">Purchased Electricity</div>
           <div className="flex gap-3">
             <button className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
               Filter
             </button>
-            <button className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
-              Add Source
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+            >
+              Add Purchased Electricity
             </button>
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-center">
             <thead className="bg-green-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Source ID</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Type</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Location</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Energy Source</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Annual Consumption</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Emissions</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Status</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Month</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Year</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Facility ID</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Energy Type</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Grid Location</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Consumed Units</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Amount of Consumption</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Custom Emission Factor</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Emissions</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Action</th>
               </tr>
             </thead>
             <tbody>
-              {energySourcesData.map((source) => (
-                <tr key={source.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-green-800">{source.id}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{source.type}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{source.location}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{source.source}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{source.consumption}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{source.emissions} tCO₂e</td>
+              {purchasedElectricityData.map((row) => (
+                <tr key={row.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-green-800">{row.month}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.year}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.facilityId}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.energyType}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.gridLocation}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.consumedUnits}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.amountOfConsumption}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.customEmissionFactor}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.emissions}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${
-                      source.status === 'Verified' 
-                        ? 'bg-green-100 text-green-800 border-green-800'
-                        : 'bg-green-100 text-green-800 border-green-800'
-                    }`}>
-                      {source.status}
-                    </span>
+                    <div className="flex gap-2 justify-center">
+                      <button 
+                        onClick={() => handleEdit(row)}
+                        className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-200 hover:bg-blue-200 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded border border-orange-200 hover:bg-orange-200 transition-colors">
+                        Revert
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -476,6 +617,330 @@ export default function Scope2Section() {
           </table>
         </div>
       </div>
+
+      {/* Add Purchased Electricity Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-green-800">Add Purchased Electricity</h2>
+              <button 
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Month</label>
+                  <select 
+                    value={formData.month}
+                    onChange={(e) => setFormData({...formData, month: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  >
+                    <option value="">Select Month</option>
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Year</label>
+                  <input 
+                    type="number"
+                    value={formData.year}
+                    onChange={(e) => setFormData({...formData, year: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="2024"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Facility ID</label>
+                  <input 
+                    type="text"
+                    value={formData.facilityId}
+                    onChange={(e) => setFormData({...formData, facilityId: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="FAC-001"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Energy Type</label>
+                  <select 
+                    value={formData.energyType}
+                    onChange={(e) => setFormData({...formData, energyType: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  >
+                    <option value="">Select Energy Type</option>
+                    {energyTypeOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Grid Location</label>
+                  <input 
+                    type="text"
+                    value={formData.gridLocation}
+                    onChange={(e) => setFormData({...formData, gridLocation: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Main Campus"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Consumed Units</label>
+                  <select 
+                    value={formData.consumedUnits}
+                    onChange={(e) => setFormData({...formData, consumedUnits: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  >
+                    <option value="">Select Units</option>
+                    {unitOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Amount of Consumption</label>
+                  <input 
+                    type="text"
+                    value={formData.amountOfConsumption}
+                    onChange={(e) => setFormData({...formData, amountOfConsumption: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="2,847"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
+                  <input 
+                    type="text"
+                    value={formData.customEmissionFactor}
+                    onChange={(e) => setFormData({...formData, customEmissionFactor: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="0.199 kg CO₂e/kWh"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Emissions</label>
+                  <input 
+                    type="text"
+                    value={formData.emissions}
+                    onChange={(e) => setFormData({...formData, emissions: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="567.3"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Add Entry
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Purchased Electricity Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-green-800">Edit Purchased Electricity</h2>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Month</label>
+                  <select 
+                    value={formData.month}
+                    onChange={(e) => setFormData({...formData, month: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  >
+                    <option value="">Select Month</option>
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Year</label>
+                  <input 
+                    type="number"
+                    value={formData.year}
+                    onChange={(e) => setFormData({...formData, year: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="2024"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Facility ID</label>
+                  <input 
+                    type="text"
+                    value={formData.facilityId}
+                    onChange={(e) => setFormData({...formData, facilityId: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="FAC-001"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Energy Type</label>
+                  <select 
+                    value={formData.energyType}
+                    onChange={(e) => setFormData({...formData, energyType: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  >
+                    <option value="">Select Energy Type</option>
+                    {energyTypeOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Grid Location</label>
+                  <input 
+                    type="text"
+                    value={formData.gridLocation}
+                    onChange={(e) => setFormData({...formData, gridLocation: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Main Campus"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Consumed Units</label>
+                  <select 
+                    value={formData.consumedUnits}
+                    onChange={(e) => setFormData({...formData, consumedUnits: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  >
+                    <option value="">Select Units</option>
+                    {unitOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Amount of Consumption</label>
+                  <input 
+                    type="text"
+                    value={formData.amountOfConsumption}
+                    onChange={(e) => setFormData({...formData, amountOfConsumption: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="2,847"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
+                  <input 
+                    type="text"
+                    value={formData.customEmissionFactor}
+                    onChange={(e) => setFormData({...formData, customEmissionFactor: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="0.199 kg CO₂e/kWh"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Emissions</label>
+                  <input 
+                    type="text"
+                    value={formData.emissions}
+                    onChange={(e) => setFormData({...formData, emissions: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="567.3"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Update Entry
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
