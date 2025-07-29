@@ -1,0 +1,26 @@
+<svg width="175" height="145" viewBox="0 0 175 145" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_203_491" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="-6" width="175" height="151">
+<rect x="175" y="145" width="174.431" height="151" transform="rotate(180 175 145)" fill="url(#paint0_linear_203_491)"/>
+</mask>
+<g mask="url(#mask0_203_491)">
+<rect x="165.922" y="36.9569" width="42.7972" height="42.9569" rx="5.2069" transform="rotate(180 165.922 36.9569)" fill="white"/>
+<rect x="107.562" y="44.7672" width="32.4221" height="32.5431" rx="2.60345" transform="rotate(180 107.562 44.7672)" fill="white"/>
+<rect x="141.929" y="92.931" width="28.5315" height="28.6379" rx="2.60345" transform="rotate(180 141.929 92.931)" fill="white"/>
+<rect x="175" y="72.1034" width="18.1564" height="18.2241" rx="2.60345" transform="rotate(180 175 72.1034)" fill="white"/>
+<rect x="88.1084" y="85.1207" width="18.1564" height="18.2241" rx="2.60345" transform="rotate(180 88.1084 85.1207)" fill="white"/>
+<rect x="86.8115" y="131.983" width="18.1564" height="18.2241" rx="2.60345" transform="rotate(180 86.8115 131.983)" fill="white"/>
+<rect x="44.0146" y="30.4483" width="18.1564" height="18.2241" rx="2.60345" transform="rotate(180 44.0146 30.4483)" fill="white"/>
+<rect x="44.0146" y="92.931" width="18.1564" height="18.2241" rx="2.60345" transform="rotate(180 44.0146 92.931)" fill="white"/>
+<rect x="46.6079" y="126.125" width="14.2657" height="14.319" rx="2.60345" transform="rotate(180 46.6079 126.125)" fill="white"/>
+<rect x="21.9673" y="145" width="11.672" height="11.7155" rx="2.60345" transform="rotate(180 21.9673 145)" fill="white"/>
+<rect x="9.64697" y="89.0259" width="9.07819" height="9.11207" rx="1.30172" transform="rotate(180 9.64697 89.0259)" fill="white"/>
+<rect x="55.6865" y="53.8793" width="9.07819" height="9.11207" rx="1.30172" transform="rotate(180 55.6865 53.8793)" fill="white"/>
+<rect x="111.453" y="111.155" width="9.07819" height="9.11207" rx="1.30172" transform="rotate(180 111.453 111.155)" fill="white"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_203_491" x1="349.431" y1="145" x2="175" y2="296" gradientUnits="userSpaceOnUse">
+<stop stop-color="#0D5942" stop-opacity="0.06"/>
+<stop offset="1" stop-color="#0D5942" stop-opacity="0.32"/>
+</linearGradient>
+</defs>
+</svg>

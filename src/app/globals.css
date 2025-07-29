@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  /* Colors */
+  --Primary: #0D5942;
+  --Secondary: #D5F5EB;
+  --Heading: #191A19;
+  --Paragraph: #505251;
+  --Disable: #969998;
+  --Outline: #E1E5E4;
+  --Placeholder: #FFFFFF;
+  --Background: #F6F6F6;
+
+  /* Typography with clamp() for responsive design */
+  --H1-size: clamp(2.2rem, 6vw, 5rem);       /* 40px - 80px */
+  --H1-weight: 700;
+  --H1-line-height: clamp(2.5rem, 6vw, 5rem); /* Match H1 size for now */
+
+  --H2-size: clamp(2rem, 5vw, 3.5rem);       /* 32px - 56px */
+  --H2-weight: 700;
+  --H2-line-height: clamp(2.75rem, 6vw, 4.875rem); /* 44px - 78px */
+
+  --H3-size: clamp(1.5rem, 4vw, 2.5rem);     /* 24px - 40px */
+  --H3-weight: 700;
+  --H3-line-height: clamp(2.25rem, 5vw, 3.75rem); /* 36px - 60px */
+
+  --P1-size: clamp(0.75rem, 2.5vw, 1.25rem);    /* 16px - 20px */
+  --P1-weight: 500;
+  --P1-line-height: clamp(1.5rem, 3vw, 2rem); /* 24px - 32px */
+
+  --P2-size: clamp(0.875rem, 2vw, 1rem);   /* 14px - 16px */
+  --P2-weight: 500;
+  --P2-line-height: clamp(1.25rem, 2.5vw, 1.5rem); /* 20px - 24px */
+
+  --S1-size: clamp(0.75rem, 1.8vw, 0.875rem); /* 12px - 14px */
+  --S1-weight: 500;
+  --S1-line-height: clamp(1rem, 2vw, 1.25rem); /* 16px - 20px */
+
+  --S2-size: clamp(0.6875rem, 1.5vw, 0.75rem); /* 11px - 12px */
+  --S2-weight: 500;
+  --S2-line-height: clamp(0.875rem, 1.8vw, 1.125rem); /* 14px - 18px */
+}
+
+@theme inline {
+  --color-Background: var(--Background);
+  --color-foreground: var(--Heading);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #191A19;
+    --foreground: #F6F6F6;
+  }
+}
+
+body {
+  background: var(--Background);
+  color: var(--Heading);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes fillBar {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-fill-bar {
+  animation: fillBar 3s linear forwards;
+}
+
+
+
+@keyframes scroll-up {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+.animate-scroll-up{
+  animation: scroll-up linear infinite;
+}
+
+.animate-scroll-down{
+  animation: scroll-down linear infinite;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

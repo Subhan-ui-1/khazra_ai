@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fugitive Emissions Module - Interactive UX Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6A1B9A 0%, #4A148C 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #9C27B0, #BA68C8);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .step-indicator {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-circles {
+            display: flex;
+            gap: 15px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-circle.active {
+            background: #9C27B0;
+            transform: scale(1.1);
+        }
+
+        .step-circle.completed {
+            background: #4CAF50;
+        }
+
+        .step-circle::after {
+            content: '';
+            position: absolute;
+            right: -23px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 2px;
+            background: #bdc3c7;
+        }
+
+        .step-circle:last-child::after {
+            display: none;
+        }
+
+        .content {
+            padding: 40px;
+            min-height: 500px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step h2 {
+            color: #6A1B9A;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .step-description {
+            color: #546E7A;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #6A1B9A;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #F3E5F5;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #9C27B0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-triple {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.3);
+        }
+
+        .btn-secondary {
+            background: #78909C;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #607D8B;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800, #FF8F00);
+            color: white;
+        }
+
+        .button-group {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card {
+            background: #F8F9FA;
+            border: 2px solid #F3E5F5;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #9C27B0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .component-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #F3E5F5;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .component-option:hover {
+            border-color: #9C27B0;
+            background: #FCE4EC;
+        }
+
+        .component-option.selected {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .component-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .valve { background: #E91E63; }
+        .pump { background: #2196F3; }
+        .compressor { background: #FF5722; }
+        .flange { background: #795548; }
+        .fitting { background: #607D8B; }
+        .tank { background: #4CAF50; }
+
+        .calculation-preview {
+            background: linear-gradient(135deg, #FF6F00, #FF8F00);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .calculation-preview h3 {
+            margin-bottom: 10px;
+        }
+
+        .emission-result {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #F3E5F5;
+        }
+
+        .summary-table th {
+            background: #F3E5F5;
+            font-weight: 600;
+            color: #6A1B9A;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .warning-message {
+            background: linear-gradient(135deg, #FF9800, #FF8F00);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 1px solid #F3E5F5;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .dashboard-card h3 {
+            color: #6A1B9A;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #9C27B0;
+        }
+
+        .method-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .method-card {
+            background: white;
+            border: 2px solid #F3E5F5;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .method-card:hover {
+            border-color: #9C27B0;
+            transform: translateY(-2px);
+        }
+
+        .method-card.selected {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .method-name {
+            font-weight: bold;
+            color: #6A1B9A;
+            margin-bottom: 5px;
+        }
+
+        .method-description {
+            color: #546E7A;
+            font-size: 14px;
+        }
+
+        .leak-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .leak-none { background: #C8E6C9; color: #2E7D32; }
+        .leak-minor { background: #FFE0B2; color: #F57C00; }
+        .leak-major { background: #FFCDD2; color: #C62828; }
+
+        .ldar-status {
+            background: #F3E5F5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .component-card {
+            background: white;
+            border: 1px solid #F3E5F5;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .activity-type-toggle {
+            display: flex;
+            background: #F3E5F5;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .activity-type-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .activity-type-toggle button.active {
+            background: white;
+            color: #6A1B9A;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .factor-display {
+            background: #F3E5F5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .factor-display .factor-value {
+            font-weight: bold;
+            color: #6A1B9A;
+        }
+
+        .factor-display .factor-source {
+            font-size: 12px;
+            color: #546E7A;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #CE93D8;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        .file-upload {
+            border: 2px dashed #CE93D8;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #9C27B0;
+            background: #FCE4EC;
+        }
+
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .process-area {
+            background: #FCE4EC;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .screening-results {
+            background: linear-gradient(135deg, #FF5722, #F4511E);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .emission-factor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .emission-factor-table th,
+        .emission-factor-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #F3E5F5;
+        }
+
+        .emission-factor-table th {
+            background: #F8F9FA;
+            font-weight: 600;
+            color: #6A1B9A;
+            font-size: 14px;
+        }
+
+        .emission-factor-table td {
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .form-row, .form-triple {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .method-selector, .component-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scope 1 - Fugitive Emissions</h1>
+            <div class="breadcrumb">Dashboard > Scope 1 > Fugitive Emissions</div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-circles">
+                <div class="step-circle active" data-step="1">1</div>
+                <div class="step-circle" data-step="2">2</div>
+                <div class="step-circle" data-step="3">3</div>
+                <div class="step-circle" data-step="4">4</div>
+                <div class="step-circle" data-step="5">5</div>
+                <div class="step-circle" data-step="6">6</div>
+                <div class="step-circle" data-step="7">7</div>
+                <div class="step-circle" data-step="8">8</div>
+                <div class="step-circle" data-step="9">9</div>
+            </div>
+            <div class="step-title" id="stepTitle">Facility Overview</div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Facility Overview -->
+            <div class="step active" id="step1">
+                <h2>🏭 Welcome to Fugitive Emissions Module</h2>
+                <p class="step-description">
+                    Track and calculate unintentional emissions from process equipment including valves, pumps, compressors, and fittings. Monitor leak detection and repair (LDAR) programs and ensure regulatory compliance.
+                </p>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Active Components</h3>
+                        <div class="value">1,247</div>
+                        <p>Equipment tracked</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>This Quarter</h3>
+                        <div class="value">89.3</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Leak Rate</h3>
+                        <div class="value">1.8%</div>
+                        <p>components leaking</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>LDAR Due</h3>
+                        <div class="value">47</div>
+                        <p>inspections pending</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🔍 Recent LDAR Activity</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Component ID</th>
+                                <th>Type</th>
+                                <th>Service</th>
+                                <th>Last Inspection</th>
+                                <th>Reading (ppm)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🔧 V-001</td>
+                                <td>Valve</td>
+                                <td>Gas Service</td>
+                                <td>Mar 15, 2025</td>
+                                <td>450</td>
+                                <td><span class="leak-status leak-minor">Minor Leak</span></td>
+                            </tr>
+                            <tr>
+                                <td>💨 P-023</td>
+                                <td>Pump</td>
+                                <td>Light Liquid</td>
+                                <td>Mar 18, 2025</td>
+                                <td>8,750</td>
+                                <td><span class="leak-status leak-major">Major Leak</span></td>
+                            </tr>
+                            <tr>
+                                <td>🔧 F-156</td>
+                                <td>Flange</td>
+                                <td>Gas Service</td>
+                                <td>Mar 20, 2025</td>
+                                <td>< 10</td>
+                                <td><span class="leak-status leak-none">No Leak</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="warning-message">
+                    <h3>⚠️ LDAR Alert</h3>
+                    <p>12 components with leaks requiring repair within 15 days. 3 components exceed major leak thresholds.</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Component/Equipment Selection -->
+            <div class="step" id="step2">
+                <h2>🔧 Select Equipment Component Type</h2>
+                <p class="step-description">
+                    Choose the type of process equipment component you're tracking for fugitive emissions. Different component types have specific emission factors and leak detection requirements.
+                </p>
+
+                <div class="form-group">
+                    <label>Select Component Category *</label>
+                    <div id="componentOptions">
+                        <div class="component-option" data-component="valve">
+                            <div class="component-icon valve">🔧</div>
+                            <div>
+                                <strong>Valves</strong>
+                                <p>Control valves, isolation valves, relief valves, check valves</p>
+                            </div>
+                        </div>
+                        <div class="component-option" data-component="pump">
+                            <div class="component-icon pump">💨</div>
+                            <div>
+                                <strong>Pumps</strong>
+                                <p>Centrifugal pumps, positive displacement pumps, seals</p>
+                            </div>
+                        </div>
+                        <div class="component-option" data-component="compressor">
+                            <div class="component-icon compressor">⚙️</div>
+                            <div>
+                                <strong>Compressors</strong>
+                                <p>Reciprocating, centrifugal, rotary screw compressors</p>
+                            </div>
+                        </div>
+                        <div class="component-option" data-component="flange">
+                            <div class="component-icon flange">🔗</div>
+                            <div>
+                                <strong>Flanges & Connectors</strong>
+                                <p>Pipe flanges, fittings, threaded connections</p>
+                            </div>
+                        </div>
+                        <div class="component-option" data-component="fitting">
+                            <div class="component-icon fitting">🔩</div>
+                            <div>
+                                <strong>Fittings & Others</strong>
+                                <p>Sampling connections, vents, drains, instrumentation</p>
+                            </div>
+                        </div>
+                        <div class="component-option" data-component="tank">
+                            <div class="component-icon tank">🛢️</div>
+                            <div>
+                                <strong>Tanks & Vessels</strong>
+                                <p>Storage tanks, pressure vessels, separator vessels</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ldar-status" id="componentDetails" style="display: none;">
+                    <h4>Component Identification</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Component ID/Tag *</label>
+                            <input type="text" placeholder="e.g., V-001, P-023, C-105" id="componentId">
+                        </div>
+                        <div class="form-group">
+                            <label>Service Type *</label>
+                            <select id="serviceType">
+                                <option value="gas">Gas Service</option>
+                                <option value="light-liquid">Light Liquid Service</option>
+                                <option value="heavy-liquid">Heavy Liquid Service</option>
+                                <option value="water">Water/Aqueous Service</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-triple">
+                        <div class="form-group">
+                            <label>Process Unit/Area</label>
+                            <input type="text" placeholder="e.g., Distillation Unit, Compressor Station" id="processUnit">
+                        </div>
+                        <div class="form-group">
+                            <label>Installation Date</label>
+                            <input type="date" id="installationDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Operating Pressure (psig)</label>
+                            <input type="number" placeholder="150" step="0.1" id="operatingPressure">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Process Fluid & Location -->
+            <div class="step" id="step3">
+                <h2>🧪 Process Fluid & Location Details</h2>
+                <p class="step-description">
+                    Specify the type of fluid in the process and the component location. This information determines the appropriate emission factors and regulatory requirements.
+                </p>
+
+                <div class="process-area">
+                    <h4>Process Fluid Information</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Primary Fluid/Gas *</label>
+                            <select id="processFluid">
+                                <option value="methane">Methane (Natural Gas)</option>
+                                <option value="ethane">Ethane</option>
+                                <option value="propane">Propane</option>
+                                <option value="butane">Butane</option>
+                                <option value="hydrogen">Hydrogen</option>
+                                <option value="co2">Carbon Dioxide</option>
+                                <option value="voc-light">Light VOCs (Benzene, Toluene)</option>
+                                <option value="voc-heavy">Heavy VOCs (Xylene)</option>
+                                <option value="mixed-hydrocarbon">Mixed Hydrocarbons</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fluid Density (kg/m³)</label>
+                            <input type="number" placeholder="0.678" step="0.001" id="fluidDensity">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Operating Temperature (°C)</label>
+                            <input type="number" placeholder="25" step="0.1" id="operatingTemp">
+                        </div>
+                        <div class="form-group">
+                            <label>Molecular Weight (g/mol)</label>
+                            <input type="number" placeholder="16.04" step="0.01" id="molecularWeight">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Facility/Plant Location *</label>
+                    <select id="facilityLocation">
+                        <option value="main-plant">Main Processing Plant</option>
+                        <option value="compressor-station">Compressor Station A</option>
+                        <option value="storage-facility">Storage Facility</option>
+                        <option value="wellhead">Wellhead Operations</option>
+                        <option value="loading-terminal">Loading Terminal</option>
+                        <option value="other">Other Location</option>
+                    </select>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Process Conditions Summary</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <h4>Selected Fluid: <span id="selectedFluid">Methane (Natural Gas)</span></h4>
+                            <p><strong>GWP:</strong> 28 (100-year)</p>
+                            <p><strong>Emission Factor Source:</strong> EPA Protocol for Equipment Leaks</p>
+                        </div>
+                        <div>
+                            <p><strong>Operating Conditions:</strong></p>
+                            <p>Pressure: <span id="displayPressure">150</span> psig</p>
+                            <p>Temperature: <span id="displayTemp">25</span> °C</p>
+                            <p><strong>Service Classification:</strong> <span id="displayService">Gas Service</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-grid">
+                    <div class="component-card">
+                        <h4>Component Count</h4>
+                        <div class="form-group">
+                            <label>Number of Components</label>
+                            <input type="number" placeholder="1" min="1" id="componentCount" value="1">
+                        </div>
+                        <small>For multiple identical components</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Calculation Method Selection -->
+            <div class="step" id="step4">
+                <h2>📊 Select Calculation Method</h2>
+                <p class="step-description">
+                    Choose the method for calculating fugitive emissions. Different methods provide varying levels of accuracy and are suitable for different regulatory requirements.
+                </p>
+
+                <div class="method-selector">
+                    <div class="method-card" data-method="average-factors" onclick="selectMethod('average-factors')">
+                        <div class="method-name">Average Emission Factors</div>
+                        <div class="method-description">EPA default factors by component type and service</div>
+                        <small><strong>Accuracy:</strong> ±50% | <strong>Effort:</strong> Low</small>
+                    </div>
+                    
+                    <div class="method-card" data-method="screening-ranges" onclick="selectMethod('screening-ranges')">
+                        <div class="method-name">Screening Ranges</div>
+                        <div class="method-description">Factors based on leak/no-leak screening results</div>
+                        <small><strong>Accuracy:</strong> ±30% | <strong>Effort:</strong> Medium</small>
+                    </div>
+                    
+                    <div class="method-card" data-method="correlation-factors" onclick="selectMethod('correlation-factors')">
+                        <div class="method-name">Correlation Equation</div>
+                        <div class="method-description">PPM readings correlated to mass emission rates</div>
+                        <small><strong>Accuracy:</strong> ±20% | <strong>Effort:</strong> High</small>
+                    </div>
+                    
+                    <div class="method-card" data-method="direct-measurement" onclick="selectMethod('direct-measurement')">
+                        <div class="method-name">Direct Measurement</div>
+                        <div class="method-description">Bagging or flow measurement of actual leak</div>
+                        <small><strong>Accuracy:</strong> ±10% | <strong>Effort:</strong> Very High</small>
+                    </div>
+                </div>
+
+                <!-- Average Factors Method -->
+                <div id="averageFactorsSection" style="display: none;">
+                    <div class="card">
+                        <h4>📋 Average Emission Factors Method</h4>
+                        <p>Uses EPA default emission factors based on component type and service. Simple and widely accepted but provides only order-of-magnitude estimates.</p>
+                        
+                        <table class="emission-factor-table">
+                            <thead>
+                                <tr>
+                                    <th>Component Type</th>
+                                    <th>Gas Service (kg/hr/source)</th>
+                                    <th>Light Liquid (kg/hr/source)</th>
+                                    <th>Heavy Liquid (kg/hr/source)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Valves</td>
+                                    <td>0.00597</td>
+                                    <td>0.00403</td>
+                                    <td>0.00023</td>
+                                </tr>
+                                <tr>
+                                    <td>Pump Seals</td>
+                                    <td>0.0199</td>
+                                    <td>0.0109</td>
+                                    <td>0.00562</td>
+                                </tr>
+                                <tr>
+                                    <td>Compressor Seals</td>
+                                    <td>0.228</td>
+                                    <td>0.0517</td>
+                                    <td>0.0180</td>
+                                </tr>
+                                <tr>
+                                    <td>Flanges</td>
+                                    <td>0.00183</td>
+                                    <td>0.00114</td>
+                                    <td>0.000021</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Screening Ranges Method -->
+                <div id="screeningRangesSection" style="display: none;">
+                    <div class="card">
+                        <h4>🔍 Screening Ranges Method</h4>
+                        <p>Uses different emission factors based on whether component is leaking or not leaking during screening.</p>
+                        
+                        <div class="form-group">
+                            <label>Screening Result *</label>
+                            <select id="screeningResult">
+                                <option value="no-leak">No Leak Detected (< 10,000 ppm)</option>
+                                <option value="leak-detected">Leak Detected (≥ 10,000 ppm)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="screening-results">
+                            <h4>📊 Screening-Based Factors</h4>
+                            <p><strong>No Leak Factor:</strong> <span id="noLeakFactor">0.00140</span> kg/hr/source</p>
+                            <p><strong>Leak Factor:</strong> <span id="leakFactor">0.0293</span> kg/hr/source</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Correlation Method -->
+                <div id="correlationSection" style="display: none;">
+                    <div class="card">
+                        <h4>📈 Correlation Equation Method</h4>
+                        <p>Uses measured screening values (ppm) in correlation equations to estimate mass emission rates.</p>
+                        
+                        <div class="form-group">
+                            <label>Measured Screening Value (ppm) *</label>
+                            <input type="number" placeholder="2500" min="0" id="screeningValue">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Correlation Equation</label>
+                            <select id="correlationEquation">
+                                <option value="epa-21">EPA-21 Default</option>
+                                <option value="custom">Custom Site-Specific</option>
+                            </select>
+                        </div>
+                        
+                        <p><small><strong>EPA-21 Equation:</strong> Emission Rate = 3.05 × 10⁻⁶ × (Screening Value)⁰·⁷⁷⁴</small></p>
+                    </div>
+                </div>
+
+                <!-- Direct Measurement Method -->
+                <div id="directMeasurementSection" style="display: none;">
+                    <div class="card">
+                        <h4>🎯 Direct Measurement Method</h4>
+                        <p>Direct measurement of emission rate using bagging technique or flow measurement.</p>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Measured Emission Rate *</label>
+                                <input type="number" placeholder="0.025" step="0.001" id="measuredRate">
+                            </div>
+                            <div class="form-group">
+                                <label>Units</label>
+                                <select id="measurementUnits">
+                                    <option value="kg-hr">kg/hr</option>
+                                    <option value="scfh">SCFH</option>
+                                    <option value="g-min">g/min</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Measurement Method</label>
+                            <select id="measurementMethod">
+                                <option value="bagging">Bagging Technique</option>
+                                <option value="flow-meter">Flow Meter</option>
+                                <option value="hi-flow">Hi-Flow Sampler</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Time Period & Operating Hours -->
+            <div class="step" id="step5">
+                <h2>📅 Operating Period & Schedule</h2>
+                <p class="step-description">
+                    Specify the operating schedule and time period for emission calculations. Fugitive emissions occur continuously during operation.
+                </p>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Reporting Period Type *</label>
+                        <select id="periodType">
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="annual">Annual</option>
+                            <option value="custom">Custom Period</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Month/Quarter *</label>
+                        <select id="monthSelect">
+                            <option value="2025-01">January 2025</option>
+                            <option value="2025-02">February 2025</option>
+                            <option value="2025-03" selected>March 2025</option>
+                            <option value="2025-04">April 2025</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4>⏰ Operating Schedule</h4>
+                    <div class="form-triple">
+                        <div class="form-group">
+                            <label>Hours per Day</label>
+                            <input type="number" placeholder="24" min="0" max="24" id="hoursPerDay" value="24">
+                        </div>
+                        <div class="form-group">
+                            <label>Days per Week</label>
+                            <input type="number" placeholder="7" min="0" max="7" id="daysPerWeek" value="7">
+                        </div>
+                        <div class="form-group">
+                            <label>Operating Factor (%)</label>
+                            <input type="number" placeholder="95" min="0" max="100" id="operatingFactor" value="95">
+                        </div>
+                    </div>
+                    
+                    <div class="calculation-preview" id="operatingPreview">
+                        <h4>📊 Calculated Operating Hours</h4>
+                        <p><strong>Monthly Hours:</strong> <span id="monthlyHours">684</span> hours</p>
+                        <p><strong>Annual Hours:</strong> <span id="annualHours">8,322</span> hours</p>
+                        <p><em>Based on operating schedule and factor</em></p>
+                    </div>
+                </div>
+
+                <div class="ldar-status">
+                    <h4>🔍 LDAR Inspection Schedule</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Last LDAR Inspection</label>
+                            <input type="date" id="lastLdarDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Inspection Frequency</label>
+                            <select id="ldarFrequency">
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="semi-annual">Semi-Annual</option>
+                                <option value="annual">Annual</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Next Inspection Due</label>
+                        <input type="date" id="nextLdarDate" readonly>
+                    </div>
+                </div>
+
+                <div class="calculation-preview" id="calculationPreview" style="display: none;">
+                    <h3>⚡ Real-time Emission Calculation</h3>
+                    <div class="emission-result" id="emissionResult">0.00 tonnes CO₂e</div>
+                    <p>Component: <span id="previewComponent">V-001</span> | Service: <span id="previewService">Gas Service</span></p>
+                    <p>Method: <span id="previewMethod">Average Factors</span></p>
+                </div>
+            </div>
+
+            <!-- Step 6: Additional Data -->
+            <div class="step" id="step6">
+                <h2>📎 Additional Information & Documentation</h2>
+                <p class="step-description">
+                    Add supporting documentation, LDAR inspection records, and maintenance information to enhance data quality and support regulatory compliance.
+                </p>
+
+                <div class="form-group">
+                    <label>Component Description & Context</label>
+                    <textarea rows="4" placeholder="Describe component location, process conditions, recent maintenance, leak history..." id="componentDescription"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Supporting Documents</label>
+                    <div class="file-upload" id="fileUpload">
+                        <div>📄 Click to upload or drag files here</div>
+                        <p>Upload LDAR inspection reports, P&IDs, component photos, repair records</p>
+                        <small>Supported: PDF, JPG, PNG, Excel, CSV (Max 10MB each)</small>
+                    </div>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Inspector/Technician</label>
+                        <input type="text" placeholder="e.g., John Smith, ABC Environmental" id="inspector">
+                    </div>
+                    <div class="form-group">
+                        <label>Instrument Used</label>
+                        <input type="text" placeholder="e.g., TVA-1000B, OVA-5000" id="instrument">
+                    </div>
+                </div>
+
+                <div class="process-area">
+                    <h4>🔧 Component Condition & History</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Component Age (years)</label>
+                            <input type="number" placeholder="5" min="0" max="50" id="componentAge">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Maintenance Date</label>
+                            <input type="date" id="lastMaintenance">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Component Condition</label>
+                        <select id="componentCondition">
+                            <option value="excellent">Excellent - Like new</option>
+                            <option value="good">Good - Normal wear</option>
+                            <option value="fair">Fair - Some degradation</option>
+                            <option value="poor">Poor - Needs attention</option>
+                            <option value="critical">Critical - Immediate repair needed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Leak History</label>
+                        <textarea rows="2" placeholder="Previous leak incidents, repair history, replacement schedule..." id="leakHistory"></textarea>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 LDAR Program Compliance</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Inspection Compliance:</strong> ✅ Up to date<br>
+                            <strong>Detection Method:</strong> EPA Method 21<br>
+                            <strong>Calibration Current:</strong> Yes
+                        </div>
+                        <div>
+                            <strong>Regulatory Program:</strong> NSPS OOOO<br>
+                            <strong>Repair Deadline:</strong> 30 days<br>
+                            <strong>Reporting Required:</strong> ⚠️ If > 500 ppm
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Review & Confirm -->
+            <div class="step" id="step7">
+                <h2>👀 Review & Confirm Fugitive Emission Entry</h2>
+                <p class="step-description">
+                    Please review all fugitive emission information before saving. This data will be included in your emissions inventory and LDAR program tracking.
+                </p>
+
+                <div class="card">
+                    <h3>🔧 Component & Process Summary</h3>
+                    <table class="summary-table">
+                        <tr>
+                            <th>Component ID:</th>
+                            <td><span id="reviewComponentId">V-001</span></td>
+                        </tr>
+                        <tr>
+                            <th>Component Type:</th>
+                            <td><span id="reviewComponentType">Valve - Gas Service</span></td>
+                        </tr>
+                        <tr>
+                            <th>Process Unit:</th>
+                            <td><span id="reviewProcessUnit">Distillation Unit</span></td>
+                        </tr>
+                        <tr>
+                            <th>Process Fluid:</th>
+                            <td><span id="reviewProcessFluid">Methane (Natural Gas)</span></td>
+                        </tr>
+                        <tr>
+                            <th>Operating Conditions:</th>
+                            <td><span id="reviewConditions">150 psig, 25°C</span></td>
+                        </tr>
+                        <tr>
+                            <th>Calculation Method:</th>
+                            <td><span id="reviewMethod">Average Emission Factors</span></td>
+                        </tr>
+                        <tr>
+                            <th>Reporting Period:</th>
+                            <td><span id="reviewPeriod">March 2025</span></td>
+                        </tr>
+                        <tr>
+                            <th>Operating Hours:</th>
+                            <td><span id="reviewOperatingHours">684 hours/month</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>🎯 Calculated Fugitive Emissions</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <div class="emission-result"><span id="reviewTotalEmissions">0.114</span> tonnes CO₂e</div>
+                            <p>Total emissions for this component/period</p>
+                        </div>
+                        <div>
+                            <strong>Calculation:</strong><br>
+                            0.00597 kg/hr × 684 hr × 28 GWP<br>
+                            <strong>Emission Rate:</strong> 0.00597 kg/hr
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Facility Impact Analysis</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Component Previous Month:</strong> 0.098 tCO₂e<br>
+                            <strong>This Entry:</strong> 0.114 tCO₂e<br>
+                            <strong>Change:</strong> +0.016 tCO₂e (+16.3%)
+                        </div>
+                        <div>
+                            <strong>Facility YTD Total:</strong> 89.3 tCO₂e<br>
+                            <strong>Component % of Total:</strong> 0.38%<br>
+                            <strong>LDAR Status:</strong> Inspection due in 45 days
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ldar-status">
+                    <h4>🔍 LDAR Program Context</h4>
+                    <p><strong>Inspector:</strong> <span id="reviewInspector">John Smith, ABC Environmental</span></p>
+                    <p><strong>Component Condition:</strong> <span id="reviewCondition">Good - Normal wear</span></p>
+                    <p><strong>Leak Status:</strong> No leak detected (< 10,000 ppm)</p>
+                    <p><strong>Next Action:</strong> Continue routine monitoring per LDAR schedule</p>
+                </div>
+            </div>
+
+            <!-- Step 8: Processing -->
+            <div class="step" id="step8">
+                <h2>⚙️ Processing Fugitive Emission Data</h2>
+                <p class="step-description">
+                    The system is calculating fugitive emissions, updating LDAR program records, and checking regulatory compliance requirements for process equipment.
+                </p>
+
+                <div class="card">
+                    <h3>🔄 Processing Steps</h3>
+                    <div id="processingSteps">
+                        <p>✅ Validating component and process data...</p>
+                        <p>✅ Applying emission factors for component type...</p>
+                        <p>✅ Calculating operating hours and emissions...</p>
+                        <p>🔄 Updating LDAR program database...</p>
+                        <p>⏳ Checking regulatory compliance...</p>
+                        <p>⏳ Generating inspection schedules...</p>
+                        <p>⏳ Updating facility inventory...</p>
+                    </div>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>📊 Detailed Calculation</h3>
+                    <p><strong>Method:</strong> EPA Average Emission Factors</p>
+                    <p><strong>Emission Factor:</strong> 0.00597 kg/hr/source (Valve, Gas Service)</p>
+                    <p><strong>Operating Hours:</strong> 684 hours/month</p>
+                    <p><strong>Mass Emissions:</strong> 0.00597 × 684 = 4.08 kg CH₄</p>
+                    <p><strong>CO₂e:</strong> 4.08 kg × 28 GWP = 114.2 kg CO₂e = 0.114 tonnes</p>
+                </div>
+
+                <div class="warning-message">
+                    <h3>📋 LDAR Update</h3>
+                    <p>Component V-001 inspection schedule updated - next inspection due April 15, 2025</p>
+                </div>
+
+                <div class="success-message" id="processingComplete" style="display: none;">
+                    <h3>✅ Processing Complete!</h3>
+                    <p>Your fugitive emission data has been successfully calculated and LDAR records updated.</p>
+                    <p><strong>Entry ID:</strong> FUG-2025-0247</p>
+                </div>
+            </div>
+
+            <!-- Step 9: Results & LDAR Dashboard -->
+            <div class="step" id="step9">
+                <h2>📊 Results & LDAR Program Dashboard</h2>
+                <p class="step-description">
+                    Your fugitive emission data has been successfully processed and integrated into your LDAR program. Monitor component performance, plan inspections, and track regulatory compliance.
+                </p>
+
+                <div class="success-message">
+                    <h3>✅ Fugitive Emission Entry Successfully Saved</h3>
+                    <p><strong>Entry ID:</strong> FUG-2025-0247 | <strong>Component:</strong> V-001 | <strong>Emissions:</strong> 0.114 tonnes CO₂e</p>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Component V-001</h3>
+                        <div class="value">0.114</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Facility Total</h3>
+                        <div class="value">89.4</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Leak Rate</h3>
+                        <div class="value">1.8%</div>
+                        <p>unchanged</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>LDAR Schedule</h3>
+                        <div class="value">On Track</div>
+                        <p>all compliant</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🔧 Updated Component Summary</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Type</th>
+                                <th>Service</th>
+                                <th>Last Inspection</th>
+                                <th>YTD Emissions (tCO₂e)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #E8F5E8;">
+                                <td>🔧 V-001</td>
+                                <td>Valve</td>
+                                <td>Gas</td>
+                                <td>Mar 20, 2025</td>
+                                <td>0.342</td>
+                                <td><span class="leak-status leak-none">No Leak</span></td>
+                                <td>📅 Schedule | ✏️ Edit</td>
+                            </tr>
+                            <tr>
+                                <td>💨 P-023</td>
+                                <td>Pump</td>
+                                <td>Light Liquid</td>
+                                <td>Mar 18, 2025</td>
+                                <td>1.847</td>
+                                <td><span class="leak-status leak-major">Major Leak</span></td>
+                                <td>🔧 Repair | ✏️ Edit</td>
+                            </tr>
+                            <tr>
+                                <td>⚙️ C-105</td>
+                                <td>Compressor</td>
+                                <td>Gas</td>
+                                <td>Mar 15, 2025</td>
+                                <td>5.234</td>
+                                <td><span class="leak-status leak-minor">Minor Leak</span></td>
+                                <td>🔧 Monitor | ✏️ Edit</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="card">
+                        <h3>🎯 Priority Actions</h3>
+                        <p>• 🔴 Repair P-023 major leak (12 days remaining)</p>
+                        <p>• 🟡 Monitor C-105 minor leak trend</p>
+                        <p>• 📅 Schedule 47 pending LDAR inspections</p>
+                        <p>• 📊 Prepare quarterly LDAR report</p>
+                        <p>• 🔄 Update emission factors for new equipment</p>
+                    </div>
+                    <div class="card">
+                        <h3>📊 Analytics & Compliance</h3>
+                        <p>• View fugitive emission trends</p>
+                        <p>• Generate LDAR compliance report</p>
+                        <p>• Export component inventory</p>
+                        <p>• Set up automated inspection alerts</p>
+                        <p>• Plan equipment replacement strategy</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏆 LDAR Program Performance</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Inspection Compliance:</strong> 98.2% on-time<br>
+                            <strong>Leak Detection Rate:</strong> 1.8% (↓ 0.3% vs last quarter)<br>
+                            <strong>Repair Completion:</strong> 89% within 30 days
+                        </div>
+                        <div>
+                            <strong>Fugitive Emission Reduction:</strong> 15.4% YoY<br>
+                            <strong>Cost Avoidance:</strong> $125,000 product loss prevented<br>
+                            <strong>Environmental Benefit:</strong> 23.7 tCO₂e reduction achieved
+                        </div>
+                    </div>
+                </div>
+
+                <div class="screening-results">
+                    <h3>🔍 Regulatory Compliance Status</h3>
+                    <p><strong>NSPS OOOO Compliance:</strong> ✅ All requirements met</p>
+                    <p><strong>LDAR Program:</strong> ✅ Fully compliant</p>
+                    <p><strong>Reporting Status:</strong> Q1 report due April 30, 2025</p>
+                    <p><strong>Next Audit:</strong> Annual third-party audit scheduled for June 2025</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <div>
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">← Previous</button>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Begin Entry →</button>
+                <button class="btn btn-success" id="saveBtn" onclick="saveEntry()" style="display: none;">💾 Save Component Data</button>
+                <button class="btn btn-primary" id="finishBtn" onclick="finish()" style="display: none;">🔧 Add Another Component</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedMethod = 'average-factors';
+        let selectedComponent = { type: 'valve', service: 'gas' };
+        const totalSteps = 9;
+        const stepTitles = [
+            "Facility Overview",
+            "Select Component Type", 
+            "Process Fluid & Location",
+            "Calculation Method",
+            "Operating Period",
+            "Additional Information",
+            "Review & Confirm",
+            "Processing Data",
+            "LDAR Dashboard"
+        ];
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
+            
+            // Update step circles
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                circle.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    circle.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    circle.classList.add('active');
+                }
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Update button visibility
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            
+            prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+            
+            if (step === 7) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+            } else if (step === 9) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'none';
+            }
+            
+            updateProgress();
+        }
+
+        function selectMethod(method) {
+            selectedMethod = method;
+            
+            // Remove active class from all method cards
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add active class to selected method
+            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+            
+            // Hide all method sections
+            document.querySelectorAll('#averageFactorsSection, #screeningRangesSection, #correlationSection, #directMeasurementSection').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected method section
+            const sectionMap = {
+                'average-factors': 'averageFactorsSection',
+                'screening-ranges': 'screeningRangesSection',
+                'correlation-factors': 'correlationSection',
+                'direct-measurement': 'directMeasurementSection'
+            };
+            
+            document.getElementById(sectionMap[method]).style.display = 'block';
+        }
+
+        function calculateOperatingHours() {
+            const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value) || 24;
+            const daysPerWeek = parseFloat(document.getElementById('daysPerWeek').value) || 7;
+            const operatingFactor = parseFloat(document.getElementById('operatingFactor').value) || 95;
+            
+            const weeklyHours = hoursPerDay * daysPerWeek;
+            const monthlyHours = Math.round(weeklyHours * 4.33 * (operatingFactor / 100));
+            const annualHours = Math.round(weeklyHours * 52 * (operatingFactor / 100));
+            
+            document.getElementById('monthlyHours').textContent = monthlyHours.toLocaleString();
+            document.getElementById('annualHours').textContent = annualHours.toLocaleString();
+            
+            return { monthly: monthlyHours, annual: annualHours };
+        }
+
+        function calculateEmissions() {
+            const componentCount = parseInt(document.getElementById('componentCount').value) || 1;
+            const hours = calculateOperatingHours().monthly;
+            
+            // Example calculation using average factors
+            let emissionFactor = 0.00597; // kg/hr for valve in gas service
+            
+            if (selectedComponent.type === 'pump') {
+                emissionFactor = 0.0199;
+            } else if (selectedComponent.type === 'compressor') {
+                emissionFactor = 0.228;
+            } else if (selectedComponent.type === 'flange') {
+                emissionFactor = 0.00183;
+            }
+            
+            const massEmissions = emissionFactor * hours * componentCount; // kg CH4
+            const co2eEmissions = massEmissions * 28 / 1000; // tonnes CO2e (GWP = 28)
+            
+            const preview = document.getElementById('calculationPreview');
+            if (hours > 0) {
+                preview.style.display = 'block';
+                document.getElementById('emissionResult').textContent = co2eEmissions.toFixed(3) + ' tonnes CO₂e';
+            } else {
+                preview.style.display = 'none';
+            }
+            
+            return co2eEmissions;
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                if (currentStep === 7) {
+                    // Skip to step 8 (processing)
+                    currentStep = 8;
+                    showStep(currentStep);
+                    
+                    // Simulate processing
+                    setTimeout(() => {
+                        updateProcessingSteps();
+                    }, 1000);
+                    
+                    setTimeout(() => {
+                        currentStep = 9;
+                        showStep(currentStep);
+                    }, 4000);
+                } else {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function saveEntry() {
+            currentStep = 8;
+            showStep(currentStep);
+            
+            setTimeout(() => {
+                updateProcessingSteps();
+            }, 1000);
+            
+            setTimeout(() => {
+                currentStep = 9;
+                showStep(currentStep);
+            }, 4000);
+        }
+
+        function finish() {
+            currentStep = 1;
+            showStep(currentStep);
+            resetForm();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input, select, textarea').forEach(field => {
+                if (field.type === 'number' || field.type === 'text' || field.type === 'date' || field.tagName === 'TEXTAREA') {
+                    field.value = '';
+                } else if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0;
+                }
+            });
+            document.querySelectorAll('.component-option, .method-card').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('componentDetails').style.display = 'none';
+        }
+
+        function updateProcessingSteps() {
+            const steps = [
+                "✅ Validating component and process data...",
+                "✅ Applying emission factors for component type...",
+                "✅ Calculating operating hours and emissions...",
+                "✅ Updating LDAR program database...",
+                "✅ Checking regulatory compliance...",
+                "✅ Generating inspection schedules...",
+                "✅ Updating facility inventory..."
+            ];
+            
+            document.getElementById('processingSteps').innerHTML = steps.join('<br>');
+            document.getElementById('processingComplete').style.display = 'block';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Component selection
+            document.querySelectorAll('.component-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.component-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedComponent.type = this.dataset.component;
+                    document.getElementById('componentDetails').style.display = 'block';
+                });
+            });
+
+            // Operating hours calculation
+            ['hoursPerDay', 'daysPerWeek', 'operatingFactor', 'componentCount'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', function() {
+                        calculateOperatingHours();
+                        calculateEmissions();
+                    });
+                }
+            });
+
+            // Service type change
+            document.getElementById('serviceType').addEventListener('change', function() {
+                selectedComponent.service = this.value;
+                calculateEmissions();
+            });
+
+            // File upload simulation
+            document.getElementById('fileUpload').addEventListener('click', function() {
+                alert('File upload dialog would open here in a real implementation');
+            });
+
+            // Initialize with default method
+            selectMethod('average-factors');
+            showStep(1);
+        });
+    </script>
+</body>
+</html>

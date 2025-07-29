@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stationary Combustion Module - Interactive UX Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .step-indicator {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-circles {
+            display: flex;
+            gap: 15px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-circle.active {
+            background: #3498db;
+            transform: scale(1.1);
+        }
+
+        .step-circle.completed {
+            background: #27ae60;
+        }
+
+        .step-circle::after {
+            content: '';
+            position: absolute;
+            right: -23px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 2px;
+            background: #bdc3c7;
+        }
+
+        .step-circle:last-child::after {
+            display: none;
+        }
+
+        .content {
+            padding: 40px;
+            min-height: 500px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .step-description {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .button-group {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .fuel-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .fuel-option:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .fuel-option.selected {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+
+        .fuel-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .natural-gas { background: #3498db; }
+        .diesel { background: #e74c3c; }
+        .coal { background: #34495e; }
+        .biomass { background: #27ae60; }
+
+        .calculation-preview {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .calculation-preview h3 {
+            margin-bottom: 10px;
+        }
+
+        .emission-result {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .summary-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 1px solid #ecf0f1;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .dashboard-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .file-upload {
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #bdc3c7;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #27ae60;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        .factor-display {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .factor-display .factor-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .factor-display .factor-source {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scope 1 - Stationary Combustion</h1>
+            <div class="breadcrumb">Dashboard > Scope 1 > Stationary Combustion</div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-circles">
+                <div class="step-circle active" data-step="1">1</div>
+                <div class="step-circle" data-step="2">2</div>
+                <div class="step-circle" data-step="3">3</div>
+                <div class="step-circle" data-step="4">4</div>
+                <div class="step-circle" data-step="5">5</div>
+                <div class="step-circle" data-step="6">6</div>
+                <div class="step-circle" data-step="7">7</div>
+                <div class="step-circle" data-step="8">8</div>
+                <div class="step-circle" data-step="9">9</div>
+            </div>
+            <div class="step-title" id="stepTitle">Module Overview</div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Module Overview -->
+            <div class="step active" id="step1">
+                <h2>🏭 Welcome to Stationary Combustion Module</h2>
+                <p class="step-description">
+                    Track and calculate emissions from stationary combustion sources including boilers, furnaces, generators, and other fuel-burning equipment at your facilities.
+                </p>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Current Period</h3>
+                        <div class="value">Q1 2025</div>
+                        <p>January - March</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Total Entries</h3>
+                        <div class="value">12</div>
+                        <p>This quarter</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Total Emissions</h3>
+                        <div class="value">847.2</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Data Completeness</h3>
+                        <div class="value">85%</div>
+                        <p>All facilities</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Recent Entries</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Fuel Type</th>
+                                <th>Period</th>
+                                <th>Consumption</th>
+                                <th>Emissions (tCO₂e)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🔥 Natural Gas</td>
+                                <td>Mar 2025</td>
+                                <td>15,420 m³</td>
+                                <td>285.6</td>
+                                <td>✅ Complete</td>
+                            </tr>
+                            <tr>
+                                <td>⛽ Diesel</td>
+                                <td>Mar 2025</td>
+                                <td>850 L</td>
+                                <td>2.3</td>
+                                <td>✅ Complete</td>
+                            </tr>
+                            <tr>
+                                <td>🔥 Natural Gas</td>
+                                <td>Feb 2025</td>
+                                <td>18,750 m³</td>
+                                <td>347.2</td>
+                                <td>⚠️ Pending Review</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Step 2: Activity Selection -->
+            <div class="step" id="step2">
+                <h2>⚡ Select Fuel Type</h2>
+                <p class="step-description">
+                    Choose the type of fuel used in your stationary combustion equipment. This determines the emission factors applied to your consumption data.
+                </p>
+
+                <div class="form-group">
+                    <label>Select Primary Fuel Type *</label>
+                    <div id="fuelOptions">
+                        <div class="fuel-option" data-fuel="natural-gas">
+                            <div class="fuel-icon natural-gas">🔥</div>
+                            <div>
+                                <strong>Natural Gas</strong>
+                                <p>Boilers, furnaces, space heating</p>
+                            </div>
+                        </div>
+                        <div class="fuel-option" data-fuel="diesel">
+                            <div class="fuel-icon diesel">⛽</div>
+                            <div>
+                                <strong>Diesel</strong>
+                                <p>Emergency generators, stationary engines</p>
+                            </div>
+                        </div>
+                        <div class="fuel-option" data-fuel="coal">
+                            <div class="fuel-icon coal">⚫</div>
+                            <div>
+                                <strong>Coal (Bituminous)</strong>
+                                <p>Power generation, industrial heating</p>
+                            </div>
+                        </div>
+                        <div class="fuel-option" data-fuel="biomass">
+                            <div class="fuel-icon biomass">🌿</div>
+                            <div>
+                                <strong>Biomass</strong>
+                                <p>Wood chips, agricultural waste</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Equipment/Facility Details</label>
+                    <input type="text" placeholder="e.g., Main Boiler #2, Emergency Generator Building A" id="equipmentDetails">
+                </div>
+            </div>
+
+            <!-- Step 3: Period Selection -->
+            <div class="step" id="step3">
+                <h2>📅 Select Reporting Period</h2>
+                <p class="step-description">
+                    Specify the time period for which you're reporting fuel consumption. Ensure this aligns with your organization's reporting cycles.
+                </p>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Reporting Period Type *</label>
+                        <select id="periodType">
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="annual">Annual</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Month/Quarter *</label>
+                        <select id="monthSelect">
+                            <option value="2025-01">January 2025</option>
+                            <option value="2025-02">February 2025</option>
+                            <option value="2025-03" selected>March 2025</option>
+                            <option value="2025-04">April 2025</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Period Status Overview</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>✅ Complete Periods:</strong> Jan 2025, Feb 2025<br>
+                            <strong>🔄 Current Period:</strong> Mar 2025<br>
+                            <strong>⚠️ Pending:</strong> No missing periods detected
+                        </div>
+                        <div>
+                            <strong>Previous Period Comparison:</strong><br>
+                            Feb 2025: 347.2 tCO₂e<br>
+                            <em>Use as reference for data validation</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Consumption Data -->
+            <div class="step" id="step4">
+                <h2>📊 Enter Consumption Data</h2>
+                <p class="step-description">
+                    Input the actual fuel consumption for the selected period. The system will automatically convert units and provide real-time emissions calculations.
+                </p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fuel Consumption Quantity *</label>
+                        <input type="number" placeholder="Enter consumption amount" id="consumptionQty" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit of Measurement *</label>
+                        <select id="consumptionUnit">
+                            <option value="m3">Cubic Meters (m³)</option>
+                            <option value="scf">Standard Cubic Feet (SCF)</option>
+                            <option value="mmbtu">MMBtu</option>
+                            <option value="therms">Therms</option>
+                            <option value="kwh">kWh</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calculation-preview" id="calculationPreview" style="display: none;">
+                    <h3>⚡ Real-time Calculation Preview</h3>
+                    <div class="emission-result" id="emissionResult">0.00 tonnes CO₂e</div>
+                    <p>Based on: <span id="selectedFuel">Natural Gas</span> - Default EPA emission factor</p>
+                </div>
+
+                <div class="card">
+                    <h3>📋 Historical Reference</h3>
+                    <p><strong>Previous Period (Feb 2025):</strong> 18,750 m³ → 347.2 tCO₂e</p>
+                    <p><strong>Average Monthly:</strong> 16,500 m³ → 305.7 tCO₂e</p>
+                    <p><em>Values outside ±30% of average will be flagged for review</em></p>
+                </div>
+
+                <div class="form-group">
+                    <label>Data Source Information</label>
+                    <select id="dataSource">
+                        <option value="utility-bill">Utility Bill</option>
+                        <option value="meter-reading">Direct Meter Reading</option>
+                        <option value="fuel-receipt">Fuel Delivery Receipt</option>
+                        <option value="estimated">Estimated</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 5: Emission Factors -->
+            <div class="step" id="step5">
+                <h2>🔬 Emission Factor Configuration</h2>
+                <p class="step-description">
+                    Review the default emission factors or specify custom factors for more precise calculations. Custom factors require documentation and approval.
+                </p>
+
+                <div class="factor-display">
+                    <div class="factor-value">Default CO₂ Factor: 0.0184 tonnes CO₂/m³</div>
+                    <div class="factor-source">Source: EPA (2024) - Natural Gas Stationary Combustion</div>
+                    <div class="factor-source">Includes: CO₂: 98.2%, CH₄: 1.5%, N₂O: 0.3%</div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <span>Use Custom Emission Factor</span>
+                        <div class="toggle-switch" id="customFactorToggle"></div>
+                    </label>
+                </div>
+
+                <div id="customFactorSection" style="display: none;">
+                    <div class="responsive-grid">
+                        <div class="form-group">
+                            <label>Custom CO₂ Factor *</label>
+                            <input type="number" placeholder="e.g., 0.0185" step="0.0001" id="customCO2Factor">
+                        </div>
+                        <div class="form-group">
+                            <label>Factor Unit *</label>
+                            <select id="customFactorUnit">
+                                <option value="tonnes-co2-m3">tonnes CO₂/m³</option>
+                                <option value="kg-co2-m3">kg CO₂/m³</option>
+                                <option value="tonnes-co2-mmbtu">tonnes CO₂/MMBtu</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Factor Source/Reference *</label>
+                        <input type="text" placeholder="e.g., Supplier Environmental Report 2024, Lab Analysis #ABC123" id="factorSource">
+                    </div>
+                    
+                    <div class="card">
+                        <h3>⚠️ Custom Factor Impact</h3>
+                        <p><strong>Default Factor Result:</strong> <span id="defaultResult">0.00 tCO₂e</span></p>
+                        <p><strong>Custom Factor Result:</strong> <span id="customResult">0.00 tCO₂e</span></p>
+                        <p><strong>Difference:</strong> <span id="factorDifference">0.00 tCO₂e (0.0%)</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Additional Data -->
+            <div class="step" id="step6">
+                <h2>📎 Additional Information & Documentation</h2>
+                <p class="step-description">
+                    Add supporting documentation and contextual information to enhance data quality and support audit requirements.
+                </p>
+
+                <div class="form-group">
+                    <label>Notes & Comments</label>
+                    <textarea rows="4" placeholder="Add any relevant context, operational notes, or data source details..." id="notesField"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Supporting Documents</label>
+                    <div class="file-upload" id="fileUpload">
+                        <div>📁 Click to upload or drag files here</div>
+                        <p>Upload utility bills, fuel receipts, meter readings, or other supporting documents</p>
+                        <small>Supported: PDF, JPG, PNG, Excel, CSV (Max 10MB each)</small>
+                    </div>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Equipment Asset ID</label>
+                        <input type="text" placeholder="e.g., BOILER-001, GEN-B2" id="assetId">
+                    </div>
+                    <div class="form-group">
+                        <label>Facility/Location</label>
+                        <select id="facilityLocation">
+                            <option value="main-plant">Main Plant - Building A</option>
+                            <option value="warehouse">Warehouse Facility</option>
+                            <option value="admin">Administration Building</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Data Quality Indicators</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Completeness Score:</strong> 85%<br>
+                            <strong>Confidence Level:</strong> High<br>
+                            <strong>Documentation:</strong> Utility bill attached
+                        </div>
+                        <div>
+                            <strong>Validation Status:</strong> ✅ All checks passed<br>
+                            <strong>Variance Check:</strong> ⚠️ 15% above average<br>
+                            <strong>Approval Required:</strong> No
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Review & Confirm -->
+            <div class="step" id="step7">
+                <h2>👀 Review & Confirm Entry</h2>
+                <p class="step-description">
+                    Please review all entered information before saving. Once confirmed, this data will be included in your emissions inventory and reports.
+                </p>
+
+                <div class="card">
+                    <h3>📋 Entry Summary</h3>
+                    <table class="summary-table">
+                        <tr>
+                            <th>Fuel Type:</th>
+                            <td><span id="reviewFuelType">Natural Gas</span></td>
+                        </tr>
+                        <tr>
+                            <th>Reporting Period:</th>
+                            <td><span id="reviewPeriod">March 2025</span></td>
+                        </tr>
+                        <tr>
+                            <th>Consumption:</th>
+                            <td><span id="reviewConsumption">15,420 m³</span></td>
+                        </tr>
+                        <tr>
+                            <th>Equipment:</th>
+                            <td><span id="reviewEquipment">Main Boiler #2</span></td>
+                        </tr>
+                        <tr>
+                            <th>Emission Factor:</th>
+                            <td><span id="reviewFactor">0.0184 tonnes CO₂/m³ (EPA Default)</span></td>
+                        </tr>
+                        <tr>
+                            <th>Data Source:</th>
+                            <td><span id="reviewDataSource">Utility Bill</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>🎯 Calculated Emissions</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <div class="emission-result"><span id="reviewTotalEmissions">283.7</span> tonnes CO₂e</div>
+                            <p>Total emissions for this entry</p>
+                        </div>
+                        <div>
+                            <strong>Breakdown:</strong><br>
+                            CO₂: 278.5 tonnes<br>
+                            CH₄: 3.8 tonnes CO₂e<br>
+                            N₂O: 1.4 tonnes CO₂e
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Impact Analysis</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Previous Period:</strong> 347.2 tCO₂e<br>
+                            <strong>This Entry:</strong> 283.7 tCO₂e<br>
+                            <strong>Change:</strong> -63.5 tCO₂e (-18.3%)
+                        </div>
+                        <div>
+                            <strong>YTD Total:</strong> 914.6 tCO₂e<br>
+                            <strong>% of Scope 1:</strong> 23.4%<br>
+                            <strong>Target Progress:</strong> On track
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8: Processing -->
+            <div class="step" id="step8">
+                <h2>⚙️ Processing Your Data</h2>
+                <p class="step-description">
+                    The system is calculating emissions and updating your inventory. This includes unit conversions, emission factor applications, and GWP calculations.
+                </p>
+
+                <div class="card">
+                    <h3>🔄 Processing Steps</h3>
+                    <div id="processingSteps">
+                        <p>✅ Validating input data...</p>
+                        <p>✅ Converting units to standard format...</p>
+                        <p>✅ Applying emission factors...</p>
+                        <p>🔄 Calculating GHG emissions...</p>
+                        <p>⏳ Updating emissions inventory...</p>
+                        <p>⏳ Generating audit trail...</p>
+                    </div>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>📊 Calculation Details</h3>
+                    <p><strong>Input:</strong> 15,420 m³ Natural Gas</p>
+                    <p><strong>Conversion:</strong> 15,420 m³ × 0.0184 tonnes CO₂e/m³</p>
+                    <p><strong>Result:</strong> 283.7 tonnes CO₂e</p>
+                    <p><strong>Uncertainty:</strong> ±5.2% (based on emission factor uncertainty)</p>
+                </div>
+
+                <div class="success-message" id="processingComplete" style="display: none;">
+                    <h3>✅ Processing Complete!</h3>
+                    <p>Your stationary combustion data has been successfully saved and calculated.</p>
+                    <p><strong>Entry ID:</strong> SC-2025-0347</p>
+                </div>
+            </div>
+
+            <!-- Step 9: Results & Dashboard -->
+            <div class="step" id="step9">
+                <h2>📊 Results & Dashboard</h2>
+                <p class="step-description">
+                    Your data has been successfully processed and integrated into your emissions inventory. View summaries, trends, and generate reports.
+                </p>
+
+                <div class="success-message">
+                    <h3>✅ Entry Successfully Saved</h3>
+                    <p><strong>Entry ID:</strong> SC-2025-0347 | <strong>Total Emissions:</strong> 283.7 tonnes CO₂e</p>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>March 2025 Total</h3>
+                        <div class="value">283.7</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Q1 2025 Total</h3>
+                        <div class="value">914.6</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>YoY Change</h3>
+                        <div class="value">-12.3%</div>
+                        <p>vs Q1 2024</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Target Progress</h3>
+                        <div class="value">78%</div>
+                        <p>on track</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Updated Stationary Combustion Summary</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Fuel Type</th>
+                                <th>Period</th>
+                                <th>Consumption</th>
+                                <th>Emissions (tCO₂e)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #d5f4e6;">
+                                <td>🔥 Natural Gas</td>
+                                <td>Mar 2025</td>
+                                <td>15,420 m³</td>
+                                <td>283.7</td>
+                                <td>✏️ Edit | 🗑️ Delete</td>
+                            </tr>
+                            <tr>
+                                <td>⛽ Diesel</td>
+                                <td>Mar 2025</td>
+                                <td>850 L</td>
+                                <td>2.3</td>
+                                <td>✏️ Edit | 🗑️ Delete</td>
+                            </tr>
+                            <tr>
+                                <td>🔥 Natural Gas</td>
+                                <td>Feb 2025</td>
+                                <td>18,750 m³</td>
+                                <td>347.2</td>
+                                <td>✏️ Edit | 🗑️ Delete</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="card">
+                        <h3>🎯 Next Steps</h3>
+                        <p>• Add remaining Q1 fuel consumption data</p>
+                        <p>• Review and verify February natural gas entry</p>
+                        <p>• Upload supporting documentation for March</p>
+                        <p>• Prepare Q1 emissions report</p>
+                    </div>
+                    <div class="card">
+                        <h3>📊 Quick Actions</h3>
+                        <p>• Generate emissions report</p>
+                        <p>• Export data to Excel</p>
+                        <p>• Set up automated reminders</p>
+                        <p>• View trending analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <div>
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">← Previous</button>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Begin Entry →</button>
+                <button class="btn btn-success" id="saveBtn" onclick="saveEntry()" style="display: none;">💾 Save Entry</button>
+                <button class="btn btn-primary" id="finishBtn" onclick="finish()" style="display: none;">🎉 Add Another Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 9;
+        const stepTitles = [
+            "Module Overview",
+            "Select Fuel Type", 
+            "Select Period",
+            "Enter Consumption",
+            "Emission Factors",
+            "Additional Data",
+            "Review & Confirm",
+            "Processing Data",
+            "Results & Dashboard"
+        ];
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
+            
+            // Update step circles
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                circle.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    circle.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    circle.classList.add('active');
+                }
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Update button visibility
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            
+            prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+            
+            if (step === 7) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+            } else if (step === 9) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'none';
+            }
+            
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                if (currentStep === 7) {
+                    // Skip to step 8 (processing)
+                    currentStep = 8;
+                    showStep(currentStep);
+                    
+                    // Simulate processing
+                    setTimeout(() => {
+                        updateProcessingSteps();
+                    }, 1000);
+                    
+                    setTimeout(() => {
+                        currentStep = 9;
+                        showStep(currentStep);
+                    }, 4000);
+                } else {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function saveEntry() {
+            currentStep = 8;
+            showStep(currentStep);
+            
+            setTimeout(() => {
+                updateProcessingSteps();
+            }, 1000);
+            
+            setTimeout(() => {
+                currentStep = 9;
+                showStep(currentStep);
+            }, 4000);
+        }
+
+        function finish() {
+            currentStep = 1;
+            showStep(currentStep);
+            // Reset form data
+            resetForm();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input, select, textarea').forEach(field => {
+                if (field.type === 'number' || field.type === 'text' || field.tagName === 'TEXTAREA') {
+                    field.value = '';
+                } else if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0;
+                }
+            });
+            document.querySelectorAll('.fuel-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+        }
+
+        function updateProcessingSteps() {
+            const steps = [
+                "✅ Validating input data...",
+                "✅ Converting units to standard format...",
+                "✅ Applying emission factors...",
+                "✅ Calculating GHG emissions...",
+                "✅ Updating emissions inventory...",
+                "✅ Generating audit trail..."
+            ];
+            
+            document.getElementById('processingSteps').innerHTML = steps.join('<br>');
+            document.getElementById('processingComplete').style.display = 'block';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fuel selection
+            document.querySelectorAll('.fuel-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.fuel-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            // Consumption input real-time calculation
+            document.getElementById('consumptionQty').addEventListener('input', function() {
+                const qty = parseFloat(this.value) || 0;
+                const factor = 0.0184; // Example factor for natural gas
+                const emissions = (qty * factor).toFixed(2);
+                
+                const preview = document.getElementById('calculationPreview');
+                if (qty > 0) {
+                    preview.style.display = 'block';
+                    document.getElementById('emissionResult').textContent = emissions + ' tonnes CO₂e';
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
+
+            // Custom factor toggle
+            document.getElementById('customFactorToggle').addEventListener('click', function() {
+                this.classList.toggle('active');
+                const section = document.getElementById('customFactorSection');
+                section.style.display = this.classList.contains('active') ? 'block' : 'none';
+            });
+
+            // File upload simulation
+            document.getElementById('fileUpload').addEventListener('click', function() {
+                alert('File upload dialog would open here in a real implementation');
+            });
+
+            showStep(1);
+        });
+    </script>
+</body>
+</html>

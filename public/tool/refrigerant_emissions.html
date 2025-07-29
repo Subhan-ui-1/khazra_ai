@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refrigerant Emissions Module - Interactive UX Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #00BCD4, #26C6DA);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .step-indicator {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-circles {
+            display: flex;
+            gap: 15px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-circle.active {
+            background: #00BCD4;
+            transform: scale(1.1);
+        }
+
+        .step-circle.completed {
+            background: #4CAF50;
+        }
+
+        .step-circle::after {
+            content: '';
+            position: absolute;
+            right: -23px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 2px;
+            background: #bdc3c7;
+        }
+
+        .step-circle:last-child::after {
+            display: none;
+        }
+
+        .content {
+            padding: 40px;
+            min-height: 500px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step h2 {
+            color: #0277BD;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .step-description {
+            color: #546E7A;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0277BD;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E0F2F1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #00BCD4;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-triple {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00BCD4, #0097A7);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 188, 212, 0.3);
+        }
+
+        .btn-secondary {
+            background: #78909C;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #607D8B;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #F44336, #E53935);
+            color: white;
+        }
+
+        .button-group {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card {
+            background: #F8F9FA;
+            border: 2px solid #E0F2F1;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #00BCD4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .equipment-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #E0F2F1;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .equipment-option:hover {
+            border-color: #00BCD4;
+            background: #E0F2F1;
+        }
+
+        .equipment-option.selected {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .equipment-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .ac-unit { background: #2196F3; }
+        .chiller { background: #3F51B5; }
+        .heat-pump { background: #FF5722; }
+        .refrigerator { background: #9C27B0; }
+        .freezer { background: #607D8B; }
+        .transport { background: #795548; }
+
+        .calculation-preview {
+            background: linear-gradient(135deg, #FF6F00, #FF8F00);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .calculation-preview h3 {
+            margin-bottom: 10px;
+        }
+
+        .emission-result {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #E0F2F1;
+        }
+
+        .summary-table th {
+            background: #E0F2F1;
+            font-weight: 600;
+            color: #0277BD;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .warning-message {
+            background: linear-gradient(135deg, #FF9800, #FF8F00);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 1px solid #E0F2F1;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .dashboard-card h3 {
+            color: #0277BD;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00BCD4;
+        }
+
+        .refrigerant-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .refrigerant-card {
+            background: white;
+            border: 2px solid #E0F2F1;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refrigerant-card:hover {
+            border-color: #00BCD4;
+            transform: translateY(-2px);
+        }
+
+        .refrigerant-card.selected {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .refrigerant-name {
+            font-weight: bold;
+            color: #0277BD;
+            margin-bottom: 5px;
+        }
+
+        .refrigerant-gwp {
+            color: #546E7A;
+            font-size: 14px;
+        }
+
+        .gwp-high { color: #F44336; }
+        .gwp-medium { color: #FF9800; }
+        .gwp-low { color: #4CAF50; }
+
+        .leak-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .leak-none { background: #C8E6C9; color: #2E7D32; }
+        .leak-minor { background: #FFE0B2; color: #F57C00; }
+        .leak-major { background: #FFCDD2; color: #C62828; }
+
+        .equipment-status {
+            background: #E0F2F1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .maintenance-record {
+            background: white;
+            border: 1px solid #E0F2F1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .activity-type-toggle {
+            display: flex;
+            background: #E0F2F1;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .activity-type-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .activity-type-toggle button.active {
+            background: white;
+            color: #0277BD;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .factor-display {
+            background: #E0F2F1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .factor-display .factor-value {
+            font-weight: bold;
+            color: #0277BD;
+        }
+
+        .factor-display .factor-source {
+            font-size: 12px;
+            color: #546E7A;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #90CAF9;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        .file-upload {
+            border: 2px dashed #90CAF9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #00BCD4;
+            background: #E0F2F1;
+        }
+
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .gwp-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .environmental-impact {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .form-row, .form-triple {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .refrigerant-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scope 1 - Refrigerant Emissions</h1>
+            <div class="breadcrumb">Dashboard > Scope 1 > Refrigerant Emissions</div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-circles">
+                <div class="step-circle active" data-step="1">1</div>
+                <div class="step-circle" data-step="2">2</div>
+                <div class="step-circle" data-step="3">3</div>
+                <div class="step-circle" data-step="4">4</div>
+                <div class="step-circle" data-step="5">5</div>
+                <div class="step-circle" data-step="6">6</div>
+                <div class="step-circle" data-step="7">7</div>
+                <div class="step-circle" data-step="8">8</div>
+                <div class="step-circle" data-step="9">9</div>
+            </div>
+            <div class="step-title" id="stepTitle">Equipment Overview</div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Equipment Overview -->
+            <div class="step active" id="step1">
+                <h2>❄️ Welcome to Refrigerant Emissions Module</h2>
+                <p class="step-description">
+                    Track and calculate emissions from refrigeration and air conditioning equipment. Monitor refrigerant leaks, maintenance activities, and equipment lifecycle to manage high-GWP gas emissions.
+                </p>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Active Equipment</h3>
+                        <div class="value">23</div>
+                        <p>Units tracked</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>This Quarter</h3>
+                        <div class="value">45.7</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Leak Rate</h3>
+                        <div class="value">2.8%</div>
+                        <p>annual average</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Equipment at Risk</h3>
+                        <div class="value">3</div>
+                        <p>needs attention</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏢 Recent Equipment Activity</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Equipment ID</th>
+                                <th>Type</th>
+                                <th>Refrigerant</th>
+                                <th>Charge (kg)</th>
+                                <th>Last Activity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🏢 AC-001</td>
+                                <td>Rooftop Unit</td>
+                                <td>R-410A</td>
+                                <td>12.5</td>
+                                <td>Leak repair</td>
+                                <td><span class="leak-indicator leak-minor">Minor Leak</span></td>
+                            </tr>
+                            <tr>
+                                <td>❄️ CH-003</td>
+                                <td>Chiller</td>
+                                <td>R-134a</td>
+                                <td>45.8</td>
+                                <td>Top-up</td>
+                                <td><span class="leak-indicator leak-none">No Leaks</span></td>
+                            </tr>
+                            <tr>
+                                <td>🏢 AC-007</td>
+                                <td>Split System</td>
+                                <td>R-32</td>
+                                <td>2.3</td>
+                                <td>Maintenance</td>
+                                <td><span class="leak-indicator leak-none">No Leaks</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="warning-message">
+                    <h3>⚠️ Attention Required</h3>
+                    <p>3 units have detected leaks requiring immediate attention. High-GWP refrigerants can have significant climate impact.</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Equipment Selection -->
+            <div class="step" id="step2">
+                <h2>🏭 Select Equipment Type</h2>
+                <p class="step-description">
+                    Choose the type of refrigeration or air conditioning equipment you're reporting emissions for. Different equipment types have specific tracking requirements and emission patterns.
+                </p>
+
+                <div class="form-group">
+                    <label>Select Equipment Category *</label>
+                    <div id="equipmentOptions">
+                        <div class="equipment-option" data-equipment="air-conditioning">
+                            <div class="equipment-icon ac-unit">❄️</div>
+                            <div>
+                                <strong>Air Conditioning Units</strong>
+                                <p>Rooftop units, split systems, window units, VRF systems</p>
+                            </div>
+                        </div>
+                        <div class="equipment-option" data-equipment="chiller">
+                            <div class="equipment-icon chiller">🏢</div>
+                            <div>
+                                <strong>Chillers</strong>
+                                <p>Centrifugal, screw, absorption chillers for building cooling</p>
+                            </div>
+                        </div>
+                        <div class="equipment-option" data-equipment="heat-pump">
+                            <div class="equipment-icon heat-pump">🔥</div>
+                            <div>
+                                <strong>Heat Pumps</strong>
+                                <p>Air-source, ground-source, water-source heat pumps</p>
+                            </div>
+                        </div>
+                        <div class="equipment-option" data-equipment="commercial-refrigeration">
+                            <div class="equipment-icon refrigerator">🛒</div>
+                            <div>
+                                <strong>Commercial Refrigeration</strong>
+                                <p>Display cases, walk-in coolers, beverage coolers</p>
+                            </div>
+                        </div>
+                        <div class="equipment-option" data-equipment="industrial-refrigeration">
+                            <div class="equipment-icon freezer">🏭</div>
+                            <div>
+                                <strong>Industrial Refrigeration</strong>
+                                <p>Cold storage, process cooling, blast freezers</p>
+                            </div>
+                        </div>
+                        <div class="equipment-option" data-equipment="transport-refrigeration">
+                            <div class="equipment-icon transport">🚛</div>
+                            <div>
+                                <strong>Transport Refrigeration</strong>
+                                <p>Refrigerated trucks, trailers, shipping containers</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="equipment-status" id="equipmentDetails" style="display: none;">
+                    <h4>Equipment Identification</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Equipment ID/Asset Tag *</label>
+                            <input type="text" placeholder="e.g., AC-001, CHILLER-B2" id="equipmentId">
+                        </div>
+                        <div class="form-group">
+                            <label>Location/Building *</label>
+                            <input type="text" placeholder="e.g., Main Building Roof, Warehouse A" id="equipmentLocation">
+                        </div>
+                    </div>
+                    <div class="form-triple">
+                        <div class="form-group">
+                            <label>Manufacturer & Model</label>
+                            <input type="text" placeholder="e.g., Carrier 30HX" id="equipmentModel">
+                        </div>
+                        <div class="form-group">
+                            <label>Installation Year</label>
+                            <input type="number" placeholder="2018" min="1990" max="2025" id="installationYear">
+                        </div>
+                        <div class="form-group">
+                            <label>Capacity (kW/TR)</label>
+                            <input type="number" placeholder="100" step="0.1" id="equipmentCapacity">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Refrigerant Selection -->
+            <div class="step" id="step3">
+                <h2>🧪 Select Refrigerant Type</h2>
+                <p class="step-description">
+                    Choose the refrigerant used in your equipment. Different refrigerants have vastly different Global Warming Potential (GWP) values, significantly affecting emission calculations.
+                </p>
+
+                <div class="refrigerant-selector">
+                    <div class="refrigerant-card" data-refrigerant="r410a" data-gwp="2088">
+                        <div class="refrigerant-name">R-410A</div>
+                        <div class="refrigerant-gwp gwp-high">GWP: 2,088</div>
+                        <small>Common in residential AC</small>
+                    </div>
+                    <div class="refrigerant-card" data-refrigerant="r134a" data-gwp="1430">
+                        <div class="refrigerant-name">R-134a</div>
+                        <div class="refrigerant-gwp gwp-high">GWP: 1,430</div>
+                        <small>Automotive & chillers</small>
+                    </div>
+                    <div class="refrigerant-card" data-refrigerant="r32" data-gwp="675">
+                        <div class="refrigerant-name">R-32</div>
+                        <div class="refrigerant-gwp gwp-medium">GWP: 675</div>
+                        <small>Modern AC units</small>
+                    </div>
+                    <div class="refrigerant-card" data-refrigerant="r407c" data-gwp="1774">
+                        <div class="refrigerant-name">R-407C</div>
+                        <div class="refrigerant-gwp gwp-high">GWP: 1,774</div>
+                        <small>Heat pumps</small>
+                    </div>
+                    <div class="refrigerant-card" data-refrigerant="co2" data-gwp="1">
+                        <div class="refrigerant-name">CO₂ (R-744)</div>
+                        <div class="refrigerant-gwp gwp-low">GWP: 1</div>
+                        <small>Natural refrigerant</small>
+                    </div>
+                    <div class="refrigerant-card" data-refrigerant="ammonia" data-gwp="0">
+                        <div class="refrigerant-name">Ammonia (R-717)</div>
+                        <div class="refrigerant-gwp gwp-low">GWP: 0</div>
+                        <small>Industrial systems</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🌍 Environmental Impact Information</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <h4>Selected Refrigerant: <span id="selectedRefrigerant">R-410A</span></h4>
+                            <p><strong>GWP:</strong> <span id="selectedGWP">2,088</span> <span class="gwp-badge gwp-high">High Impact</span></p>
+                            <p><strong>Regulatory Status:</strong> Phase-down under regulations</p>
+                        </div>
+                        <div>
+                            <p><strong>1 kg release =</strong> <span id="impactEquivalent">2.088</span> tonnes CO₂e</p>
+                            <p><strong>Alternative Options:</strong> R-32, CO₂, Ammonia</p>
+                            <p><strong>Recommended Action:</strong> Monitor for leaks, plan replacement</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Refrigerant Charge *</label>
+                    <div class="form-row">
+                        <input type="number" placeholder="Enter total charge amount" id="totalCharge" step="0.1">
+                        <select id="chargeUnit">
+                            <option value="kg">Kilograms (kg)</option>
+                            <option value="lbs">Pounds (lbs)</option>
+                            <option value="tonnes">Tonnes</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Activity Type & Period -->
+            <div class="step" id="step4">
+                <h2>📅 Select Activity Type & Period</h2>
+                <p class="step-description">
+                    Choose the type of refrigerant activity you're reporting and the time period. Different activities have different emission calculation methods.
+                </p>
+
+                <div class="activity-type-toggle">
+                    <button class="active" id="leakActivity" onclick="switchActivityType('leak')">Leak Detection</button>
+                    <button id="maintenanceActivity" onclick="switchActivityType('maintenance')">Maintenance/Service</button>
+                    <button id="disposalActivity" onclick="switchActivityType('disposal')">Equipment Disposal</button>
+                </div>
+
+                <!-- Leak Detection Activity -->
+                <div id="leakActivitySection">
+                    <div class="card">
+                        <h4>🔍 Leak Detection & Quantification</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Detection Method</label>
+                                <select id="detectionMethod">
+                                    <option value="electronic">Electronic Leak Detector</option>
+                                    <option value="soap-bubble">Soap Bubble Test</option>
+                                    <option value="ultrasonic">Ultrasonic Detection</option>
+                                    <option value="tracer-gas">Tracer Gas Method</option>
+                                    <option value="calculated">Calculated from Top-up</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Leak Severity</label>
+                                <select id="leakSeverity">
+                                    <option value="minor">Minor (< 10% annual)</option>
+                                    <option value="moderate">Moderate (10-30% annual)</option>
+                                    <option value="major">Major (> 30% annual)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maintenance Activity -->
+                <div id="maintenanceActivitySection" style="display: none;">
+                    <div class="card">
+                        <h4>🔧 Maintenance & Service Activity</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Service Type</label>
+                                <select id="serviceType">
+                                    <option value="routine">Routine Maintenance</option>
+                                    <option value="repair">Leak Repair</option>
+                                    <option value="recharge">Refrigerant Top-up</option>
+                                    <option value="recovery">Refrigerant Recovery</option>
+                                    <option value="replacement">Component Replacement</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Service Date</label>
+                                <input type="date" id="serviceDate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disposal Activity -->
+                <div id="disposalActivitySection" style="display: none;">
+                    <div class="card">
+                        <h4>🗑️ Equipment Disposal</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Disposal Method</label>
+                                <select id="disposalMethod">
+                                    <option value="proper-recovery">Proper Recovery (99%+)</option>
+                                    <option value="partial-recovery">Partial Recovery (80-99%)</option>
+                                    <option value="poor-recovery">Poor Recovery (< 80%)</option>
+                                    <option value="release">Atmospheric Release</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Disposal Date</label>
+                                <input type="date" id="disposalDate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Reporting Period Type *</label>
+                        <select id="periodType">
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="incident">Specific Incident</option>
+                            <option value="annual">Annual Report</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Month/Quarter *</label>
+                        <select id="monthSelect">
+                            <option value="2025-01">January 2025</option>
+                            <option value="2025-02">February 2025</option>
+                            <option value="2025-03" selected>March 2025</option>
+                            <option value="2025-04">April 2025</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Emission Quantification -->
+            <div class="step" id="step5">
+                <h2>📊 Quantify Refrigerant Emissions</h2>
+                <p class="step-description">
+                    Enter the amount of refrigerant released or lost. This can be measured directly, calculated from top-up amounts, or estimated based on leak detection results.
+                </p>
+
+                <div class="form-group">
+                    <label>Quantification Method *</label>
+                    <select id="quantificationMethod" onchange="updateQuantificationMethod()">
+                        <option value="measured">Direct Measurement</option>
+                        <option value="calculated">Calculated from Top-up</option>
+                        <option value="estimated">Estimated from Leak Rate</option>
+                        <option value="full-charge">Complete Charge Loss</option>
+                    </select>
+                </div>
+
+                <!-- Direct Measurement -->
+                <div id="measuredSection">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Amount Released/Lost *</label>
+                            <input type="number" placeholder="Enter measured amount" id="releasedAmount" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Unit *</label>
+                            <select id="releasedUnit">
+                                <option value="kg">Kilograms (kg)</option>
+                                <option value="lbs">Pounds (lbs)</option>
+                                <option value="grams">Grams (g)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculated from Top-up -->
+                <div id="calculatedSection" style="display: none;">
+                    <div class="card">
+                        <h4>🔄 Top-up Calculation Method</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Amount Added (Top-up)</label>
+                                <input type="number" placeholder="Amount topped up" id="topupAmount" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Recovery Efficiency (%)</label>
+                                <input type="number" placeholder="85" value="85" min="0" max="100" id="recoveryEfficiency">
+                            </div>
+                        </div>
+                        <p><small>Lost amount = Top-up amount ÷ Recovery efficiency</small></p>
+                    </div>
+                </div>
+
+                <!-- Estimated from Leak Rate -->
+                <div id="estimatedSection" style="display: none;">
+                    <div class="card">
+                        <h4>📈 Leak Rate Estimation</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Annual Leak Rate (%)</label>
+                                <input type="number" placeholder="5.0" step="0.1" min="0" max="100" id="leakRate">
+                            </div>
+                            <div class="form-group">
+                                <label>Time Period (months)</label>
+                                <input type="number" placeholder="12" min="1" max="12" id="timePeriod" value="12">
+                            </div>
+                        </div>
+                        <p><small>Lost amount = Total charge × (Leak rate ÷ 100) × (Period ÷ 12)</small></p>
+                    </div>
+                </div>
+
+                <div class="calculation-preview" id="calculationPreview" style="display: none;">
+                    <h3>⚡ Real-time Emission Calculation</h3>
+                    <div class="emission-result" id="emissionResult">0.00 tonnes CO₂e</div>
+                    <p>Refrigerant: <span id="previewRefrigerant">R-410A</span> | GWP: <span id="previewGWP">2,088</span></p>
+                    <p>Amount lost: <span id="calculatedLoss">0.0 kg</span></p>
+                </div>
+
+                <div class="environmental-impact" id="environmentalImpact" style="display: none;">
+                    <h3>🌍 Environmental Impact Equivalent</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <p><strong>CO₂ Equivalent:</strong> <span id="co2Equivalent">0</span> tonnes</p>
+                            <p><strong>Car miles equivalent:</strong> <span id="carMiles">0</span> miles</p>
+                        </div>
+                        <div>
+                            <p><strong>Tree planting needed:</strong> <span id="treesNeeded">0</span> trees</p>
+                            <p><strong>Home energy for:</strong> <span id="homeEnergy">0</span> months</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Additional Data -->
+            <div class="step" id="step6">
+                <h2>📎 Additional Information & Documentation</h2>
+                <p class="step-description">
+                    Add supporting documentation, maintenance records, and operational context to enhance data quality and support regulatory compliance.
+                </p>
+
+                <div class="form-group">
+                    <label>Activity Description & Context</label>
+                    <textarea rows="4" placeholder="Describe the circumstances of the emission, maintenance performed, leak location, repair actions..." id="activityDescription"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Supporting Documents</label>
+                    <div class="file-upload" id="fileUpload">
+                        <div>📄 Click to upload or drag files here</div>
+                        <p>Upload maintenance logs, leak detection reports, service certificates, disposal records</p>
+                        <small>Supported: PDF, JPG, PNG, Excel, CSV (Max 10MB each)</small>
+                    </div>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Technician/Service Provider</label>
+                        <input type="text" placeholder="e.g., John Smith, ABC HVAC Services" id="technician">
+                    </div>
+                    <div class="form-group">
+                        <label>Certification Number</label>
+                        <input type="text" placeholder="EPA Section 608 cert, etc." id="certification">
+                    </div>
+                </div>
+
+                <div class="maintenance-record">
+                    <h4>🔧 Maintenance History & Equipment Status</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Last Maintenance Date</label>
+                            <input type="date" id="lastMaintenance">
+                        </div>
+                        <div class="form-group">
+                            <label>Equipment Age (years)</label>
+                            <input type="number" placeholder="7" min="0" max="50" id="equipmentAge">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Equipment Condition Assessment</label>
+                        <select id="equipmentCondition">
+                            <option value="excellent">Excellent - No issues</option>
+                            <option value="good">Good - Minor wear</option>
+                            <option value="fair">Fair - Some concerns</option>
+                            <option value="poor">Poor - Needs attention</option>
+                            <option value="critical">Critical - Immediate repair needed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Data Quality & Compliance</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Measurement Accuracy:</strong> ±5%<br>
+                            <strong>Documentation Level:</strong> Complete<br>
+                            <strong>Technician Certified:</strong> Yes
+                        </div>
+                        <div>
+                            <strong>Regulatory Compliance:</strong> ✅ EPA compliant<br>
+                            <strong>Reporting Required:</strong> ⚠️ Above threshold<br>
+                            <strong>F-Gas Register:</strong> Update required
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Review & Confirm -->
+            <div class="step" id="step7">
+                <h2>👀 Review & Confirm Refrigerant Entry</h2>
+                <p class="step-description">
+                    Please review all refrigerant emission information before saving. High-GWP refrigerants have significant climate impact and may require regulatory reporting.
+                </p>
+
+                <div class="card">
+                    <h3>❄️ Equipment & Refrigerant Summary</h3>
+                    <table class="summary-table">
+                        <tr>
+                            <th>Equipment ID:</th>
+                            <td><span id="reviewEquipmentId">AC-001</span></td>
+                        </tr>
+                        <tr>
+                            <th>Equipment Type:</th>
+                            <td><span id="reviewEquipmentType">Air Conditioning Unit (Rooftop)</span></td>
+                        </tr>
+                        <tr>
+                            <th>Location:</th>
+                            <td><span id="reviewLocation">Main Building Roof</span></td>
+                        </tr>
+                        <tr>
+                            <th>Refrigerant Type:</th>
+                            <td><span id="reviewRefrigerantType">R-410A</span> <span class="gwp-badge gwp-high">GWP: 2,088</span></td>
+                        </tr>
+                        <tr>
+                            <th>Total Charge:</th>
+                            <td><span id="reviewTotalCharge">12.5 kg</span></td>
+                        </tr>
+                        <tr>
+                            <th>Activity Type:</th>
+                            <td><span id="reviewActivityType">Leak Detection</span></td>
+                        </tr>
+                        <tr>
+                            <th>Reporting Period:</th>
+                            <td><span id="reviewPeriod">March 2025</span></td>
+                        </tr>
+                        <tr>
+                            <th>Amount Released:</th>
+                            <td><span id="reviewAmountReleased">0.75 kg</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>🎯 Calculated Refrigerant Emissions</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <div class="emission-result"><span id="reviewTotalEmissions">1.566</span> tonnes CO₂e</div>
+                            <p>Total emissions for this release</p>
+                        </div>
+                        <div>
+                            <strong>Calculation:</strong><br>
+                            0.75 kg × 2,088 GWP = 1,566 kg CO₂e<br>
+                            <strong>% of total charge:</strong> 6.0%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-message">
+                    <h3>⚠️ Regulatory Notice</h3>
+                    <p>This emission exceeds reporting thresholds and must be reported to environmental authorities within 30 days.</p>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Environmental Impact Analysis</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Equipment Previous Year:</strong> 2.1 tCO₂e<br>
+                            <strong>This Incident:</strong> 1.566 tCO₂e<br>
+                            <strong>Annual Projection:</strong> 6.3 tCO₂e
+                        </div>
+                        <div>
+                            <strong>Fleet YTD Total:</strong> 45.7 tCO₂e<br>
+                            <strong>Equipment % of Fleet:</strong> 13.7%<br>
+                            <strong>Reduction Opportunity:</strong> High priority
+                        </div>
+                    </div>
+                </div>
+
+                <div class="maintenance-record">
+                    <h4>🔧 Service Context</h4>
+                    <p><strong>Activity:</strong> <span id="reviewActivity">Minor leak detected during routine inspection</span></p>
+                    <p><strong>Technician:</strong> <span id="reviewTechnician">John Smith, ABC HVAC Services</span></p>
+                    <p><strong>Equipment Condition:</strong> <span id="reviewCondition">Fair - Some concerns</span></p>
+                    <p><strong>Recommended Action:</strong> Schedule repair within 30 days, consider retrofit to low-GWP alternative</p>
+                </div>
+            </div>
+
+            <!-- Step 8: Processing -->
+            <div class="step" id="step8">
+                <h2>⚙️ Processing Refrigerant Data</h2>
+                <p class="step-description">
+                    The system is calculating refrigerant emissions, updating equipment records, and checking regulatory compliance requirements. High-GWP refrigerants require special handling.
+                </p>
+
+                <div class="card">
+                    <h3>🔄 Processing Steps</h3>
+                    <div id="processingSteps">
+                        <p>✅ Validating refrigerant and equipment data...</p>
+                        <p>✅ Applying Global Warming Potential factors...</p>
+                        <p>✅ Calculating GHG emissions...</p>
+                        <p>🔄 Checking regulatory compliance...</p>
+                        <p>⏳ Updating equipment maintenance records...</p>
+                        <p>⏳ Generating regulatory alerts...</p>
+                        <p>⏳ Updating refrigerant inventory...</p>
+                    </div>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>📊 Detailed Calculation</h3>
+                    <p><strong>Input:</strong> 0.75 kg R-410A refrigerant release</p>
+                    <p><strong>GWP Factor:</strong> 2,088 (100-year GWP, IPCC AR6)</p>
+                    <p><strong>Calculation:</strong> 0.75 kg × 2,088 = 1,566 kg CO₂e</p>
+                    <p><strong>Result:</strong> 1.566 tonnes CO₂e</p>
+                </div>
+
+                <div class="warning-message">
+                    <h3>🚨 Regulatory Alert Generated</h3>
+                    <p>Emission exceeds reporting threshold - automatic notification sent to compliance team</p>
+                </div>
+
+                <div class="success-message" id="processingComplete" style="display: none;">
+                    <h3>✅ Processing Complete!</h3>
+                    <p>Your refrigerant emission data has been successfully calculated and compliance checks completed.</p>
+                    <p><strong>Entry ID:</strong> REF-2025-0089</p>
+                </div>
+            </div>
+
+            <!-- Step 9: Results & Equipment Dashboard -->
+            <div class="step" id="step9">
+                <h2>📊 Results & Equipment Management</h2>
+                <p class="step-description">
+                    Your refrigerant data has been successfully processed and integrated into your emissions inventory. Monitor equipment performance, plan maintenance, and track regulatory compliance.
+                </p>
+
+                <div class="success-message">
+                    <h3>✅ Refrigerant Entry Successfully Saved</h3>
+                    <p><strong>Entry ID:</strong> REF-2025-0089 | <strong>Equipment:</strong> AC-001 | <strong>Emissions:</strong> 1.566 tonnes CO₂e</p>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Equipment AC-001</h3>
+                        <div class="value">1.566</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Fleet Total</h3>
+                        <div class="value">47.3</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Leak Rate</h3>
+                        <div class="value">3.2%</div>
+                        <p>updated average</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Compliance Status</h3>
+                        <div class="value">Alert</div>
+                        <p>action required</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>❄️ Updated Equipment Summary</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Type</th>
+                                <th>Refrigerant</th>
+                                <th>Charge (kg)</th>
+                                <th>YTD Emissions (tCO₂e)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #FFEBEE;">
+                                <td>❄️ AC-001</td>
+                                <td>Rooftop AC</td>
+                                <td>R-410A</td>
+                                <td>12.5</td>
+                                <td>3.2</td>
+                                <td><span class="leak-indicator leak-moderate">Moderate Leak</span></td>
+                                <td>🔧 Schedule Repair | ✏️ Edit</td>
+                            </tr>
+                            <tr>
+                                <td>🏢 CH-003</td>
+                                <td>Chiller</td>
+                                <td>R-134a</td>
+                                <td>45.8</td>
+                                <td>1.8</td>
+                                <td><span class="leak-indicator leak-none">No Leaks</span></td>
+                                <td>✅ Monitor | ✏️ Edit</td>
+                            </tr>
+                            <tr>
+                                <td>❄️ AC-007</td>
+                                <td>Split System</td>
+                                <td>R-32</td>
+                                <td>2.3</td>
+                                <td>0.1</td>
+                                <td><span class="leak-indicator leak-none">No Leaks</span></td>
+                                <td>✅ Monitor | ✏️ Edit</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="card">
+                        <h3>🎯 Priority Actions</h3>
+                        <p>• 🔴 Repair AC-001 leak within 30 days</p>
+                        <p>• 📋 Submit regulatory report for Q1 emissions</p>
+                        <p>• 🔄 Plan R-410A phase-out strategy</p>
+                        <p>• 🔍 Increase leak detection frequency</p>
+                        <p>• 📊 Evaluate low-GWP retrofit options</p>
+                    </div>
+                    <div class="card">
+                        <h3>📊 Analytics & Compliance</h3>
+                        <p>• View refrigerant trend analysis</p>
+                        <p>• Generate F-Gas register report</p>
+                        <p>• Export regulatory compliance data</p>
+                        <p>• Set up automated leak alerts</p>
+                        <p>• Plan equipment replacement schedule</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏆 Fleet Performance & Recommendations</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Highest Impact Equipment:</strong> AC-001 (3.2 tCO₂e)<br>
+                            <strong>Best Performer:</strong> AC-007 (R-32, 0.1 tCO₂e)<br>
+                            <strong>Fleet Average Leak Rate:</strong> 3.2% (↑ 0.4% vs last quarter)
+                        </div>
+                        <div>
+                            <strong>Reduction Potential:</strong> 65% with low-GWP retrofits<br>
+                            <strong>Regulatory Compliance:</strong> 2 reports pending<br>
+                            <strong>Maintenance Budget Impact:</strong> $15,000 estimated repairs
+                        </div>
+                    </div>
+                </div>
+
+                <div class="environmental-impact">
+                    <h3>🌍 Climate Impact & Alternatives</h3>
+                    <p><strong>Current Fleet Impact:</strong> 47.3 tCO₂e annually</p>
+                    <p><strong>With R-32 Retrofit:</strong> 16.6 tCO₂e (-65% reduction)</p>
+                    <p><strong>With CO₂ Systems:</strong> 0.5 tCO₂e (-99% reduction)</p>
+                    <p><strong>Recommended:</strong> Prioritize AC-001 replacement with low-GWP alternative</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <div>
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">← Previous</button>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Begin Entry →</button>
+                <button class="btn btn-success" id="saveBtn" onclick="saveEntry()" style="display: none;">💾 Save Refrigerant Data</button>
+                <button class="btn btn-primary" id="finishBtn" onclick="finish()" style="display: none;">❄️ Add Another Equipment</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let activityType = 'leak';
+        let selectedRefrigerant = { name: 'R-410A', gwp: 2088 };
+        const totalSteps = 9;
+        const stepTitles = [
+            "Equipment Overview",
+            "Select Equipment Type", 
+            "Select Refrigerant",
+            "Activity & Period",
+            "Quantify Emissions",
+            "Additional Information",
+            "Review & Confirm",
+            "Processing Data",
+            "Equipment Dashboard"
+        ];
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
+            
+            // Update step circles
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                circle.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    circle.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    circle.classList.add('active');
+                }
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Update button visibility
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            
+            prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+            
+            if (step === 7) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+            } else if (step === 9) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'none';
+            }
+            
+            updateProgress();
+        }
+
+        function switchActivityType(type) {
+            activityType = type;
+            const leakBtn = document.getElementById('leakActivity');
+            const maintenanceBtn = document.getElementById('maintenanceActivity');
+            const disposalBtn = document.getElementById('disposalActivity');
+            
+            const leakSection = document.getElementById('leakActivitySection');
+            const maintenanceSection = document.getElementById('maintenanceActivitySection');
+            const disposalSection = document.getElementById('disposalActivitySection');
+            
+            // Reset all buttons and sections
+            [leakBtn, maintenanceBtn, disposalBtn].forEach(btn => btn.classList.remove('active'));
+            [leakSection, maintenanceSection, disposalSection].forEach(section => section.style.display = 'none');
+            
+            // Activate selected
+            if (type === 'leak') {
+                leakBtn.classList.add('active');
+                leakSection.style.display = 'block';
+            } else if (type === 'maintenance') {
+                maintenanceBtn.classList.add('active');
+                maintenanceSection.style.display = 'block';
+            } else if (type === 'disposal') {
+                disposalBtn.classList.add('active');
+                disposalSection.style.display = 'block';
+            }
+        }
+
+        function updateQuantificationMethod() {
+            const method = document.getElementById('quantificationMethod').value;
+            const measuredSection = document.getElementById('measuredSection');
+            const calculatedSection = document.getElementById('calculatedSection');
+            const estimatedSection = document.getElementById('estimatedSection');
+            
+            // Hide all sections
+            [measuredSection, calculatedSection, estimatedSection].forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show relevant section
+            if (method === 'measured' || method === 'full-charge') {
+                measuredSection.style.display = 'block';
+            } else if (method === 'calculated') {
+                calculatedSection.style.display = 'block';
+            } else if (method === 'estimated') {
+                estimatedSection.style.display = 'block';
+            }
+        }
+
+        function calculateEmissions() {
+            const method = document.getElementById('quantificationMethod').value;
+            let amountLost = 0;
+            
+            if (method === 'measured' || method === 'full-charge') {
+                amountLost = parseFloat(document.getElementById('releasedAmount').value) || 0;
+            } else if (method === 'calculated') {
+                const topup = parseFloat(document.getElementById('topupAmount').value) || 0;
+                const efficiency = parseFloat(document.getElementById('recoveryEfficiency').value) || 85;
+                amountLost = topup / (efficiency / 100);
+            } else if (method === 'estimated') {
+                const totalCharge = parseFloat(document.getElementById('totalCharge').value) || 0;
+                const leakRate = parseFloat(document.getElementById('leakRate').value) || 0;
+                const timePeriod = parseFloat(document.getElementById('timePeriod').value) || 12;
+                amountLost = totalCharge * (leakRate / 100) * (timePeriod / 12);
+            }
+            
+            const emissions = (amountLost * selectedRefrigerant.gwp) / 1000; // Convert to tonnes CO2e
+            
+            const preview = document.getElementById('calculationPreview');
+            const impact = document.getElementById('environmentalImpact');
+            
+            if (amountLost > 0) {
+                preview.style.display = 'block';
+                impact.style.display = 'block';
+                
+                document.getElementById('emissionResult').textContent = emissions.toFixed(3) + ' tonnes CO₂e';
+                document.getElementById('calculatedLoss').textContent = amountLost.toFixed(2) + ' kg';
+                
+                // Environmental equivalents
+                document.getElementById('co2Equivalent').textContent = emissions.toFixed(1);
+                document.getElementById('carMiles').textContent = Math.round(emissions * 2400); // Rough estimate
+                document.getElementById('treesNeeded').textContent = Math.round(emissions * 45); // Trees to offset
+                document.getElementById('homeEnergy').textContent = Math.round(emissions * 0.9); // Months of home energy
+            } else {
+                preview.style.display = 'none';
+                impact.style.display = 'none';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                if (currentStep === 7) {
+                    // Skip to step 8 (processing)
+                    currentStep = 8;
+                    showStep(currentStep);
+                    
+                    // Simulate processing
+                    setTimeout(() => {
+                        updateProcessingSteps();
+                    }, 1000);
+                    
+                    setTimeout(() => {
+                        currentStep = 9;
+                        showStep(currentStep);
+                    }, 4000);
+                } else {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function saveEntry() {
+            currentStep = 8;
+            showStep(currentStep);
+            
+            setTimeout(() => {
+                updateProcessingSteps();
+            }, 1000);
+            
+            setTimeout(() => {
+                currentStep = 9;
+                showStep(currentStep);
+            }, 4000);
+        }
+
+        function finish() {
+            currentStep = 1;
+            showStep(currentStep);
+            resetForm();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input, select, textarea').forEach(field => {
+                if (field.type === 'number' || field.type === 'text' || field.type === 'date' || field.tagName === 'TEXTAREA') {
+                    field.value = '';
+                } else if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0;
+                }
+            });
+            document.querySelectorAll('.equipment-option, .refrigerant-card').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('equipmentDetails').style.display = 'none';
+        }
+
+        function updateProcessingSteps() {
+            const steps = [
+                "✅ Validating refrigerant and equipment data...",
+                "✅ Applying Global Warming Potential factors...",
+                "✅ Calculating GHG emissions...",
+                "✅ Checking regulatory compliance...",
+                "✅ Updating equipment maintenance records...",
+                "✅ Generating regulatory alerts...",
+                "✅ Updating refrigerant inventory..."
+            ];
+            
+            document.getElementById('processingSteps').innerHTML = steps.join('<br>');
+            document.getElementById('processingComplete').style.display = 'block';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Equipment selection
+            document.querySelectorAll('.equipment-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.equipment-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    document.getElementById('equipmentDetails').style.display = 'block';
+                });
+            });
+
+            // Refrigerant selection
+            document.querySelectorAll('.refrigerant-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.refrigerant-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    selectedRefrigerant.name = this.querySelector('.refrigerant-name').textContent;
+                    selectedRefrigerant.gwp = parseInt(this.dataset.gwp);
+                    
+                    document.getElementById('selectedRefrigerant').textContent = selectedRefrigerant.name;
+                    document.getElementById('selectedGWP').textContent = selectedRefrigerant.gwp.toLocaleString();
+                    document.getElementById('impactEquivalent').textContent = (selectedRefrigerant.gwp / 1000).toFixed(3);
+                    
+                    document.getElementById('previewRefrigerant').textContent = selectedRefrigerant.name;
+                    document.getElementById('previewGWP').textContent = selectedRefrigerant.gwp.toLocaleString();
+                });
+            });
+
+            // Real-time calculation
+            ['releasedAmount', 'topupAmount', 'recoveryEfficiency', 'leakRate', 'timePeriod', 'totalCharge'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', calculateEmissions);
+                }
+            });
+
+            // File upload simulation
+            document.getElementById('fileUpload').addEventListener('click', function() {
+                alert('File upload dialog would open here in a real implementation');
+            });
+
+            showStep(1);
+        });
+    </script>
+</body>
+</html>

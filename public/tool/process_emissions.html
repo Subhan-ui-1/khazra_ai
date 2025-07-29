@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Emissions Module - Interactive UX Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF5722 0%, #D84315 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #BF360C 0%, #8D2E02 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #FF5722, #FF8A65);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .step-indicator {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-circles {
+            display: flex;
+            gap: 15px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-circle.active {
+            background: #FF5722;
+            transform: scale(1.1);
+        }
+
+        .step-circle.completed {
+            background: #4CAF50;
+        }
+
+        .step-circle::after {
+            content: '';
+            position: absolute;
+            right: -23px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 2px;
+            background: #bdc3c7;
+        }
+
+        .step-circle:last-child::after {
+            display: none;
+        }
+
+        .content {
+            padding: 40px;
+            min-height: 500px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step h2 {
+            color: #BF360C;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .step-description {
+            color: #546E7A;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #BF360C;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #FBE9E7;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FF5722;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-triple {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF5722, #D84315);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3);
+        }
+
+        .btn-secondary {
+            background: #78909C;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #607D8B;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800, #FF8F00);
+            color: white;
+        }
+
+        .button-group {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card {
+            background: #F8F9FA;
+            border: 2px solid #FBE9E7;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #FF5722;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .process-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #FBE9E7;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .process-option:hover {
+            border-color: #FF5722;
+            background: #FFF3E0;
+        }
+
+        .process-option.selected {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .process-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .cement { background: #795548; }
+        .steel { background: #607D8B; }
+        .chemical { background: #9C27B0; }
+        .aluminum { background: #2196F3; }
+        .glass { background: #00BCD4; }
+        .petrochemical { background: #FF9800; }
+
+        .calculation-preview {
+            background: linear-gradient(135deg, #FF6F00, #FF8F00);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .calculation-preview h3 {
+            margin-bottom: 10px;
+        }
+
+        .emission-result {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #FBE9E7;
+        }
+
+        .summary-table th {
+            background: #FBE9E7;
+            font-weight: 600;
+            color: #BF360C;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .warning-message {
+            background: linear-gradient(135deg, #FF9800, #FF8F00);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 1px solid #FBE9E7;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .dashboard-card h3 {
+            color: #BF360C;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF5722;
+        }
+
+        .method-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .method-card {
+            background: white;
+            border: 2px solid #FBE9E7;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .method-card:hover {
+            border-color: #FF5722;
+            transform: translateY(-2px);
+        }
+
+        .method-card.selected {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .method-name {
+            font-weight: bold;
+            color: #BF360C;
+            margin-bottom: 5px;
+        }
+
+        .method-description {
+            color: #546E7A;
+            font-size: 14px;
+        }
+
+        .production-status {
+            background: #FBE9E7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .material-balance {
+            background: white;
+            border: 1px solid #FBE9E7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .calculation-method-toggle {
+            display: flex;
+            background: #FBE9E7;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .calculation-method-toggle button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calculation-method-toggle button.active {
+            background: white;
+            color: #BF360C;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .factor-display {
+            background: #FBE9E7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .factor-display .factor-value {
+            font-weight: bold;
+            color: #BF360C;
+        }
+
+        .factor-display .factor-source {
+            font-size: 12px;
+            color: #546E7A;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #FFCCBC;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        .file-upload {
+            border: 2px dashed #FFCCBC;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #FF5722;
+            background: #FFF3E0;
+        }
+
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .reaction-equation {
+            background: #FFF3E0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #FF5722;
+        }
+
+        .stoichiometry-calc {
+            background: linear-gradient(135deg, #E65100, #FF5722);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .production-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: white;
+            border: 1px solid #FBE9E7;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .efficiency-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .efficiency-excellent { background: #C8E6C9; color: #2E7D32; }
+        .efficiency-good { background: #FFE0B2; color: #F57C00; }
+        .efficiency-poor { background: #FFCDD2; color: #C62828; }
+
+        .material-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .material-table th,
+        .material-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #FBE9E7;
+        }
+
+        .material-table th {
+            background: #F8F9FA;
+            font-weight: 600;
+            color: #BF360C;
+            font-size: 14px;
+        }
+
+        .material-table td {
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .form-row, .form-triple {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .method-selector, .production-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scope 1 - Process Emissions</h1>
+            <div class="breadcrumb">Dashboard > Scope 1 > Process Emissions</div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step-circles">
+                <div class="step-circle active" data-step="1">1</div>
+                <div class="step-circle" data-step="2">2</div>
+                <div class="step-circle" data-step="3">3</div>
+                <div class="step-circle" data-step="4">4</div>
+                <div class="step-circle" data-step="5">5</div>
+                <div class="step-circle" data-step="6">6</div>
+                <div class="step-circle" data-step="7">7</div>
+                <div class="step-circle" data-step="8">8</div>
+                <div class="step-circle" data-step="9">9</div>
+            </div>
+            <div class="step-title" id="stepTitle">Production Overview</div>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Production Overview -->
+            <div class="step active" id="step1">
+                <h2>🏭 Welcome to Process Emissions Module</h2>
+                <p class="step-description">
+                    Track and calculate emissions from industrial manufacturing processes including cement production, steel making, chemical processing, and other production-related emissions from chemical reactions and material transformations.
+                </p>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Active Processes</h3>
+                        <div class="value">8</div>
+                        <p>Production lines</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>This Month</h3>
+                        <div class="value">2,847</div>
+                        <p>tonnes CO₂e</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Production Volume</h3>
+                        <div class="value">15,230</div>
+                        <p>tonnes output</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Process Efficiency</h3>
+                        <div class="value">94.2%</div>
+                        <p>vs design capacity</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏗️ Recent Production Activity</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Process Line</th>
+                                <th>Product</th>
+                                <th>Production (tonnes)</th>
+                                <th>Material Input</th>
+                                <th>Process Emissions (tCO₂e)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🏗️ Kiln #1</td>
+                                <td>Portland Cement</td>
+                                <td>4,250</td>
+                                <td>Limestone</td>
+                                <td>1,847</td>
+                                <td>✅ Normal Operation</td>
+                            </tr>
+                            <tr>
+                                <td>⚗️ Reactor A</td>
+                                <td>Nitric Acid</td>
+                                <td>850</td>
+                                <td>Ammonia</td>
+                                <td>156</td>
+                                <td>✅ Normal Operation</td>
+                            </tr>
+                            <tr>
+                                <td>🔥 Furnace B</td>
+                                <td>Steel</td>
+                                <td>2,100</td>
+                                <td>Iron Ore</td>
+                                <td>387</td>
+                                <td>⚠️ Maintenance Due</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="warning-message">
+                    <h3>📊 Production Notice</h3>
+                    <p>Kiln #1 limestone calcination is the largest source of process emissions (64.9% of total). Consider alternative binder technologies.</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Process Type Selection -->
+            <div class="step" id="step2">
+                <h2>⚙️ Select Industrial Process Type</h2>
+                <p class="step-description">
+                    Choose the type of industrial process for which you're reporting emissions. Different processes have specific chemical reactions, raw materials, and emission calculation methods.
+                </p>
+
+                <div class="form-group">
+                    <label>Select Process Category *</label>
+                    <div id="processOptions">
+                        <div class="process-option" data-process="cement">
+                            <div class="process-icon cement">🏗️</div>
+                            <div>
+                                <strong>Cement & Lime Production</strong>
+                                <p>Limestone calcination, clinker production, lime manufacturing</p>
+                            </div>
+                        </div>
+                        <div class="process-option" data-process="steel">
+                            <div class="process-icon steel">🔥</div>
+                            <div>
+                                <strong>Iron & Steel Making</strong>
+                                <p>Blast furnace operations, coke production, electric arc furnace</p>
+                            </div>
+                        </div>
+                        <div class="process-option" data-process="chemical">
+                            <div class="process-icon chemical">⚗️</div>
+                            <div>
+                                <strong>Chemical Production</strong>
+                                <p>Ammonia, nitric acid, adipic acid, hydrogen production</p>
+                            </div>
+                        </div>
+                        <div class="process-option" data-process="aluminum">
+                            <div class="process-icon aluminum">⚡</div>
+                            <div>
+                                <strong>Aluminum Smelting</strong>
+                                <p>Primary aluminum production, anode effects, electrolysis</p>
+                            </div>
+                        </div>
+                        <div class="process-option" data-process="glass">
+                            <div class="process-icon glass">🪟</div>
+                            <div>
+                                <strong>Glass Manufacturing</strong>
+                                <p>Soda ash calcination, glass melting, container glass</p>
+                            </div>
+                        </div>
+                        <div class="process-option" data-process="petrochemical">
+                            <div class="process-icon petrochemical">🛢️</div>
+                            <div>
+                                <strong>Petrochemical Processing</strong>
+                                <p>Ethylene, methanol, aromatics production, cracking</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="production-status" id="processDetails" style="display: none;">
+                    <h4>Process Line Identification</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Process Line/Unit ID *</label>
+                            <input type="text" placeholder="e.g., Kiln-1, Reactor-A, Furnace-B" id="processId">
+                        </div>
+                        <div class="form-group">
+                            <label>Product/Output *</label>
+                            <input type="text" placeholder="e.g., Portland Cement, Steel, Ammonia" id="productOutput">
+                        </div>
+                    </div>
+                    <div class="form-triple">
+                        <div class="form-group">
+                            <label>Design Capacity (tonnes/day)</label>
+                            <input type="number" placeholder="500" step="0.1" id="designCapacity">
+                        </div>
+                        <div class="form-group">
+                            <label>Installation Year</label>
+                            <input type="number" placeholder="2015" min="1990" max="2025" id="installationYear">
+                        </div>
+                        <div class="form-group">
+                            <label>Technology Type</label>
+                            <input type="text" placeholder="e.g., Dry Process, BOF, Haber-Bosch" id="technologyType">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Raw Materials & Chemical Reactions -->
+            <div class="step" id="step3">
+                <h2>🧪 Raw Materials & Chemical Reactions</h2>
+                <p class="step-description">
+                    Specify the raw materials consumed and chemical reactions occurring in your process. This determines the stoichiometric relationships for emission calculations.
+                </p>
+
+                <div class="reaction-equation" id="reactionDisplay">
+                    <h4>Primary Chemical Reaction</h4>
+                    <p><strong>Limestone Calcination:</strong></p>
+                    <p>CaCO₃ + Heat → CaO + CO₂</p>
+                    <p><em>Calcium Carbonate decomposes to produce Calcium Oxide and Carbon Dioxide</em></p>
+                </div>
+
+                <div class="material-balance">
+                    <h4>📋 Raw Material Inputs</h4>
+                    <table class="material-table">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Chemical Formula</th>
+                                <th>Molecular Weight</th>
+                                <th>Carbon Content (%)</th>
+                                <th>Typical Use</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialTableBody">
+                            <tr>
+                                <td>Limestone</td>
+                                <td>CaCO₃</td>
+                                <td>100.09 g/mol</td>
+                                <td>12.0%</td>
+                                <td>Primary raw material</td>
+                            </tr>
+                            <tr>
+                                <td>Clay</td>
+                                <td>Al₂Si₂O₅(OH)₄</td>
+                                <td>258.16 g/mol</td>
+                                <td>0%</td>
+                                <td>Alumina source</td>
+                            </tr>
+                            <tr>
+                                <td>Iron Ore</td>
+                                <td>Fe₂O₃</td>
+                                <td>159.69 g/mol</td>
+                                <td>0%</td>
+                                <td>Iron source</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="form-group">
+                    <label>Primary Raw Material *</label>
+                    <select id="primaryMaterial">
+                        <option value="limestone">Limestone (CaCO₃)</option>
+                        <option value="dolomite">Dolomite (CaMg(CO₃)₂)</option>
+                        <option value="soda-ash">Soda Ash (Na₂CO₃)</option>
+                        <option value="iron-ore">Iron Ore (Fe₂O₃)</option>
+                        <option value="bauxite">Bauxite (Al₂O₃·3H₂O)</option>
+                        <option value="ammonia">Ammonia (NH₃)</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Material Purity (%)</label>
+                        <input type="number" placeholder="95" min="50" max="100" step="0.1" id="materialPurity" value="95">
+                    </div>
+                    <div class="form-group">
+                        <label>Moisture Content (%)</label>
+                        <input type="number" placeholder="2.5" min="0" max="20" step="0.1" id="moistureContent" value="2.5">
+                    </div>
+                </div>
+
+                <div class="stoichiometry-calc">
+                    <h3>⚖️ Stoichiometric Relationships</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <p><strong>Theoretical CO₂ Yield:</strong> <span id="theoreticalYield">43.97%</span> by mass</p>
+                            <p><strong>1 tonne CaCO₃ produces:</strong> <span id="co2Yield">0.440</span> tonnes CO₂</p>
+                        </div>
+                        <div>
+                            <p><strong>Molecular Weight Ratio:</strong> CO₂/CaCO₃ = 44.01/100.09</p>
+                            <p><strong>Accounting for purity:</strong> <span id="adjustedYield">0.418</span> tonnes CO₂/tonne material</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4>🔬 Process Conditions</h4>
+                    <div class="form-triple">
+                        <div class="form-group">
+                            <label>Process Temperature (°C)</label>
+                            <input type="number" placeholder="900" min="200" max="2000" id="processTemp">
+                        </div>
+                        <div class="form-group">
+                            <label>Reaction Efficiency (%)</label>
+                            <input type="number" placeholder="98" min="70" max="100" step="0.1" id="reactionEfficiency" value="98">
+                        </div>
+                        <div class="form-group">
+                            <label>Residence Time (hours)</label>
+                            <input type="number" placeholder="4.5" min="0.1" max="24" step="0.1" id="residenceTime">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Calculation Method Selection -->
+            <div class="step" id="step4">
+                <h2>📊 Select Calculation Method</h2>
+                <p class="step-description">
+                    Choose the method for calculating process emissions. Different methods provide varying levels of accuracy and are suitable for different materials and operational requirements.
+                </p>
+
+                <div class="method-selector">
+                    <div class="method-card" data-method="material-balance" onclick="selectMethod('material-balance')">
+                        <div class="method-name">Material Balance</div>
+                        <div class="method-description">Based on stoichiometric relationships and material inputs</div>
+                        <small><strong>Accuracy:</strong> ±5% | <strong>Data Required:</strong> Material consumption</small>
+                    </div>
+                    
+                    <div class="method-card" data-method="production-factors" onclick="selectMethod('production-factors')">
+                        <div class="method-name">Production-Based Factors</div>
+                        <div class="method-description">Industry-specific emission factors per unit of production</div>
+                        <small><strong>Accuracy:</strong> ±15% | <strong>Data Required:</strong> Production volume</small>
+                    </div>
+                    
+                    <div class="method-card" data-method="continuous-monitoring" onclick="selectMethod('continuous-monitoring')">
+                        <div class="method-name">Continuous Monitoring</div>
+                        <div class="method-description">Real-time measurement of process gas emissions</div>
+                        <small><strong>Accuracy:</strong> ±2% | <strong>Data Required:</strong> CEMS data</small>
+                    </div>
+                    
+                    <div class="method-card" data-method="hybrid-approach" onclick="selectMethod('hybrid-approach')">
+                        <div class="method-name">Hybrid Approach</div>
+                        <div class="method-description">Combination of material balance and monitoring</div>
+                        <small><strong>Accuracy:</strong> ±3% | <strong>Data Required:</strong> Multiple sources</small>
+                    </div>
+                </div>
+
+                <!-- Material Balance Method -->
+                <div id="materialBalanceSection" style="display: none;">
+                    <div class="card">
+                        <h4>⚖️ Material Balance Method</h4>
+                        <p>Calculate emissions based on the stoichiometric relationships between raw materials consumed and CO₂ produced in chemical reactions.</p>
+                        
+                        <div class="form-group">
+                            <label>Raw Material Consumption *</label>
+                            <div class="form-row">
+                                <input type="number" placeholder="4250" step="0.1" id="materialConsumption">
+                                <select id="materialUnit">
+                                    <option value="tonnes">Tonnes</option>
+                                    <option value="kg">Kilograms</option>
+                                    <option value="metric-tons">Metric Tons</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="stoichiometry-calc">
+                            <h4>⚗️ Stoichiometric Calculation</h4>
+                            <p><strong>Formula:</strong> CO₂ Emissions = Material Input × Purity × Stoichiometric Factor × Efficiency</p>
+                            <p><strong>Example:</strong> 4,250 tonnes × 0.95 × 0.4397 × 0.98 = 1,746 tonnes CO₂</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Production Factors Method -->
+                <div id="productionFactorsSection" style="display: none;">
+                    <div class="card">
+                        <h4>🏭 Production-Based Factors Method</h4>
+                        <p>Uses industry-standard emission factors based on production volume of finished products.</p>
+                        
+                        <div class="form-group">
+                            <label>Production Volume *</label>
+                            <div class="form-row">
+                                <input type="number" placeholder="3950" step="0.1" id="productionVolume">
+                                <select id="productionUnit">
+                                    <option value="tonnes">Tonnes Product</option>
+                                    <option value="clinker">Tonnes Clinker</option>
+                                    <option value="units">Units</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="factor-display">
+                            <div class="factor-value">Cement Production Factor: 0.507 tonnes CO₂/tonne clinker</div>
+                            <div class="factor-source">Source: IPCC 2019 - Cement Industry Guidelines</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Continuous Monitoring Method -->
+                <div id="continuousMonitoringSection" style="display: none;">
+                    <div class="card">
+                        <h4>📡 Continuous Monitoring Method</h4>
+                        <p>Direct measurement of CO₂ emissions using Continuous Emission Monitoring Systems (CEMS).</p>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Measured CO₂ Emissions *</label>
+                                <input type="number" placeholder="1847" step="0.1" id="measuredEmissions">
+                            </div>
+                            <div class="form-group">
+                                <label>Measurement Period</label>
+                                <select id="measurementPeriod">
+                                    <option value="daily">Daily Average</option>
+                                    <option value="monthly">Monthly Total</option>
+                                    <option value="continuous">Continuous Data</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>CEMS System Calibration Date</label>
+                            <input type="date" id="calibrationDate">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hybrid Approach Method -->
+                <div id="hybridApproachSection" style="display: none;">
+                    <div class="card">
+                        <h4>🔄 Hybrid Approach Method</h4>
+                        <p>Combines material balance calculations with monitoring data for enhanced accuracy and verification.</p>
+                        
+                        <div class="responsive-grid">
+                            <div class="form-group">
+                                <label>Material-Based Calculation (%)</label>
+                                <input type="number" placeholder="70" min="0" max="100" id="materialWeight" value="70">
+                            </div>
+                            <div class="form-group">
+                                <label>Monitoring-Based Data (%)</label>
+                                <input type="number" placeholder="30" min="0" max="100" id="monitoringWeight" value="30">
+                            </div>
+                        </div>
+                        
+                        <p><small>Weighted average of material balance and monitoring results for improved accuracy</small></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Production Data & Period -->
+            <div class="step" id="step5">
+                <h2>📅 Production Data & Operating Period</h2>
+                <p class="step-description">
+                    Enter production volumes and operating schedule data for the reporting period. Process emissions are directly linked to production rates and operating hours.
+                </p>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Reporting Period Type *</label>
+                        <select id="periodType">
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="annual">Annual</option>
+                            <option value="campaign">Production Campaign</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Month/Quarter *</label>
+                        <select id="monthSelect">
+                            <option value="2025-01">January 2025</option>
+                            <option value="2025-02">February 2025</option>
+                            <option value="2025-03" selected>March 2025</option>
+                            <option value="2025-04">April 2025</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="production-metrics">
+                    <div class="metric-card">
+                        <h4>Production Volume</h4>
+                        <div class="form-group">
+                            <input type="number" placeholder="4250" id="actualProduction">
+                            <label>Tonnes Produced</label>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Operating Days</h4>
+                        <div class="form-group">
+                            <input type="number" placeholder="28" min="1" max="31" id="operatingDays">
+                            <label>Days in Period</label>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Capacity Utilization</h4>
+                        <div class="form-group">
+                            <input type="number" placeholder="94.2" min="0" max="100" step="0.1" id="capacityUtil">
+                            <label>% of Design Capacity</label>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Process Efficiency</h4>
+                        <div class="form-group">
+                            <input type="number" placeholder="97.8" min="70" max="100" step="0.1" id="processEfficiency">
+                            <label>% Theoretical Yield</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4>📊 Production Performance Analysis</h4>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Design Capacity:</strong> 500 tonnes/day<br>
+                            <strong>Actual Production Rate:</strong> <span id="actualRate">151.8</span> tonnes/day<br>
+                            <strong>Utilization:</strong> <span id="utilizationCalc">94.2%</span>
+                        </div>
+                        <div>
+                            <strong>Previous Month:</strong> 4,100 tonnes (91.2% util.)<br>
+                            <strong>This Month:</strong> <span id="thisMonthProd">4,250</span> tonnes<br>
+                            <strong>Change:</strong> <span id="prodChange">+150</span> tonnes (+3.7%)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="material-balance">
+                    <h4>📦 Material Balance Summary</h4>
+                    <table class="material-table">
+                        <thead>
+                            <tr>
+                                <th>Input/Output</th>
+                                <th>Material</th>
+                                <th>Quantity (tonnes)</th>
+                                <th>Quality/Specification</th>
+                                <th>Source/Destination</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Input</strong></td>
+                                <td>Limestone</td>
+                                <td><span id="limestoneInput">4,250</span></td>
+                                <td>95% CaCO₃, 2.5% moisture</td>
+                                <td>Local Quarry A</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Input</strong></td>
+                                <td>Clay</td>
+                                <td>620</td>
+                                <td>Standard grade</td>
+                                <td>Regional Supplier</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Output</strong></td>
+                                <td>Clinker</td>
+                                <td><span id="clinkerOutput">3,950</span></td>
+                                <td>OPC Grade</td>
+                                <td>Cement Mill</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Emission</strong></td>
+                                <td>CO₂</td>
+                                <td><span id="co2Output">1,746</span></td>
+                                <td>Process emissions</td>
+                                <td>Atmosphere</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="calculation-preview" id="calculationPreview" style="display: none;">
+                    <h3>⚡ Real-time Process Emission Calculation</h3>
+                    <div class="emission-result" id="emissionResult">1,746 tonnes CO₂</div>
+                    <p>Process: <span id="previewProcess">Cement Production - Kiln #1</span></p>
+                    <p>Method: <span id="previewMethod">Material Balance</span> | Period: <span id="previewPeriod">March 2025</span></p>
+                </div>
+            </div>
+
+            <!-- Step 6: Additional Data -->
+            <div class="step" id="step6">
+                <h2>📎 Additional Information & Documentation</h2>
+                <p class="step-description">
+                    Add supporting documentation, process operating records, quality control data, and compliance information to enhance data quality and support regulatory requirements.
+                </p>
+
+                <div class="form-group">
+                    <label>Process Description & Operating Notes</label>
+                    <textarea rows="4" placeholder="Describe process conditions, any deviations from normal operation, maintenance activities, quality issues..." id="processDescription"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Supporting Documents</label>
+                    <div class="file-upload" id="fileUpload">
+                        <div>📄 Click to upload or drag files here</div>
+                        <p>Upload production reports, lab analyses, material certificates, process data logs</p>
+                        <small>Supported: PDF, JPG, PNG, Excel, CSV (Max 10MB each)</small>
+                    </div>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="form-group">
+                        <label>Process Engineer/Operator</label>
+                        <input type="text" placeholder="e.g., John Smith, Production Team A" id="processOperator">
+                    </div>
+                    <div class="form-group">
+                        <label>Quality Control Batch #</label>
+                        <input type="text" placeholder="e.g., QC-2025-0347" id="batchNumber">
+                    </div>
+                </div>
+
+                <div class="production-status">
+                    <h4>🔬 Quality Control & Verification</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Product Quality Grade</label>
+                            <select id="qualityGrade">
+                                <option value="premium">Premium Grade</option>
+                                <option value="standard">Standard Grade</option>
+                                <option value="industrial">Industrial Grade</option>
+                                <option value="off-spec">Off-Specification</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lab Analysis Date</label>
+                            <input type="date" id="labAnalysisDate">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Material Source Verification</label>
+                        <textarea rows="2" placeholder="Supplier certificates, material origin, quality specifications..." id="materialVerification"></textarea>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⚙️ Process Operating Conditions</h3>
+                    <div class="form-triple">
+                        <div class="form-group">
+                            <label>Average Temperature (°C)</label>
+                            <input type="number" placeholder="1450" id="avgTemperature">
+                        </div>
+                        <div class="form-group">
+                            <label>Pressure (bar)</label>
+                            <input type="number" placeholder="1.2" step="0.1" id="operatingPressure">
+                        </div>
+                        <div class="form-group">
+                            <label>Feed Rate (tonnes/hr)</label>
+                            <input type="number" placeholder="6.3" step="0.1" id="feedRate">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Process Deviations/Abnormalities</label>
+                        <textarea rows="2" placeholder="Any deviations from standard operating conditions, equipment issues, process upsets..." id="processDeviations"></textarea>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Data Quality & Compliance</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Data Source:</strong> Production logs + Lab analysis<br>
+                            <strong>Measurement Accuracy:</strong> ±2.5%<br>
+                            <strong>Calibration Status:</strong> Current
+                        </div>
+                        <div>
+                            <strong>Regulatory Compliance:</strong> ✅ EU ETS compliant<br>
+                            <strong>Verification Status:</strong> Third-party verified<br>
+                            <strong>Audit Trail:</strong> Complete documentation
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Review & Confirm -->
+            <div class="step" id="step7">
+                <h2>👀 Review & Confirm Process Emission Entry</h2>
+                <p class="step-description">
+                    Please review all process emission information before saving. This data will be included in your emissions inventory and production reporting systems.
+                </p>
+
+                <div class="card">
+                    <h3>🏭 Process & Production Summary</h3>
+                    <table class="summary-table">
+                        <tr>
+                            <th>Process Line ID:</th>
+                            <td><span id="reviewProcessId">Kiln-1</span></td>
+                        </tr>
+                        <tr>
+                            <th>Process Type:</th>
+                            <td><span id="reviewProcessType">Cement Production - Limestone Calcination</span></td>
+                        </tr>
+                        <tr>
+                            <th>Product Output:</th>
+                            <td><span id="reviewProductOutput">Portland Cement Clinker</span></td>
+                        </tr>
+                        <tr>
+                            <th>Primary Raw Material:</th>
+                            <td><span id="reviewRawMaterial">Limestone (CaCO₃) - 95% purity</span></td>
+                        </tr>
+                        <tr>
+                            <th>Calculation Method:</th>
+                            <td><span id="reviewMethod">Material Balance (Stoichiometric)</span></td>
+                        </tr>
+                        <tr>
+                            <th>Reporting Period:</th>
+                            <td><span id="reviewPeriod">March 2025</span></td>
+                        </tr>
+                        <tr>
+                            <th>Production Volume:</th>
+                            <td><span id="reviewProduction">4,250 tonnes limestone input</span></td>
+                        </tr>
+                        <tr>
+                            <th>Operating Days:</th>
+                            <td><span id="reviewOperatingDays">28 days (94.2% capacity utilization)</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>🎯 Calculated Process Emissions</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <div class="emission-result"><span id="reviewTotalEmissions">1,746</span> tonnes CO₂</div>
+                            <p>Direct process emissions from calcination</p>
+                        </div>
+                        <div>
+                            <strong>Stoichiometric Calculation:</strong><br>
+                            4,250 t × 0.95 × 0.4397 × 0.98 = 1,746 t CO₂<br>
+                            <strong>Emission Factor:</strong> 0.411 t CO₂/t limestone
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📈 Production Performance Analysis</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Previous Month:</strong> 1,685 tCO₂ (4,100 t production)<br>
+                            <strong>This Period:</strong> 1,746 tCO₂ (4,250 t production)<br>
+                            <strong>Change:</strong> +61 tCO₂ (+3.6%)
+                        </div>
+                        <div>
+                            <strong>Facility YTD Total:</strong> 5,234 tCO₂<br>
+                            <strong>Process % of Facility:</strong> 64.9%<br>
+                            <strong>Emission Intensity:</strong> 0.442 tCO₂/t clinker
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stoichiometry-calc">
+                    <h3>⚗️ Chemical Reaction Verification</h3>
+                    <p><strong>Reaction:</strong> CaCO₃ + Heat → CaO + CO₂</p>
+                    <p><strong>Mass Balance Check:</strong> Input 4,250 t → Output 3,950 t clinker + 1,746 t CO₂ + losses</p>
+                    <p><strong>Carbon Balance:</strong> 99.7% of theoretical CO₂ recovered</p>
+                    <p><strong>Process Efficiency:</strong> 97.8% of design yield achieved</p>
+                </div>
+
+                <div class="production-status">
+                    <h4>🔬 Quality & Compliance Context</h4>
+                    <p><strong>Operator:</strong> <span id="reviewOperator">John Smith, Production Team A</span></p>
+                    <p><strong>Quality Grade:</strong> <span id="reviewQuality">Premium Grade</span></p>
+                    <p><strong>Process Conditions:</strong> 1,450°C average, 1.2 bar, 6.3 t/hr feed rate</p>
+                    <p><strong>Compliance Status:</strong> EU ETS verified, third-party audited</p>
+                </div>
+            </div>
+
+            <!-- Step 8: Processing -->
+            <div class="step" id="step8">
+                <h2>⚙️ Processing Production Data</h2>
+                <p class="step-description">
+                    The system is calculating process emissions, updating production records, and performing mass balance verification. Complex stoichiometric calculations ensure accuracy.
+                </p>
+
+                <div class="card">
+                    <h3>🔄 Processing Steps</h3>
+                    <div id="processingSteps">
+                        <p>✅ Validating production and material data...</p>
+                        <p>✅ Performing stoichiometric calculations...</p>
+                        <p>✅ Applying process-specific factors...</p>
+                        <p>🔄 Conducting mass balance verification...</p>
+                        <p>⏳ Updating production tracking systems...</p>
+                        <p>⏳ Checking compliance requirements...</p>
+                        <p>⏳ Generating process efficiency reports...</p>
+                    </div>
+                </div>
+
+                <div class="calculation-preview">
+                    <h3>📊 Detailed Stoichiometric Calculation</h3>
+                    <p><strong>Chemical Reaction:</strong> CaCO₃ → CaO + CO₂</p>
+                    <p><strong>Molecular Weights:</strong> CaCO₃ = 100.09, CO₂ = 44.01 g/mol</p>
+                    <p><strong>Theoretical Yield:</strong> 44.01/100.09 = 0.4397 (43.97%)</p>
+                    <p><strong>Material Input:</strong> 4,250 tonnes limestone × 0.95 purity = 4,038 tonnes CaCO₃</p>
+                    <p><strong>Theoretical CO₂:</strong> 4,038 × 0.4397 = 1,775 tonnes CO₂</p>
+                    <p><strong>Process Efficiency:</strong> 1,775 × 0.98 = 1,746 tonnes CO₂ actual</p>
+                </div>
+
+                <div class="stoichiometry-calc">
+                    <h3>⚖️ Mass Balance Verification</h3>
+                    <p><strong>Input Mass:</strong> 4,250 t limestone + 620 t clay = 4,870 t total</p>
+                    <p><strong>Output Mass:</strong> 3,950 t clinker + 1,746 t CO₂ + losses = 4,870 t</p>
+                    <p><strong>Balance Check:</strong> ✅ Input = Output (within ±2% tolerance)</p>
+                </div>
+
+                <div class="success-message" id="processingComplete" style="display: none;">
+                    <h3>✅ Processing Complete!</h3>
+                    <p>Your process emission data has been successfully calculated and production records updated.</p>
+                    <p><strong>Entry ID:</strong> PROC-2025-0156</p>
+                </div>
+            </div>
+
+            <!-- Step 9: Results & Production Dashboard -->
+            <div class="step" id="step9">
+                <h2>📊 Results & Production Dashboard</h2>
+                <p class="step-description">
+                    Your process emission data has been successfully integrated into your production tracking and emissions inventory. Monitor process efficiency, material utilization, and environmental performance.
+                </p>
+
+                <div class="success-message">
+                    <h3>✅ Process Emission Entry Successfully Saved</h3>
+                    <p><strong>Entry ID:</strong> PROC-2025-0156 | <strong>Process:</strong> Kiln-1 | <strong>Emissions:</strong> 1,746 tonnes CO₂</p>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Kiln-1 March</h3>
+                        <div class="value">1,746</div>
+                        <p>tonnes CO₂</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Facility Total</h3>
+                        <div class="value">2,847</div>
+                        <p>tonnes CO₂</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Emission Intensity</h3>
+                        <div class="value">0.442</div>
+                        <p>tCO₂/t clinker</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Process Efficiency</h3>
+                        <div class="value">97.8%</div>
+                        <p>of theoretical</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏭 Updated Production Summary</h3>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Process Line</th>
+                                <th>Product</th>
+                                <th>Production (t)</th>
+                                <th>Material Input (t)</th>
+                                <th>Process Emissions (tCO₂)</th>
+                                <th>Efficiency</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #E8F5E8;">
+                                <td>🏗️ Kiln-1</td>
+                                <td>Cement Clinker</td>
+                                <td>3,950</td>
+                                <td>4,250</td>
+                                <td>1,746</td>
+                                <td><span class="efficiency-indicator efficiency-excellent">97.8%</span></td>
+                                <td>📊 Optimize | ✏️ Edit</td>
+                            </tr>
+                            <tr>
+                                <td>⚗️ Reactor-A</td>
+                                <td>Nitric Acid</td>
+                                <td>850</td>
+                                <td>680</td>
+                                <td>156</td>
+                                <td><span class="efficiency-indicator efficiency-good">94.1%</span></td>
+                                <td>🔧 Maintain | ✏️ Edit</td>
+                            </tr>
+                            <tr>
+                                <td>🔥 Furnace-B</td>
+                                <td>Steel</td>
+                                <td>2,100</td>
+                                <td>3,150</td>
+                                <td>387</td>
+                                <td><span class="efficiency-indicator efficiency-good">91.5%</span></td>
+                                <td>🔧 Service Due | ✏️ Edit</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="responsive-grid">
+                    <div class="card">
+                        <h3>🎯 Process Optimization Opportunities</h3>
+                        <p>• 🔥 Optimize kiln fuel efficiency (reduce heat losses)</p>
+                        <p>• 📦 Evaluate alternative low-carbon binders</p>
+                        <p>• ♻️ Increase use of recycled materials</p>
+                        <p>• 🌡️ Implement waste heat recovery systems</p>
+                        <p>• 📊 Real-time process monitoring upgrades</p>
+                    </div>
+                    <div class="card">
+                        <h3>📊 Analytics & Reporting</h3>
+                        <p>• View process emission trends</p>
+                        <p>• Generate production efficiency reports</p>
+                        <p>• Export material balance data</p>
+                        <p>• Set up automated quality alerts</p>
+                        <p>• Plan carbon reduction strategies</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏆 Production Performance Insights</h3>
+                    <div class="responsive-grid">
+                        <div>
+                            <strong>Best Performing Process:</strong> Kiln-1 (97.8% efficiency)<br>
+                            <strong>Highest Emissions:</strong> Kiln-1 (64.9% of facility total)<br>
+                            <strong>Carbon Intensity Trend:</strong> 0.442 tCO₂/t (↓ 2.1% vs last year)
+                        </div>
+                        <div>
+                            <strong>Material Utilization:</strong> 95.2% effective use<br>
+                            <strong>Quality Achievement:</strong> 99.1% premium grade<br>
+                            <strong>Reduction Potential:</strong> 15% with process optimization
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stoichiometry-calc">
+                    <h3>🔬 Process Chemistry & Innovation</h3>
+                    <p><strong>Current Process:</strong> Traditional limestone calcination (CaCO₃ → CaO + CO₂)</p>
+                    <p><strong>Innovation Opportunity:</strong> Investigate alternative cement chemistries</p>
+                    <p><strong>Carbon Capture Potential:</strong> 85% process CO₂ suitable for capture</p>
+                    <p><strong>Circular Economy:</strong> Evaluate waste-to-clinker substitution rates</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <div>
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">← Previous</button>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Begin Entry →</button>
+                <button class="btn btn-success" id="saveBtn" onclick="saveEntry()" style="display: none;">💾 Save Process Data</button>
+                <button class="btn btn-primary" id="finishBtn" onclick="finish()" style="display: none;">🏭 Add Another Process</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedMethod = 'material-balance';
+        let selectedProcess = { type: 'cement', reaction: 'calcination' };
+        const totalSteps = 9;
+        const stepTitles = [
+            "Production Overview",
+            "Select Process Type", 
+            "Raw Materials & Reactions",
+            "Calculation Method",
+            "Production Data & Period",
+            "Additional Information",
+            "Review & Confirm",
+            "Processing Data",
+            "Production Dashboard"
+        ];
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('stepTitle').textContent = stepTitles[currentStep - 1];
+            
+            // Update step circles
+            document.querySelectorAll('.step-circle').forEach((circle, index) => {
+                circle.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    circle.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    circle.classList.add('active');
+                }
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Update button visibility
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            
+            prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+            
+            if (step === 7) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+            } else if (step === 9) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                finishBtn.style.display = 'none';
+            }
+            
+            updateProgress();
+        }
+
+        function selectMethod(method) {
+            selectedMethod = method;
+            
+            // Remove active class from all method cards
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add active class to selected method
+            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+            
+            // Hide all method sections
+            document.querySelectorAll('#materialBalanceSection, #productionFactorsSection, #continuousMonitoringSection, #hybridApproachSection').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected method section
+            const sectionMap = {
+                'material-balance': 'materialBalanceSection',
+                'production-factors': 'productionFactorsSection',
+                'continuous-monitoring': 'continuousMonitoringSection',
+                'hybrid-approach': 'hybridApproachSection'
+            };
+            
+            document.getElementById(sectionMap[method]).style.display = 'block';
+        }
+
+        function calculateStoichiometry() {
+            const materialInput = parseFloat(document.getElementById('materialConsumption').value) || 4250;
+            const purity = parseFloat(document.getElementById('materialPurity').value) || 95;
+            const efficiency = parseFloat(document.getElementById('reactionEfficiency').value) || 98;
+            
+            // CaCO3 -> CaO + CO2 stoichiometry
+            const stoichiometricFactor = 44.01 / 100.09; // CO2/CaCO3 molecular weight ratio
+            const theoreticalYield = stoichiometricFactor * (purity / 100);
+            const actualYield = theoreticalYield * (efficiency / 100);
+            
+            const co2Emissions = materialInput * actualYield;
+            
+            // Update display elements
+            document.getElementById('theoreticalYield').textContent = (stoichiometricFactor * 100).toFixed(2) + '%';
+            document.getElementById('co2Yield').textContent = stoichiometricFactor.toFixed(3);
+            document.getElementById('adjustedYield').textContent = actualYield.toFixed(3);
+            
+            return co2Emissions;
+        }
+
+        function calculateProductionMetrics() {
+            const production = parseFloat(document.getElementById('actualProduction').value) || 4250;
+            const operatingDays = parseFloat(document.getElementById('operatingDays').value) || 28;
+            const capacityUtil = parseFloat(document.getElementById('capacityUtil').value) || 94.2;
+            const designCapacity = 500; // tonnes/day
+            
+            const actualRate = production / operatingDays;
+            const utilizationCalc = (actualRate / designCapacity) * 100;
+            
+            document.getElementById('actualRate').textContent = actualRate.toFixed(1);
+            document.getElementById('utilizationCalc').textContent = utilizationCalc.toFixed(1) + '%';
+            document.getElementById('thisMonthProd').textContent = production.toLocaleString();
+            document.getElementById('prodChange').textContent = '+' + (production - 4100).toLocaleString();
+            
+            // Update material balance
+            document.getElementById('limestoneInput').textContent = production.toLocaleString();
+            document.getElementById('clinkerOutput').textContent = (production * 0.93).toLocaleString();
+            
+            const emissions = calculateStoichiometry();
+            document.getElementById('co2Output').textContent = Math.round(emissions).toLocaleString();
+            
+            // Update preview
+            const preview = document.getElementById('calculationPreview');
+            preview.style.display = 'block';
+            document.getElementById('emissionResult').textContent = Math.round(emissions).toLocaleString() + ' tonnes CO₂';
+            
+            return emissions;
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                if (currentStep === 7) {
+                    // Skip to step 8 (processing)
+                    currentStep = 8;
+                    showStep(currentStep);
+                    
+                    // Simulate processing
+                    setTimeout(() => {
+                        updateProcessingSteps();
+                    }, 1000);
+                    
+                    setTimeout(() => {
+                        currentStep = 9;
+                        showStep(currentStep);
+                    }, 4000);
+                } else {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function saveEntry() {
+            currentStep = 8;
+            showStep(currentStep);
+            
+            setTimeout(() => {
+                updateProcessingSteps();
+            }, 1000);
+            
+            setTimeout(() => {
+                currentStep = 9;
+                showStep(currentStep);
+            }, 4000);
+        }
+
+        function finish() {
+            currentStep = 1;
+            showStep(currentStep);
+            resetForm();
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input, select, textarea').forEach(field => {
+                if (field.type === 'number' || field.type === 'text' || field.type === 'date' || field.tagName === 'TEXTAREA') {
+                    field.value = '';
+                } else if (field.tagName === 'SELECT') {
+                    field.selectedIndex = 0;
+                }
+            });
+            document.querySelectorAll('.process-option, .method-card').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('processDetails').style.display = 'none';
+        }
+
+        function updateProcessingSteps() {
+            const steps = [
+                "✅ Validating production and material data...",
+                "✅ Performing stoichiometric calculations...",
+                "✅ Applying process-specific factors...",
+                "✅ Conducting mass balance verification...",
+                "✅ Updating production tracking systems...",
+                "✅ Checking compliance requirements...",
+                "✅ Generating process efficiency reports..."
+            ];
+            
+            document.getElementById('processingSteps').innerHTML = steps.join('<br>');
+            document.getElementById('processingComplete').style.display = 'block';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Process selection
+            document.querySelectorAll('.process-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.process-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedProcess.type = this.dataset.process;
+                    document.getElementById('processDetails').style.display = 'block';
+                });
+            });
+
+            // Production metrics calculation
+            ['actualProduction', 'operatingDays', 'capacityUtil', 'materialConsumption', 'materialPurity', 'reactionEfficiency'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', function() {
+                        calculateProductionMetrics();
+                    });
+                }
+            });
+
+            // File upload simulation
+            document.getElementById('fileUpload').addEventListener('click', function() {
+                alert('File upload dialog would open here in a real implementation');
+            });
+
+            // Initialize with default method
+            selectMethod('material-balance');
+            calculateStoichiometry();
+            showStep(1);
+        });
+    </script>
+</body>
+</html>
