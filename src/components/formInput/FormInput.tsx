@@ -13,7 +13,7 @@ const countries = [
 
 type FormInputProps = {
     label?: string;
-    type?: 'text' | 'email' | 'textarea' | 'select' | 'tel' | 'password';
+    type?: 'text' | 'email' | 'textarea' | 'select' | 'tel' | 'password' | 'number';
     name: string;
     placeholder?: string;
     iconSrc?: string;
@@ -21,7 +21,7 @@ type FormInputProps = {
     required?: boolean;
     flag?: string;
     fullWidth?: boolean;
-    value?: string;
+    value?: string|number;
     readOnly?:boolean
     onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 };
@@ -131,7 +131,7 @@ const FormInput = ({
             )}
 
             {/* Default input types */}
-            {(type === 'text' || type === 'email' || type === 'password') && !flag && !options.length && (
+            {(type === 'text' || type === 'email' || type === 'password' || type === 'number') && !flag && !options.length && (
                 <div className="flex items-center border border-[var(--Outline)] rounded-lg px-3 py-2.5 gap-3 bg-white w-full">
                     {iconSrc && (
                         <img src={iconSrc} className="w-6 h-6 text-[#969998]" alt="icon" />

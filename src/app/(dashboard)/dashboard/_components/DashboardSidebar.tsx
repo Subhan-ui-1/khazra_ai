@@ -13,6 +13,7 @@ interface SidebarItem {
   icon: string;
   label: string;
   href?: string;
+  children?: SidebarItem[];
 }
 
 interface SidebarGroup {
@@ -21,6 +22,8 @@ interface SidebarGroup {
 }
 
 export default function DashboardSidebar({ activeSection, onSectionChange }: DashboardSidebarProps) {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -37,8 +40,26 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       section: 'Emissions',
       items: [
         { id: 'overallEmissionDashboard', icon: '🏭', label: 'Overall Emissions Dashboard' },
-        { id: 'scope1', icon: '🏭', label: 'Scope 1 Emissions' },
-        { id: 'scope2', icon: '⚡', label: 'Scope 2 Emissions' },
+        {
+          id: 'scope1',
+          icon: '🏭',
+          label: 'Scope 1 Emissions',
+          children: [
+            { id: 'stationary-combustion', icon: '🔥', label: 'Stationary Combustion' },
+            { id: 'mobile-combustion', icon: '🚗', label: 'Mobile Combustion' }
+          ]
+        },
+        {
+          id: 'scope2',
+          icon: '⚡',
+          label: 'Scope 2 Emissions',
+          children: [
+            { id: 'scope2-electricity', icon: '🔌', label: 'Electricity' },
+            { id: 'scope2-steam', icon: '💨', label: 'Steam' },
+            { id: 'scope2-heating', icon: '🔥', label: 'Heating' },
+            { id: 'scope2-cooling', icon: '❄️', label: 'Cooling' }
+          ]
+        },
         { id: 'scope3', icon: '📦', label: 'Scope 3 Emissions' }
       ]
     },
@@ -64,6 +85,15 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       ]
     },
     {
+      section: 'Add',
+      items: [
+        { id: 'add-facility', icon: '🏭', label: 'Facility'},
+        { id: 'add-boundary', icon: '🏭', label: 'Boundary'},
+        { id: 'add-vehicle', icon: '🏭', label: 'Vehicle'},
+        { id: 'add-equipment', icon: '🏭', label: 'Equipment'}
+      ]
+    },
+    {
       section: 'Prototype',
       items: [
         { id: 'process-emissions', icon: '💬', label: 'Process Emissions', href: '/tool/process_emissions.html' },
@@ -74,6 +104,10 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       ]
     }
   ];
+
+  const handleDropdown = (id: string) => {
+    setOpenDropdown(openDropdown === id ? null : id);
+  };
 
   return (
     <>
