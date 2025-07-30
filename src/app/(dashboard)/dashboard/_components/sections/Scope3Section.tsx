@@ -1,6 +1,185 @@
 'use client';
+import { useState } from 'react';
+
+type DurationType = 'This Year' | 'Last Year' | 'Comparison';
+
+type Scope3Source = {
+  label: string;
+  value: number;
+  percentage: number;
+  color: string;
+  opacity: string;
+  arcLabelPos: { x: number; y: number };
+};
+
+type Scope3Data = {
+  [key in DurationType]: Scope3Source[];
+};
+
+const scope3DataByDuration: Scope3Data = {
+  'This Year': [
+    {
+      label: 'Purchased Goods & Services',
+      value: 1500,
+      percentage: 36,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-100',
+      arcLabelPos: { x: 45, y: -10 },
+    },
+    {
+      label: 'Business Travel',
+      value: 1000,
+      percentage: 24,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: 20, y: 40 },
+    },
+    {
+      label: 'Employee Commuting',
+      value: 700,
+      percentage: 16.8,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: -25, y: 30 },
+    },
+    {
+      label: 'Waste Disposal',
+      value: 500,
+      percentage: 12,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-60',
+      arcLabelPos: { x: -35, y: -10 },
+    },
+    {
+      label: 'Transportation & Distribution',
+      value: 300,
+      percentage: 7.2,
+      color: 'fill-[#1f514d]',
+      opacity: 'opacity-50',
+      arcLabelPos: { x: -15, y: -35 },
+    },
+  ],
+  'Last Year': [
+    {
+      label: 'Purchased Goods & Services',
+      value: 1600,
+      percentage: 38,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-100',
+      arcLabelPos: { x: 45, y: -10 },
+    },
+    {
+      label: 'Business Travel',
+      value: 900,
+      percentage: 21.3,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-90',
+      arcLabelPos: { x: 20, y: 40 },
+    },
+    {
+      label: 'Employee Commuting',
+      value: 800,
+      percentage: 19,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: -25, y: 30 },
+    },
+    {
+      label: 'Waste Disposal',
+      value: 500,
+      percentage: 11.8,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-60',
+      arcLabelPos: { x: -35, y: -10 },
+    },
+    {
+      label: 'Transportation & Distribution',
+      value: 400,
+      percentage: 9.9,
+      color: 'fill-[#286864]',
+      opacity: 'opacity-50',
+      arcLabelPos: { x: -15, y: -35 },
+    },
+  ],
+  'Comparison': [
+    {
+      label: 'Purchased Goods & Services',
+      value: 1550,
+      percentage: 37,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-100',
+      arcLabelPos: { x: 45, y: -10 },
+    },
+    {
+      label: 'Business Travel',
+      value: 950,
+      percentage: 22.7,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: 20, y: 40 },
+    },
+    {
+      label: 'Employee Commuting',
+      value: 750,
+      percentage: 17.9,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-70',
+      arcLabelPos: { x: -25, y: 30 },
+    },
+    {
+      label: 'Waste Disposal',
+      value: 550,
+      percentage: 13.1,
+      color: 'fill-[#134e4a]',
+      opacity: 'opacity-60',
+      arcLabelPos: { x: -35, y: -10 },
+    },
+    {
+      label: 'Transportation & Distribution',
+      value: 400,
+      percentage: 9.3,
+      color: 'fill-[#286864]',
+      opacity: 'opacity-50',
+      arcLabelPos: { x: -15, y: -35 },
+    },
+  ],
+};
+
+// const scope3BreakdownData = [
+//   {
+//     id: 'business-travel',
+//     name: 'Business Travel',
+//     value: 1500,
+//     percentage: 50,
+//     color: '#134e4a',
+//     opacity: 1,
+//     description: 'Emissions from business-related travel',
+//   },
+//   {
+//     id: 'employee-commuting',
+//     name: 'Employee Commuting',
+//     value: 900,
+//     percentage: 30,
+//     color: '#134e4a',
+//     opacity: 0.8,
+//     description: 'Daily travel of employees to work',
+//   },
+//   {
+//     id: 'waste-disposal',
+//     name: 'Waste Disposal',
+//     value: 600,
+//     percentage: 20,
+//     color: '#134e4a',
+//     opacity: 0.6,
+//     description: 'Handling and processing of waste',
+//   },
+// ];
+
 
 export default function Scope3Section() {
+  const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
+  const scope3Sources = scope3DataByDuration[duration];
+
   return (
     <div className="space-y-10">
       {/* Page Header */}
@@ -116,78 +295,73 @@ export default function Scope3Section() {
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📊 Scope 3 Breakdown by Category
             </h3>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 text-xs bg-green-800 text-white rounded-md">This Year</button>
-              <button className="px-3 py-1 text-xs bg-white text-green-800 border border-green-200 rounded-md hover:bg-green-50">Last Year</button>
-              <button className="px-3 py-1 text-xs bg-white text-green-800 border border-green-200 rounded-md hover:bg-green-50">Comparison</button>
+            <div className="flex gap-1 border border-gray-200 rounded overflow-hidden">
+              {(['This Year', 'Last Year', 'Comparison'] as DurationType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setDuration(type)}
+                  className={`px-4 py-2 text-xs font-medium ${
+                    duration === type
+                      ? 'bg-teal-700 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
           </div>
           <div className="h-80 flex items-center justify-center">
             <svg viewBox="0 0 300 200" className="w-full h-full">
               <g transform="translate(150,100)">
-                {/* Purchased Goods - 43.9% */}
+                {/* Hardcoded arc paths reused as-is */}
                 <path
-                  d="M 0,-60 A 60,60 0 1,1 52.7,33.1 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="1"
+                  d="M 0,-60 A 60,60 0 1,1 32.3,49.7 L 0,0 Z"
+                  className={`${scope3Sources[0].color} ${scope3Sources[0].opacity}`}
                 />
-                {/* Business Travel - 22.0% */}
                 <path
-                  d="M 52.7,33.1 A 60,60 0 0,1 26.4,53.2 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="0.8"
+                  d="M 32.3,49.7 A 60,60 0 0,1 -58.5,-10.8 L 0,0 Z"
+                  className={`${scope3Sources[1].color} ${scope3Sources[1].opacity}`}
                 />
-                {/* Employee Commuting - 16.0% */}
                 <path
-                  d="M 26.4,53.2 A 60,60 0 0,1 -26.4,53.2 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="0.6"
+                  d="M -58.5,-10.8 A 60,60 0 0,1 0,-60 L 0,0 Z"
+                  className={`${scope3Sources[2].color} ${scope3Sources[2].opacity}`}
                 />
-                {/* Waste - 8.1% */}
                 <path
-                  d="M -26.4,53.2 A 60,60 0 0,1 -52.7,33.1 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="0.4"
+                  d="M -58.5,-10.8 A 40,60 0 0,10 0,-60 L 0,0 Z"
+                  className={`${scope3Sources[3].color} ${scope3Sources[3].opacity}`}
                 />
-                {/* Other - 10.0% */}
                 <path
-                  d="M -52.7,33.1 A 60,60 0 0,1 0,-60 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="0.2"
+                  d="M -58.5,-10.8 A 60,60 0 0,10 0,-60 L 0,0 Z"
+                  className={`${scope3Sources[4].color} ${scope3Sources[4].opacity}`}
                 />
 
-                {/* Labels */}
-                <text x="0" y="-35" textAnchor="middle" fontSize="10" fill="white">
-                  43.9%
-                </text>
-                <text x="30" y="15" textAnchor="middle" fontSize="10" fill="white">
-                  22.0%
-                </text>
-                <text x="0" y="35" textAnchor="middle" fontSize="10" fill="white">
-                  16.0%
-                </text>
-                <text x="-30" y="15" textAnchor="middle" fontSize="10" fill="white">
-                  8.1%
-                </text>
-                <text x="-25" y="-25" textAnchor="middle" fontSize="10" fill="white">
-                  10.0%
-                </text>
+                {/* Dynamic labels */}
+                {scope3Sources.map((item, i) => (
+                  <text
+                    key={i}
+                    x={item.arcLabelPos.x}
+                    y={item.arcLabelPos.y}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="white"
+                  >
+                    {item.percentage.toFixed(1)}%
+                  </text>
+                ))}
               </g>
             </svg>
           </div>
+
           <div className="flex gap-5 mt-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm"></div>
-              <span className="text-sm text-green-800">Purchased Goods (1,247.8 tCO₂e)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm opacity-80"></div>
-              <span className="text-sm text-green-800">Business Travel (624.5 tCO₂e)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm opacity-60"></div>
-              <span className="text-sm text-green-800">Employee Commuting (456.2 tCO₂e)</span>
-            </div>
+            {scope3Sources.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-sm bg-green-800 ${item.opacity}`}></div>
+                <span className="text-sm text-green-800">
+                  {item.label} ({item.value.toLocaleString()} tCO₂e)
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 

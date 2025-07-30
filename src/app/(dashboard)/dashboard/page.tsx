@@ -73,7 +73,7 @@ export default function DashboardPage() {
           activeSection={activeSection} 
           onSectionChange={setActiveSection} 
         />
-        <main className="flex-1 ml-70 p-10 bg-white ">
+        <main className="md:flex-1 border-l border-green-100 xl:p-10 lg:p-8 p-4 bg-white  max-md:mt-6">
           {sections[activeSection as keyof typeof sections]}
         </main>
       </div>

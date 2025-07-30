@@ -28,25 +28,25 @@ export default function RecentActivitiesTable({ recentActivitiesData }: RecentAc
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-[800px] w-full overflow-x-scroll">
           <thead className="bg-green-50">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Date</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Activity</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Scope</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Impact</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Status</th>
+              <th className="lg:px-6 md:px-4 px-2 py-4 text-left text-sm font-semibold text-green-800">Date</th>
+              <th className="lg:px-6 md:px-4 px-2 py-4 text-left text-sm font-semibold text-green-800">Activity</th>
+              <th className="lg:px-6 md:px-4 px-2 py-4 text-left text-sm font-semibold text-green-800">Scope</th>
+              <th className="lg:px-6 md:px-4 px-2 py-4 text-left text-sm font-semibold text-green-800">Impact</th>
+              <th className="lg:px-6 md:px-4 px-2 py-4 text-left text-sm font-semibold text-green-800">Status</th>
             </tr>
           </thead>
           <tbody>
             {recentActivitiesData.map((activity) => (
               <tr key={activity.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-green-800">{activity.date}</td>
-                <td className="px-6 py-4 text-sm text-green-800">{activity.activity}</td>
-                <td className="px-6 py-4 text-sm text-green-800">{activity.scope}</td>
-                <td className="px-6 py-4 text-sm text-green-800">{activity.impact}</td>
-                <td className="px-6 py-4">
+                <td className="lg:px-6 md:px-4 px-2 py-4 text-sm text-green-800">{activity.date}</td>
+                <td className="lg:px-6 md:px-4 px-2 py-4 text-sm text-green-800">{activity.activity}</td>
+                <td className="lg:px-6 md:px-4 px-2 py-4 text-sm text-green-800">{activity.scope}</td>
+                <td className="lg:px-6 md:px-4 px-2 py-4 text-sm text-green-800">{activity.impact}</td>
+                <td className="lg:px-6 md:px-4 px-2 py-4">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${
                     activity.statusType === 'success' 
                       ? 'bg-green-100 text-green-800 border-green-800'
