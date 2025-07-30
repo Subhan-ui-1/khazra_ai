@@ -124,6 +124,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                       isDropdownOpen ? 'bg-green-50 border-l-3 border-green-800 font-semibold' : ''
                     }`}
                   >
+                    
                     <span className="text-base">{item.icon}</span>
                     {item.label}
                     <span className="ml-auto">{isDropdownOpen ? '▲' : '▼'}</span>
