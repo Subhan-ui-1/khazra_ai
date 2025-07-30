@@ -1,6 +1,143 @@
 'use client';
 
+import { useState } from "react";
+
+type Source = {
+  icon: string;
+  title: string;
+  subtitle: string;
+  value: number;
+  percentage: number;
+  description: string;
+};
+
+type Scope1Source = {
+  label: string;
+  value: number;
+  percentage: number;
+  color: string;
+  opacity: string;
+  arcLabelPos: { x: number; y: number };
+};
+
+type DurationType = 'This Year' | 'Last Year' | 'Comparison';
+
+type Scope1Data = {
+  [key in DurationType]: Scope1Source[];
+};
+
+const scope1DataByDuration: Scope1Data = {
+  'This Year': [
+    {
+      label: 'Stationary Combustion',
+      value: 1746.2,
+      percentage: 53.8,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-100',
+      arcLabelPos: { x: 40, y: -10 },
+    },
+    {
+      label: 'Mobile Combustion',
+      value: 985.4,
+      percentage: 30.3,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: -15, y: 35 },
+    },
+    {
+      label: 'Process Emissions',
+      value: 516.2,
+      percentage: 15.9,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-60',
+      arcLabelPos: { x: -25, y: -25 },
+    },
+  ],
+  'Last Year': [
+    {
+      label: 'Stationary Combustion',
+      value: 1900,
+      percentage: 60,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-100',
+      arcLabelPos: { x: 40, y: -10 },
+    },
+    {
+      label: 'Mobile Combustion',
+      value: 800,
+      percentage: 25,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: -15, y: 35 },
+    },
+    {
+      label: 'Process Emissions',
+      value: 470,
+      percentage: 15,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-60',
+      arcLabelPos: { x: -25, y: -25 },
+    },
+  ],
+  'Comparison': [
+    {
+      label: 'Stationary Combustion',
+      value: 1800,
+      percentage: 50,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-100',
+      arcLabelPos: { x: 40, y: -10 },
+    },
+    {
+      label: 'Mobile Combustion',
+      value: 1100,
+      percentage: 35,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-80',
+      arcLabelPos: { x: -15, y: 35 },
+    },
+    {
+      label: 'Process Emissions',
+      value: 700,
+      percentage: 15,
+      color: 'fill-[#0f5744]',
+      opacity: 'opacity-60',
+      arcLabelPos: { x: -25, y: -25 },
+    },
+  ],
+};
+
+const sourceData: Source[] = [
+  {
+    icon: '🔥',
+    title: 'Stationary Combustion',
+    subtitle: 'Boilers, furnaces, generators',
+    value: 1746.2,
+    percentage: 53.8,
+    description: '23 sources • Natural gas, heating oil',
+  },
+  {
+    icon: '🚗',
+    title: 'Mobile Combustion',
+    subtitle: 'Fleet vehicles, equipment',
+    value: 985.4,
+    percentage: 30.3,
+    description: '45 vehicles • Diesel, gasoline, hybrid',
+  },
+  {
+    icon: '🏭',
+    title: 'Process Emissions',
+    subtitle: 'Industrial manufacturing',
+    value: 516.2,
+    percentage: 15.9,
+    description: 'Chemical processes • Manufacturing',
+  },
+];
+
 export default function Scope1Section() {
+  const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
+  const scope1Sources = scope1DataByDuration[duration];
+  
   return (
     <div className="space-y-10">
       {/* Page Header */}
@@ -116,60 +253,66 @@ export default function Scope1Section() {
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📊 Scope 1 Breakdown by Source
             </h3>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 text-xs bg-green-800 text-white rounded-md">This Year</button>
-              <button className="px-3 py-1 text-xs bg-white text-green-800 border border-green-200 rounded-md hover:bg-green-50">Last Year</button>
-              <button className="px-3 py-1 text-xs bg-white text-green-800 border border-green-200 rounded-md hover:bg-green-50">Comparison</button>
+            <div className="flex gap-1 border border-gray-200 rounded overflow-hidden">
+              {(['This Year', 'Last Year', 'Comparison'] as DurationType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setDuration(type)}
+                  className={`px-4 py-2 text-xs font-medium ${
+                    duration === type
+                      ? 'bg-teal-700 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
           </div>
+
           <div className="h-80 flex items-center justify-center">
             <svg viewBox="0 0 300 200" className="w-full h-full">
               <g transform="translate(150,100)">
-                {/* Stationary Combustion - 53.8% */}
+                {/* Hardcoded arc paths reused as-is */}
                 <path
                   d="M 0,-60 A 60,60 0 1,1 32.3,49.7 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="1"
+                  className={`${scope1Sources[0].color} ${scope1Sources[0].opacity}`}
                 />
-                {/* Mobile Combustion - 30.3% */}
                 <path
                   d="M 32.3,49.7 A 60,60 0 0,1 -58.5,-10.8 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="0.8"
+                  className={`${scope1Sources[1].color} ${scope1Sources[1].opacity}`}
                 />
-                {/* Process Emissions - 15.9% */}
                 <path
                   d="M -58.5,-10.8 A 60,60 0 0,1 0,-60 L 0,0 Z"
-                  fill="#0f5744"
-                  opacity="0.6"
+                  className={`${scope1Sources[2].color} ${scope1Sources[2].opacity}`}
                 />
 
-                {/* Labels */}
-                <text x="0" y="-35" textAnchor="middle" fontSize="10" fill="white">
-                  53.8%
-                </text>
-                <text x="20" y="25" textAnchor="middle" fontSize="10" fill="white">
-                  30.3%
-                </text>
-                <text x="-25" y="-25" textAnchor="middle" fontSize="10" fill="white">
-                  15.9%
-                </text>
+                {/* Dynamic labels */}
+                {scope1Sources.map((item, i) => (
+                  <text
+                    key={i}
+                    x={item.arcLabelPos.x}
+                    y={item.arcLabelPos.y}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="white"
+                  >
+                    {item.percentage.toFixed(1)}%
+                  </text>
+                ))}
               </g>
             </svg>
           </div>
+
           <div className="flex gap-5 mt-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm"></div>
-              <span className="text-sm text-green-800">Stationary Combustion (1,746.2 tCO₂e)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm opacity-80"></div>
-              <span className="text-sm text-green-800">Mobile Combustion (985.4 tCO₂e)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm opacity-60"></div>
-              <span className="text-sm text-green-800">Process Emissions (516.2 tCO₂e)</span>
-            </div>
+            {scope1Sources.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-sm bg-green-800 ${item.opacity}`}></div>
+                <span className="text-sm text-green-800">
+                  {item.label} ({item.value.toLocaleString()} tCO₂e)
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -216,71 +359,33 @@ export default function Scope1Section() {
 
       {/* Sources Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white border border-green-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
-              🔥
+        {sourceData.map((item, index) => (
+          <div
+            key={index}
+            className="bg-white border border-green-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
+                {item.icon}
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800">{item.title}</h4>
+                <div className="text-xs text-green-800 opacity-60">{item.subtitle}</div>
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-green-800">Stationary Combustion</h4>
-              <div className="text-xs text-green-800 opacity-60">Boilers, furnaces, generators</div>
+            <div className="flex justify-between items-center mb-3">
+              <div className="text-2xl font-bold text-green-800">{item.value.toLocaleString()}</div>
+              <div className="text-sm text-green-800 opacity-60">{item.percentage.toFixed(1)}%</div>
             </div>
-          </div>
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-2xl font-bold text-green-800">1,746.2</div>
-            <div className="text-sm text-green-800 opacity-60">53.8%</div>
-          </div>
-          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden mb-3">
-            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '53.8%' }}></div>
-          </div>
-          <div className="text-xs text-green-800 opacity-70">
-            23 sources • Natural gas, heating oil
-          </div>
-        </div>
-
-        <div className="bg-white border border-green-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
-              🚗
+            <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden mb-3">
+              <div
+                className="h-full bg-green-800 transition-all duration-1000"
+                style={{ width: `${item.percentage}%` }}
+              ></div>
             </div>
-            <div>
-              <h4 className="font-semibold text-green-800">Mobile Combustion</h4>
-              <div className="text-xs text-green-800 opacity-60">Fleet vehicles, equipment</div>
-            </div>
+            <div className="text-xs text-green-800 opacity-70">{item.description}</div>
           </div>
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-2xl font-bold text-green-800">985.4</div>
-            <div className="text-sm text-green-800 opacity-60">30.3%</div>
-          </div>
-          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden mb-3">
-            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '30.3%' }}></div>
-          </div>
-          <div className="text-xs text-green-800 opacity-70">
-            45 vehicles • Diesel, gasoline, hybrid
-          </div>
-        </div>
-
-        <div className="bg-white border border-green-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
-              🏭
-            </div>
-            <div>
-              <h4 className="font-semibold text-green-800">Process Emissions</h4>
-              <div className="text-xs text-green-800 opacity-60">Industrial manufacturing</div>
-            </div>
-          </div>
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-2xl font-bold text-green-800">516.2</div>
-            <div className="text-sm text-green-800 opacity-60">15.9%</div>
-          </div>
-          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden mb-3">
-            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '15.9%' }}></div>
-          </div>
-          <div className="text-xs text-green-800 opacity-70">
-            Chemical processes • Manufacturing
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Data Table */}
