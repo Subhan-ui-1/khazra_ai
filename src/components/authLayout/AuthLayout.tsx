@@ -19,7 +19,7 @@ const AuthLayout = ({
     imageAlt = "Logo",
 }: AuthLayoutProps) => {
     return (
-        <div className="flex flex-col items-center justify-center px-4 py-6">
+        <div className="flex flex-col items-center justify-center px-4 py-6" style={{overflowY: 'visible'}}>
             <div className="w-full max-w-[608px] mx-auto md:py-8">
                 {/* Logo/Image (only if provided) */}
                 {/* {imageSrc && (

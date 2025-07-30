@@ -1,9 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
+import MetricsCard from './overview/MetricsCard';
+import ScopeCard from './overview/ScopeCard';
+import EmissionTrendsChart from './overview/EmissionTrendsChart';
+import ProgressChart from './overview/ProgressChart';
+import RecentActivitiesTable from './overview/RecentActivitiesTable';
+import MetricsModal from './overview/MetricsModal';
+import ScopeModal from './overview/ScopeModal';
 
 export default function OverviewSection() {
   const [activeChart, setActiveChart] = useState('monthly');
+  const [selectedMetric, setSelectedMetric] = useState(null);
+  const [selectedScope, setSelectedScope] = useState(null);
+  const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
+  const [isScopeModalOpen, setIsScopeModalOpen] = useState(false);
 
   // Dynamic data arrays for charts
   const emissionTrendsData = {
@@ -48,9 +59,38 @@ export default function OverviewSection() {
       value: '8,947.3',
       change: '▼ 8.2%',
       changeType: 'decrease',
-      subtitle: 'tonnes CO₂e • All scopes combined',
+      subtitle: 'Tonnes CO₂e • All scopes',
       icon: '🏭',
-      trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265]
+      trend: [320, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265, 260],
+      details: [
+        {
+          category: 'Scope 1 (Direct)',
+          sources: [
+            { name: 'Stationary Combustion', amount: '1,200.0 t CO₂e' },
+            { name: 'Mobile Combustion', amount: '1,500.5 t CO₂e' },
+            { name: 'Fugitive Emissions', amount: '850.0 t CO₂e' },
+            { name: 'Process Emissions', amount: '573.2 t CO₂e' },
+          ],
+        },
+        {
+          category: 'Scope 2 (Energy Indirect)',
+          sources: [
+            { name: 'Purchased Electricity – Market-based', amount: '1,200.3 t CO₂e' },
+            { name: 'Purchased Electricity – Location-based', amount: '928.6 t CO₂e' },
+            { name: 'Purchased Steam', amount: '359.0 t CO₂e' },
+          ],
+        },
+        {
+          category: 'Scope 3 (Other Indirect)',
+          sources: [
+            { name: 'Business Travel', amount: '530.4 t CO₂e' },
+            { name: 'Employee Commuting', amount: '423.8 t CO₂e' },
+            { name: 'Waste Disposal', amount: '392.5 t CO₂e' },
+            { name: 'Purchased Goods and Services', amount: '480.0 t CO₂e' },
+            { name: 'Transportation and Distribution', amount: '509.0 t CO₂e' },
+          ],
+        },
+      ],
     },
     {
       id: 'target-progress',
@@ -58,9 +98,22 @@ export default function OverviewSection() {
       value: '82.4%',
       change: '▲ On track for 2025',
       changeType: 'increase',
-      subtitle: 'SBTi validated targets • 2 months ahead',
+      subtitle: 'SBTi Targets • 2 months ahead',
       icon: '🎯',
-      progress: 82.4
+      progress: 82.4,
+      details: [
+        {
+          sources: [
+            { name: 'Target Year', amount: '2025' },
+            { name: 'Reduction Goal', amount: '90%' },
+            { name: 'Achieved', amount: '82.4%' },
+            { name: 'Remaining', amount: '7.6%' },
+            { name: 'Current Rate of Reduction', amount: '1.5% per month' },
+            { name: 'Projected by Year-End', amount: '94.1%' },
+            { name: 'Goal Type', amount: 'Science-Based (SBTi)' },
+          ],
+        }
+      ]
     },
     {
       id: 'esg-score',
@@ -68,9 +121,22 @@ export default function OverviewSection() {
       value: '91.5',
       change: '▲ 3.2% improvement',
       changeType: 'increase',
-      subtitle: 'Combined E, S, G rating • Industry leading',
+      subtitle: 'Environmental, Social & Governance',
       icon: '🏆',
-      progress: 91.5
+      progress: 91.5,
+      details: [
+        {
+          sources: [
+            { name: 'Overall ESG Rating', amount: '91.5' },
+            { name: 'Environment', amount: '92' },
+            { name: 'Social', amount: '89' },
+            { name: 'Governance', amount: '93' },
+            { name: 'Compared to Sector Avg.', amount: '+8.4%' },
+            { name: 'Assessed By', amount: 'Sustainalytics' },
+            { name: 'Latest Review Date', amount: 'June 2025' },
+          ]
+        }
+      ],
     },
     {
       id: 'data-quality',
@@ -78,10 +144,23 @@ export default function OverviewSection() {
       value: '94.2%',
       change: '▲ 3.1% improvement',
       changeType: 'increase',
-      subtitle: 'Verified & complete • Third-party audited',
+      subtitle: 'Audited & Verified',
       icon: '📊',
-      progress: 94.2
-    }
+      progress: 94.2,
+      details: [
+        {
+          sources: [
+            { name: 'Completeness', amount: '97%' },
+            { name: 'Accuracy', amount: '93%' },
+            { name: 'Timeliness', amount: '96%' },
+            { name: 'Consistency', amount: '92%' },
+            { name: 'Verification Standard', amount: 'ISO 14064-3' },
+            { name: 'Verified By', amount: 'GreenAudit Inc.' },
+            { name: 'Audit Date', amount: 'May 2025' },
+          ]
+        }
+      ],
+    },
   ];
 
   const scopeBreakdownData = [
@@ -92,7 +171,17 @@ export default function OverviewSection() {
       value: '3,247.8',
       percentage: 96.3,
       icon: '🔥',
-      trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265]
+      trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265],
+      details:[
+        {
+          sources: [
+            { name: 'Stationary Combustion', amount: '1,200.0 t CO₂e' },
+            { name: 'Mobile Combustion', amount: '1,500.5 t CO₂e' },
+            { name: 'Fugitive Emissions', amount: '850.0 t CO₂e' },
+            { name: 'Process Emissions', amount: '573.2 t CO₂e' },
+          ],
+        }
+      ]
     },
     {
       id: 'scope2',
@@ -101,7 +190,17 @@ export default function OverviewSection() {
       value: '2,856.4',
       percentage: 31.9,
       icon: '⚡',
-      trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258]
+      trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258],
+      details:[
+        {
+          sources: [
+            { name: 'Stationary Combustion', amount: '1,200.0 t CO₂e' },
+            { name: 'Mobile Combustion', amount: '1,500.5 t CO₂e' },
+            { name: 'Fugitive Emissions', amount: '850.0 t CO₂e' },
+            { name: 'Process Emissions', amount: '573.2 t CO₂e' },
+          ],
+        }
+      ]
     },
     {
       id: 'scope3',
@@ -110,7 +209,17 @@ export default function OverviewSection() {
       value: '2,843.1',
       percentage: 31.8,
       icon: '📦',
-      trend: [284, 281, 279, 277, 275, 273, 271, 269, 267, 265, 263, 261]
+      trend: [284, 281, 279, 277, 275, 273, 271, 269, 267, 265, 263, 261],
+      details:[
+        {
+          sources: [
+            { name: 'Stationary Combustion', amount: '1,200.0 t CO₂e' },
+            { name: 'Mobile Combustion', amount: '1,500.5 t CO₂e' },
+            { name: 'Fugitive Emissions', amount: '850.0 t CO₂e' },
+            { name: 'Process Emissions', amount: '573.2 t CO₂e' },
+          ],
+        }
+      ]
     }
   ];
 
@@ -171,27 +280,6 @@ export default function OverviewSection() {
     }
   ];
 
-  // Helper function to generate SVG points from data
-  const generateChartPoints = (data: any[], key: string, maxValue: number, height: number, width: number) => {
-    const points = data.map((item, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - (item[key] / maxValue) * height;
-      return `${x},${y}`;
-    }).join(' ');
-    return points;
-  };
-
-  // Get current data based on active chart
-  const getCurrentData = () => {
-    return emissionTrendsData[activeChart as keyof typeof emissionTrendsData];
-  };
-
-  // Calculate max value for chart scaling
-  const getMaxValue = (data: any[]) => {
-    const allValues = data.flatMap(item => [item.scope1, item.scope2, item.scope3]);
-    return Math.max(...allValues) * 1.1; // Add 10% padding
-  };
-
   useEffect(() => {
     // Animate progress bars when component mounts
     const animateProgressBars = () => {
@@ -208,10 +296,27 @@ export default function OverviewSection() {
     animateProgressBars();
   }, []);
 
-  const currentData = getCurrentData();
-  const maxValue = getMaxValue(currentData);
-  const chartWidth = 360;
-  const chartHeight = 160;
+  const overallProgressValue = 82;
+
+  const handleMetricCardClick = (metric: any) => {
+    setSelectedMetric(metric);
+    setIsMetricsModalOpen(true);
+  };
+
+  const handleScopeCardClick = (scope: any) => {
+    setSelectedScope(scope);
+    setIsScopeModalOpen(true);
+  };
+
+  const closeMetricsModal = () => {
+    setIsMetricsModalOpen(false);
+    setSelectedMetric(null);
+  };
+
+  const closeScopeModal = () => {
+    setIsScopeModalOpen(false);
+    setSelectedScope(null);
+  };
 
   return (
     <div className="space-y-10">
@@ -229,279 +334,51 @@ export default function OverviewSection() {
       {/* Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metricsData.map((metric) => (
-          <div key={metric.id} className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-green-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
-                  {metric.title}
-                </div>
-                <div className="text-3xl font-bold text-green-800 mb-2">{metric.value}</div>
-                <div className={`text-sm text-green-800 mb-2 ${metric.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
-                  {metric.change}
-                </div>
-                <div className="text-xs text-green-800 opacity-60">
-                  {metric.subtitle}
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
-                {metric.icon}
-              </div>
-            </div>
-            {metric.trend ? (
-              <div className="h-10 relative">
-                <svg width="100%" height="40" viewBox="0 0 200 40" className="absolute inset-0">
-                  <polyline
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-green-800"
-                    points={generateChartPoints(metric.trend.map((v, i) => ({ value: v })), 'value', Math.max(...metric.trend), 30, 180)}
-                  />
-                </svg>
-              </div>
-            ) : (
-              <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-green-800 transition-all duration-1000 ease-out"
-                  style={{ width: `${metric.progress}%` }}
-                ></div>
-              </div>
-            )}
-          </div>
+          <MetricsCard
+            key={metric.id}
+            metric={metric}
+            onCardClick={handleMetricCardClick}
+          />
         ))}
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
-            <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
-              📈 Emission Trends by Scope
-            </h3>
-            <div className="flex gap-2">
-              <button 
-                className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                  activeChart === 'monthly' 
-                    ? 'bg-green-800 text-white' 
-                    : 'bg-white text-green-800 border border-green-200 hover:bg-green-50'
-                }`}
-                onClick={() => setActiveChart('monthly')}
-              >
-                Monthly
-              </button>
-              <button 
-                className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                  activeChart === 'quarterly' 
-                    ? 'bg-green-800 text-white' 
-                    : 'bg-white text-green-800 border border-green-200 hover:bg-green-50'
-                }`}
-                onClick={() => setActiveChart('quarterly')}
-              >
-                Quarterly
-              </button>
-              <button 
-                className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                  activeChart === 'annual' 
-                    ? 'bg-green-800 text-white' 
-                    : 'bg-white text-green-800 border border-green-200 hover:bg-green-50'
-                }`}
-                onClick={() => setActiveChart('annual')}
-              >
-                Annual
-              </button>
-            </div>
-          </div>
-          <div className="h-80 relative">
-            <svg className="w-full h-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
-              <defs>
-                <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#e4f5d5" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-              
-              {/* Scope 1 */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="3"
-                points={generateChartPoints(currentData, 'scope1', maxValue, chartHeight, chartWidth)}
-              />
-              
-              {/* Scope 2 */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="2"
-                opacity="0.7"
-                points={generateChartPoints(currentData, 'scope2', maxValue, chartHeight, chartWidth)}
-              />
-              
-              {/* Scope 3 */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="2"
-                opacity="0.5"
-                points={generateChartPoints(currentData, 'scope3', maxValue, chartHeight, chartWidth)}
-              />
-              
-              {/* Data points */}
-              {currentData.map((item, index) => {
-                const x = (index / (currentData.length - 1)) * chartWidth;
-                const y1 = chartHeight - (item.scope1 / maxValue) * chartHeight;
-                const y2 = chartHeight - (item.scope2 / maxValue) * chartHeight;
-                const y3 = chartHeight - (item.scope3 / maxValue) * chartHeight;
-                
-                return (
-                  <g key={index}>
-                    <circle cx={x} cy={y1} r="3" fill="#0f5744" />
-                    <circle cx={x} cy={y2} r="2" fill="#0f5744" opacity="0.7" />
-                    <circle cx={x} cy={y3} r="2" fill="#0f5744" opacity="0.5" />
-                  </g>
-                );
-              })}
-              
-              {/* Labels */}
-              {currentData.map((item, index) => {
-                const x = (index / (currentData.length - 1)) * chartWidth;
-                const label = activeChart === 'monthly' ? item.month : activeChart === 'quarterly' ? item.quarter : item.year;
-                return (
-                  <text key={index} x={x} y={chartHeight + 15} fontSize="10" fill="#0f5744" textAnchor="middle">
-                    {label}
-                  </text>
-                );
-              })}
-            </svg>
-          </div>
-          <div className="flex gap-5 mt-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm"></div>
-              <span className="text-sm text-green-800">Scope 1 ({scopeBreakdownData[0].value} tCO₂e)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm opacity-70"></div>
-              <span className="text-sm text-green-800">Scope 2 ({scopeBreakdownData[1].value} tCO₂e)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-800 rounded-sm opacity-50"></div>
-              <span className="text-sm text-green-800">Scope 3 ({scopeBreakdownData[2].value} tCO₂e)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
-            <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
-              🎯 Overall Progress
-            </h3>
-          </div>
-          <div className="flex justify-center">
-            <div className="relative w-32 h-32">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="50"
-                  fill="none"
-                  stroke="#e4f5d5"
-                  strokeWidth="8"
-                />
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="50"
-                  fill="none"
-                  stroke="#0f5744"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${(21.4 / 100) * 314} 314`}
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-lg font-bold text-green-800">82%</div>
-                <div className="text-xs text-green-800 opacity-70">Complete</div>
-              </div>
-            </div>
-          </div>
-          <div className="text-center text-xs text-green-800 opacity-70 mt-4">
-            SBTi Target Progress • 2025 Goal
-          </div>
-        </div>
+        <EmissionTrendsChart
+          activeChart={activeChart}
+          setActiveChart={setActiveChart}
+          emissionTrendsData={emissionTrendsData}
+          scopeBreakdownData={scopeBreakdownData}
+        />
+        <ProgressChart overallProgressValue={overallProgressValue} />
       </div>
 
       {/* Sources Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {scopeBreakdownData.map((scope) => (
-          <div key={scope.id} className="bg-white border border-green-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
-                {scope.icon}
-              </div>
-              <div>
-                <h4 className="font-semibold text-green-800">{scope.title}</h4>
-                <div className="text-xs text-green-800 opacity-60">{scope.subtitle}</div>
-              </div>
-            </div>
-            <div className="flex justify-between items-center mb-3">
-              <div className="text-2xl font-bold text-green-800">{scope.value}</div>
-              <div className="text-sm text-green-800 opacity-60">{scope.percentage}%</div>
-            </div>
-            <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
-              <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: `${scope.percentage}%` }}></div>
-            </div>
-          </div>
+          <ScopeCard
+            key={scope.id}
+            scope={scope}
+            onCardClick={handleScopeCardClick}
+          />
         ))}
       </div>
 
       {/* Data Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
-        <div className="flex justify-between items-center p-6 border-b border-green-100">
-          <div className="text-lg font-semibold text-green-800">Recent Sustainability Activities</div>
-          <div className="flex gap-3">
-            <button className="p-2 text-green-800 hover:bg-green-50 rounded border border-green-200 transition-colors" title="Refresh">
-              🔄
-            </button>
-            <button className="p-2 text-green-800 hover:bg-green-50 rounded border border-green-200 transition-colors" title="Export">
-              📊
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Date</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Activity</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Scope</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Impact</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentActivitiesData.map((activity) => (
-                <tr key={activity.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-green-800">{activity.date}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{activity.activity}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{activity.scope}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{activity.impact}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${
-                      activity.statusType === 'success' 
-                        ? 'bg-green-100 text-green-800 border-green-800'
-                        : 'bg-white text-green-800 border-green-800'
-                    }`}>
-                      {activity.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <RecentActivitiesTable recentActivitiesData={recentActivitiesData} />
+
+      {/* Modals */}
+      <MetricsModal
+        isOpen={isMetricsModalOpen}
+        onClose={closeMetricsModal}
+        selectedMetric={selectedMetric}
+      />
+      
+      <ScopeModal
+        isOpen={isScopeModalOpen}
+        onClose={closeScopeModal}
+        selectedScope={selectedScope}
+      />
     </div>
   );
 } 

@@ -7,6 +7,10 @@ export default function Scope2Section() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingData, setEditingData] = useState<any>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewMode, setReviewMode] = useState<'add' | 'edit' | null>(null);
+  const [reviewData, setReviewData] = useState<any>(null);
   const [formData, setFormData] = useState({
     month: '',
     year: '',
@@ -19,8 +23,8 @@ export default function Scope2Section() {
     emissions: ''
   });
 
-  // Sample data array for Purchased Electricity table
-  const purchasedElectricityData = [
+  // State for table data array
+  const [purchasedElectricityData, setPurchasedElectricityData] = useState([
     {
       id: 1,
       month: 'January',
@@ -57,7 +61,7 @@ export default function Scope2Section() {
       customEmissionFactor: '0.0 kg CO₂e/kWh',
       emissions: '0.0'
     }
-  ];
+  ]);
 
   // Energy type options for dropdown
   const energyTypeOptions = [
@@ -82,23 +86,17 @@ export default function Scope2Section() {
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('New Purchased Electricity Data:', formData);
+    
+    // Show review modal instead of directly adding
+    setReviewData(formData);
+    setReviewMode('add');
+    setShowReviewModal(true);
     setIsAddModalOpen(false);
-    // Reset form
-    setFormData({
-      month: '',
-      year: '',
-      facilityId: '',
-      energyType: '',
-      gridLocation: '',
-      consumedUnits: '',
-      amountOfConsumption: '',
-      customEmissionFactor: '',
-      emissions: ''
-    });
   };
 
-  const handleEdit = (rowData: any) => {
+  const handleEdit = (rowData: any, index: number) => {
     setEditingData(rowData);
+    setEditingIndex(index);
     setFormData({
       month: rowData.month,
       year: rowData.year,
@@ -117,8 +115,42 @@ export default function Scope2Section() {
     e.preventDefault();
     console.log('Updated Purchased Electricity Data:', formData);
     console.log('Original Data:', editingData);
+    
+    // Show review modal instead of directly updating
+    setReviewData(formData);
+    setReviewMode('edit');
+    setShowReviewModal(true);
     setIsEditModalOpen(false);
+  };
+
+  // Review modal handlers
+  const handleReviewConfirm = () => {
+    if (reviewMode === 'add') {
+      const newRow = {
+        id: Math.max(...purchasedElectricityData.map(row => row.id)) + 1,
+        ...reviewData
+      };
+      setPurchasedElectricityData([...purchasedElectricityData, newRow]);
+      console.log('Confirmed: Added new purchased electricity row');
+    } else if (reviewMode === 'edit' && editingIndex !== null) {
+      const updatedData = [...purchasedElectricityData];
+      updatedData[editingIndex] = {
+        ...updatedData[editingIndex],
+        ...reviewData
+      };
+      setPurchasedElectricityData(updatedData);
+      console.log('Confirmed: Updated purchased electricity row');
+    }
+    
+    // Reset review modal
+    setShowReviewModal(false);
+    setReviewMode(null);
+    setReviewData(null);
+    
+    // Reset editing states
     setEditingData(null);
+    setEditingIndex(null);
+    
     // Reset form
     setFormData({
       month: '',
@@ -131,6 +163,44 @@ export default function Scope2Section() {
       customEmissionFactor: '',
       emissions: ''
     });
+  };
+
+  const handleReviewCancel = () => {
+    setShowReviewModal(false);
+    setReviewMode(null);
+    setReviewData(null);
+    
+    // Reset editing states
+    setEditingData(null);
+    setEditingIndex(null);
+    
+    // Reset form
+    setFormData({
+      month: '',
+      year: '',
+      facilityId: '',
+      energyType: '',
+      gridLocation: '',
+      consumedUnits: '',
+      amountOfConsumption: '',
+      customEmissionFactor: '',
+      emissions: ''
+    });
+  };
+
+  const handleReviewEdit = () => {
+    setShowReviewModal(false);
+    
+    // Reopen the appropriate modal for editing
+    setFormData(reviewData);
+    if (reviewMode === 'add') {
+      setIsAddModalOpen(true);
+    } else {
+      setIsEditModalOpen(true);
+    }
+    
+    setReviewMode(null);
+    setReviewData(null);
   };
 
   // Dynamic data arrays for Scope 2 charts
@@ -587,7 +657,7 @@ export default function Scope2Section() {
               </tr>
             </thead>
             <tbody>
-              {purchasedElectricityData.map((row) => (
+              {purchasedElectricityData.map((row, index) => (
                 <tr key={row.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
                   <td className="px-6 py-4 text-sm text-green-800">{row.month}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.year}</td>
@@ -601,7 +671,7 @@ export default function Scope2Section() {
                   <td className="px-6 py-4">
                     <div className="flex gap-2 justify-center">
                       <button 
-                        onClick={() => handleEdit(row)}
+                        onClick={() => handleEdit(row, index)}
                         className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-200 hover:bg-blue-200 transition-colors"
                       >
                         Edit
@@ -938,6 +1008,143 @@ export default function Scope2Section() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {showReviewModal && reviewData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-6 rounded-t-2xl">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {reviewMode === 'add' ? 'Review New Entry' : 'Review Changes'}
+                    </h2>
+                    <p className="text-green-100 text-sm">
+                      {reviewMode === 'add' ? 'New Purchased Electricity Entry' : 'Edit Purchased Electricity Entry'}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleReviewCancel}
+                  className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Basic Information</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                        <span className="text-gray-600 font-medium">Month</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.month}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                        <span className="text-gray-600 font-medium">Year</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.year}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-gray-600 font-medium">Facility ID</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.facilityId}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Energy Details</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                        <span className="text-gray-600 font-medium">Energy Type</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.energyType}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-gray-600 font-medium">Grid Location</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.gridLocation}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Consumption Data</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                        <span className="text-gray-600 font-medium">Consumed Units</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.consumedUnits}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-gray-600 font-medium">Amount of Consumption</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.amountOfConsumption}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Emission Data</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                        <span className="text-gray-600 font-medium">Custom Emission Factor</span>
+                        <span className="text-gray-900 font-semibold">{reviewData.customEmissionFactor || 'Not specified'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2 border-t border-gray-200 pt-3">
+                        <span className="text-gray-600 font-medium">Emissions</span>
+                        <span className="text-green-600 font-bold text-lg">{reviewData.emissions}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 rounded-b-2xl border-t border-gray-200">
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={handleReviewCancel}
+                  className="px-6 py-3 text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleReviewEdit}
+                  className="px-6 py-3 text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 font-medium"
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit
+                </button>
+                <button 
+                  onClick={handleReviewConfirm}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {reviewMode === 'add' ? 'Confirm Add' : 'Confirm Update'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -153,7 +153,6 @@ export default function AddFacilityPage() {
 
     return (
         <>
-            <Navbar />
             <AuthLayout
                 heading="Add Facility"
                 description="Register a new facility for emissions tracking and sustainability reporting."
