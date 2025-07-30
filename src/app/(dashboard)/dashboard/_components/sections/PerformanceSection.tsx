@@ -1,6 +1,10 @@
 'use client';
 
+import { useState } from "react";
+type DurationType = 'Overall' | 'Targets' | 'Efficiency';
+
 export default function PerformanceSection() {
+const [duration, setDuration] = useState<DurationType>('Overall');
   return (
     <div className="space-y-10">
       {/* Page Header */}
@@ -124,10 +128,20 @@ export default function PerformanceSection() {
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📈 Performance Trends (12 Months)
             </h3>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 text-xs bg-green-800 text-white rounded-md">Overall</button>
-              <button className="px-3 py-1 text-xs bg-white text-green-800 border border-green-200 rounded-md hover:bg-green-50">Targets</button>
-              <button className="px-3 py-1 text-xs bg-white text-green-800 border border-green-200 rounded-md hover:bg-green-50">Efficiency</button>
+            <div className="flex gap-1 border border-gray-200 rounded overflow-hidden">
+              {(['Overall', 'Targets', 'Efficiency'] as DurationType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setDuration(type)}
+                  className={`px-4 py-2 text-xs font-medium ${
+                    duration === type
+                      ? 'bg-teal-700 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
           </div>
           <div className="h-80 relative">

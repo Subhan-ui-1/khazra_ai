@@ -10,7 +10,7 @@ export default function MetricsModal({ isOpen, onClose, selectedMetric }: Metric
   if (!isOpen || !selectedMetric) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 h-screen flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-6 rounded-t-2xl">

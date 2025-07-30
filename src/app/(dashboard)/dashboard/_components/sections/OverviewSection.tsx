@@ -19,18 +19,18 @@ export default function OverviewSection() {
   // Dynamic data arrays for charts
   const emissionTrendsData = {
     monthly: [
-      { month: 'Jan', scope1: 320, scope2: 285, scope3: 284 },
-      { month: 'Feb', scope1: 315, scope2: 282, scope3: 281 },
-      { month: 'Mar', scope1: 310, scope2: 280, scope3: 279 },
-      { month: 'Apr', scope1: 305, scope2: 278, scope3: 277 },
-      { month: 'May', scope1: 300, scope2: 275, scope3: 275 },
-      { month: 'Jun', scope1: 295, scope2: 272, scope3: 273 },
-      { month: 'Jul', scope1: 290, scope2: 270, scope3: 271 },
-      { month: 'Aug', scope1: 285, scope2: 268, scope3: 269 },
+      { month: 'Jan', scope1: 120, scope2: 185, scope3: 84 },
+      { month: 'Feb', scope1: 315, scope2: 122, scope3: 101 },
+      { month: 'Mar', scope1: 110, scope2: 180, scope3: 159 },
+      { month: 'Apr', scope1: 75, scope2: 178, scope3: 17 },
+      { month: 'May', scope1: 200, scope2: 205, scope3: 175 },
+      { month: 'Jun', scope1: 225, scope2: 262, scope3: 143 },
+      { month: 'Jul', scope1: 270, scope2: 270, scope3: 171 },
+      { month: 'Aug', scope1: 275, scope2: 268, scope3: 169 },
       { month: 'Sep', scope1: 280, scope2: 265, scope3: 267 },
-      { month: 'Oct', scope1: 275, scope2: 262, scope3: 265 },
-      { month: 'Nov', scope1: 270, scope2: 260, scope3: 263 },
-      { month: 'Dec', scope1: 265, scope2: 258, scope3: 261 }
+      { month: 'Oct', scope1: 305, scope2: 262, scope3: 365 },
+      { month: 'Nov', scope1: 320, scope2: 260, scope3: 163 },
+      { month: 'Dec', scope1: 365, scope2: 258, scope3: 261 }
     ],
     quarterly: [
       { quarter: 'Q1', scope1: 945, scope2: 847, scope3: 844 },
@@ -43,12 +43,12 @@ export default function OverviewSection() {
       { quarter: 'Q8', scope1: 81, scope2: 781, scope3: 781 },
     ],
     annual: [
-      { year: '2020', scope1: 3800, scope2: 3200, scope3: 3200 },
-      { year: '2021', scope1: 3650, scope2: 3100, scope3: 3100 },
-      { year: '2022', scope1: 3500, scope2: 3000, scope3: 3000 },
-      { year: '2023', scope1: 3350, scope2: 2900, scope3: 2900 },
-      { year: '2000', scope1: 1200, scope2: 9000, scope3: 1200 },
-      { year: '2025', scope1: 3050, scope2: 2700, scope3: 2700 }
+      { year: '2020', scope1: 800, scope2: 2000, scope3: 1500 },
+      { year: '2021', scope1: 3650, scope2: 3100, scope3: 100 },
+      { year: '2022', scope1: 5500, scope2: 4000, scope3: 2000 },
+      { year: '2023', scope1: 7350, scope2: 4900, scope3: 900 },
+      { year: '2000', scope1: 8200, scope2: 9000, scope3: 6000 },
+      { year: '2025', scope1: 11550, scope2: 10700, scope3: 7700 }
     ]
   };
 

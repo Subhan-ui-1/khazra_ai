@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
   const sections = {
     overview: <OverviewSection />,
-    'data-collection': <Scope2DataEntry />,
+    'data-collection': <DataCollectionSection />,
     overallEmissionDashboard: <OverallEmissionDashboard />,
     scope1: <Scope1Section />,
     'stationary-combustion': <StationaryCombustionSection />,
@@ -69,11 +69,13 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white">
       <DashboardHeader />
       <div className="flex pt-16">
-        <DashboardSidebar 
-          activeSection={activeSection} 
-          onSectionChange={setActiveSection} 
-        />
-        <main className="flex-1 ml-70 p-10 bg-white ">
+        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] z-10">
+          <DashboardSidebar 
+            activeSection={activeSection} 
+            onSectionChange={setActiveSection} 
+          />
+        </div>
+        <main className="flex-1 ml-64 border-l border-green-100 xl:p-10 lg:p-8 p-4 bg-white max-md:mt-6 overflow-y-auto">
           {sections[activeSection as keyof typeof sections]}
         </main>
       </div>
