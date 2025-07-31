@@ -38,7 +38,7 @@ const MetricsCard = memo(({ metric, onCardClick }: MetricsCardProps) => {
       metric.trend,
       Math.max(...metric.trend),
       30,
-      180
+      180,
     );
   }, [metric.trend]);
 

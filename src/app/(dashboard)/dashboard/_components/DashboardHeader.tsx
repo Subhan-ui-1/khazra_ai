@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 import { HiMenu, HiX } from 'react-icons/hi';
 
@@ -10,7 +12,15 @@ export default function DashboardHeader() {
 
   return (
     <header className="bg-white border-b border-green-100 px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between fixed top-0 left-0 right-0 z-50 shadow-sm">
-      <div className="text-2xl font-bold text-green-800">khazra.ai</div>
+      {/* Logo */}
+      <Link href='/' className='xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center'>
+          <Image
+              src={'/Logo.svg'}
+              alt="khazra logo"
+              height={26}
+              width={147}
+          />
+      </Link>
 
       {/* Desktop Nav */}
       <nav className="md:flex hidden lg:gap-10 md:gap-6">

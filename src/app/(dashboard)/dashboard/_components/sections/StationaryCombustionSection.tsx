@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import HorizontalStackedChart from './overview/HorizontalStackedChart'
+import ScopeAlignmentChart from './overview/ScopeAlignmentChart';
 
 export default function StationaryCombustionSection() {
   const [isStationaryModalOpen, setIsStationaryModalOpen] = useState(false);
@@ -253,8 +255,16 @@ export default function StationaryCombustionSection() {
         </div>
       </div>
 
+      <div className='w-full'>
+        <HorizontalStackedChart />
+      </div>
+
+      <div className='mt-30'>
+        <ScopeAlignmentChart />
+      </div>
+
       {/* Stationary Combustion Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm mt-10">
         <div className="flex justify-between items-center p-6 border-b border-green-100">
           <div className="text-lg font-semibold text-green-800">Stationary Combustion Data</div>
           <div className="flex gap-3">
@@ -319,8 +329,8 @@ export default function StationaryCombustionSection() {
 
       {/* Stationary Combustion Modal */}
       {isStationaryModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 h-screen flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] border-2 border-green-800 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-green-800">Add Stationary Combustion</h2>
               <button 
@@ -486,8 +496,8 @@ export default function StationaryCombustionSection() {
 
       {/* Edit Stationary Combustion Modal */}
       {isEditStationaryModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 h-screen flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] border-2 border-green-800 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-green-800">Edit Stationary Combustion</h2>
               <button 

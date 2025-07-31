@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 interface DashboardSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
@@ -15,7 +15,19 @@ interface SidebarGroup {
   section: string;
   items: SidebarItem[];
 }
+
 export default function DashboardSidebar({ activeSection, onSectionChange }: DashboardSidebarProps) {
+
+  useEffect(() => {
+  const parentWithActiveChild = sidebarItems
+    .flatMap(group => group.items)
+    .find(item => item.children?.some(child => child.id === activeSection));
+
+  if (parentWithActiveChild) {
+    setOpenDropdown(parentWithActiveChild.id);
+  }
+}, [activeSection]);
+
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const sidebarItems: SidebarGroup[] = [
     {
@@ -104,6 +116,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
             {group.section}
           </div>
           {group.items.map((item) => {
+            const isChildActive = item.children?.some((child) => child.id === activeSection);
             const isActive = activeSection === item.id;
             // Dropdown logic
             if (item.children) {
@@ -111,22 +124,25 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
               return (
                 <div key={item.id}>
                   <button
-                    onClick={() => handleDropdown(item.id)}
-                    className={`w-full flex items-center gap-2 px-6 py-3 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
-                      isDropdownOpen ? 'bg-green-50 border-l-3 border-green-800 font-semibold' : ''
+                    onClick={() => {
+                      setOpenDropdown(openDropdown === item.id ? null : item.id);
+                      onSectionChange(item.id); // navigate to scope1/scope2 section page
+                    }}
+                    className={`w-full flex items-center gap-2 pe-2 py-3 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
+                      openDropdown === item.id || isChildActive || activeSection === item.id ? 'bg-green-50 font-semibold' : ''
                     }`}
                   >
                     <span className="text-base">{item.icon}</span>
                     {item.label}
-                    <span className="ml-auto">{isDropdownOpen ? '▲' : '▼'}</span>
+                    <span className="ml-auto">{openDropdown === item.id ? '▲' : '▼'}</span>
                   </button>
-                  {isDropdownOpen && (
+                  {openDropdown === item.id && (
                     <div className="ml-6 border-l border-green-100">
                       {item.children.map((child) => (
                         <button
                           key={child.id}
                           onClick={() => onSectionChange(child.id)}
-                          className={`w-full flex items-center gap-3 px-6 py-2 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 ${
+                          className={`w-full flex items-center gap-3 py-2 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 ${
                             activeSection === child.id ? 'bg-green-100 font-semibold' : ''
                           }`}
                         >
@@ -146,8 +162,8 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                 key={item.id}
                 href={item.href}
                 onClick={!item.href ? () => onSectionChange(item.id) : undefined}
-                className={`w-full flex items-center gap-2 px-4.5 py-2.5 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
-                  isActive ? 'bg-green-50 border-l-3 border-green-800 font-semibold' : ''
+                className={`w-full flex items-center gap-2 py-2.5 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
+                  isActive ? 'bg-green-50 font-semibold' : ''
                 }`}
               >
                 <span className="text-base">{item.icon}</span>

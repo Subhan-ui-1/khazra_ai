@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import MetricsModal from './overview/MetricsModal';
-
+import AddEntryModal from './overview/AddEntryModal';
+import ViewEntryModal from './overview/ViewEntryModal';
 const metrics = [
   {
     icon: '📡',
@@ -211,9 +212,14 @@ const dataTableRows = [
   }
 ];
 
+
 export default function DataCollectionSection() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<any>(null);
+  const [addEntryModalOpen, setAddEntryModalOpen] = useState(false);
+  const [tableData, setTableData] = useState(dataTableRows);
+  const [selectedRowData, setSelectedRowData] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const openModal = (metric: any) => {
       setSelectedMetric(metric);
@@ -311,7 +317,7 @@ export default function DataCollectionSection() {
             <button className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
               Filter
             </button>
-            <button className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+            <button onClick={()=> setAddEntryModalOpen(true)} className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
               Add Entry
             </button>
           </div>
@@ -326,8 +332,13 @@ export default function DataCollectionSection() {
               </tr>
             </thead>
             <tbody>
-              {dataTableRows.map((row, i) => (
-                <tr key={i} className="border-b border-green-100 hover:bg-green-50 transition-colors">
+              {tableData.map((row, i) => (
+                <tr     
+                key={i}
+                onClick={() => {
+                  setSelectedRowData(row);
+                  setIsViewModalOpen(true);
+                }} className="border-b border-green-100 hover:bg-green-50 transition-colors cursor-pointer">
                   <td className="px-6 py-4 text-sm text-green-800">{row.timestamp}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.source}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.type}</td>
@@ -343,6 +354,16 @@ export default function DataCollectionSection() {
               ))}
             </tbody>
           </table>
+          <AddEntryModal
+            isOpen={addEntryModalOpen}
+            onClose={() => setAddEntryModalOpen(false)}
+            onSave={(entry) => setTableData(prev => [entry, ...prev])}
+          />
+          <ViewEntryModal
+            isOpen={isViewModalOpen}
+            onClose={() => setIsViewModalOpen(false)}
+            entry={selectedRowData}
+          />
         </div>
       </div>
     </div>

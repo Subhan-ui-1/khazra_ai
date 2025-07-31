@@ -1,6 +1,6 @@
 'use client';
 
-import { SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import MetricsCard from './overview/MetricsCard';
 import ScopeCard from './overview/ScopeCard';
 import EmissionTrendsChart from './overview/EmissionTrendsChart';
@@ -8,9 +8,14 @@ import ProgressChart from './overview/ProgressChart';
 import RecentActivitiesTable from './overview/RecentActivitiesTable';
 import MetricsModal from './overview/MetricsModal';
 import ScopeModal from './overview/ScopeModal';
+import ScopeChartData from './overview/ScopeChartData'
+import StackedBarChart from './overview/StackedBarWithLineChart';
+import HorizontalStackedChart from './overview/HorizontalStackedChart';
+
+type ChartType = 'monthly' | 'quarterly' | 'annual';
 
 export default function OverviewSection() {
-  const [activeChart, setActiveChart] = useState('monthly');
+  const [activeChart, setActiveChart] = useState<ChartType>('monthly');
   const [selectedMetric, setSelectedMetric] = useState(null);
   const [selectedScope, setSelectedScope] = useState(null);
   const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
@@ -23,24 +28,24 @@ export default function OverviewSection() {
       { month: 'Feb', scope1: 315, scope2: 122, scope3: 101 },
       { month: 'Mar', scope1: 110, scope2: 180, scope3: 159 },
       { month: 'Apr', scope1: 75, scope2: 178, scope3: 17 },
-      { month: 'May', scope1: 200, scope2: 205, scope3: 175 },
+      { month: 'May', scope1: 200, scope2: 255, scope3: 175 },
       { month: 'Jun', scope1: 225, scope2: 262, scope3: 143 },
-      { month: 'Jul', scope1: 270, scope2: 270, scope3: 171 },
-      { month: 'Aug', scope1: 275, scope2: 268, scope3: 169 },
-      { month: 'Sep', scope1: 280, scope2: 265, scope3: 267 },
-      { month: 'Oct', scope1: 305, scope2: 262, scope3: 365 },
-      { month: 'Nov', scope1: 320, scope2: 260, scope3: 163 },
-      { month: 'Dec', scope1: 365, scope2: 258, scope3: 261 }
+      { month: 'Jul', scope1: 270, scope2: 370, scope3: 171 },
+      { month: 'Aug', scope1: 275, scope2: 368, scope3: 169 },
+      { month: 'Sep', scope1: 280, scope2: 325, scope3: 197 },
+      { month: 'Oct', scope1: 305, scope2: 262, scope3: 165 },
+      { month: 'Nov', scope1: 320, scope2: 360, scope3: 123 },
+      { month: 'Dec', scope1: 365, scope2: 458, scope3: 111 }
     ],
     quarterly: [
-      { quarter: 'Q1', scope1: 945, scope2: 847, scope3: 844 },
-      { quarter: 'Q2', scope1: 895, scope2: 825, scope3: 825 },
-      { quarter: 'Q3', scope1: 855, scope2: 803, scope3: 803 },
+      { quarter: 'Q1', scope1: 945, scope2: 847, scope3: 444 },
+      { quarter: 'Q2', scope1: 895, scope2: 825, scope3: 525 },
+      { quarter: 'Q3', scope1: 855, scope2: 803, scope3: 603 },
       { quarter: 'Q4', scope1: 415, scope2: 781, scope3: 781 },
-      { quarter: 'Q5', scope1: 595, scope2: 781, scope3: 781 },
-      { quarter: 'Q6', scope1: 615, scope2: 781, scope3: 781 },
-      { quarter: 'Q7', scope1: 715, scope2: 781, scope3: 781 },
-      { quarter: 'Q8', scope1: 81, scope2: 781, scope3: 781 },
+      { quarter: 'Q5', scope1: 595, scope2: 681, scope3: 881 },
+      { quarter: 'Q6', scope1: 615, scope2: 581, scope3: 681 },
+      { quarter: 'Q7', scope1: 715, scope2: 401, scope3: 481 },
+      { quarter: 'Q8', scope1: 81, scope2: 681, scope3: 281 },
     ],
     annual: [
       { year: '2020', scope1: 800, scope2: 2000, scope3: 1500 },
@@ -61,7 +66,7 @@ export default function OverviewSection() {
       changeType: 'decrease',
       subtitle: 'Tonnes CO₂e • All scopes',
       icon: '🏭',
-      trend: [320, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265, 260],
+      progress: 82.4,
       details: [
         {
           category: 'Scope 1 (Direct)',
@@ -103,6 +108,7 @@ export default function OverviewSection() {
       progress: 82.4,
       details: [
         {
+          category: 'Target Progress',
           sources: [
             { name: 'Target Year', amount: '2025' },
             { name: 'Reduction Goal', amount: '90%' },
@@ -126,6 +132,7 @@ export default function OverviewSection() {
       progress: 91.5,
       details: [
         {
+          category: 'ESG Score',
           sources: [
             { name: 'Overall ESG Rating', amount: '91.5' },
             { name: 'Environment', amount: '92' },
@@ -149,6 +156,7 @@ export default function OverviewSection() {
       progress: 94.2,
       details: [
         {
+          category: 'Data Quality',
           sources: [
             { name: 'Completeness', amount: '97%' },
             { name: 'Accuracy', amount: '93%' },
@@ -209,7 +217,7 @@ export default function OverviewSection() {
       value: '2,843.1',
       percentage: 31.8,
       icon: '📦',
-      trend: [284, 281, 279, 277, 275, 273, 271, 269, 267, 265, 263, 261],
+      trend: [184, 181, 379, 177, 225, 250, 311, 169, 127, 195, 223, 291],
       details:[
         {
           sources: [
@@ -363,6 +371,11 @@ export default function OverviewSection() {
           />
         ))}
       </div>
+      <div className='flex flex-col w-full justify-between space-y-5'>
+        <ScopeChartData />
+        <StackedBarChart />
+      </div>
+
 
       {/* Data Table */}
       <RecentActivitiesTable recentActivitiesData={recentActivitiesData} />

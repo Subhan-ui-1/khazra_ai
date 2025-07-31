@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-
 type DurationType = 'This Year' | 'Last Year' | 'Comparison';
 
 type Scope3Source = {
@@ -211,16 +210,8 @@ export default function Scope3Section() {
               📦
             </div>
           </div>
-          <div className="h-10 relative">
-            <svg width="100%" height="40" viewBox="0 0 200 40" className="absolute inset-0">
-              <polyline
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="text-green-800"
-                points="0,35 20,30 40,25 60,20 80,15 100,12 120,10 140,8 160,6 180,5 200,4"
-              />
-            </svg>
+          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
+            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '43.9%' }}></div>
           </div>
         </div>
 

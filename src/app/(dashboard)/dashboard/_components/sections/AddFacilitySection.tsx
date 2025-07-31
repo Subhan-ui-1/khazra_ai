@@ -37,6 +37,7 @@ export default function AddFacilityPage() {
         city: '',
         stateProvince: '',
         country: '',
+        numberOfEmployees:0,
         postalCode: '',
         latitude: 0,
         longitude: 0,
@@ -233,6 +234,17 @@ export default function AddFacilityPage() {
                             onChange={handleInputChange}
                         />
                     </div>
+                    <div className="mb-6">
+                        <FormInput
+                            name="numberOfEmployees"
+                            label="Number of employees"
+                            type="number"
+                            placeholder="Enter Number of employess"
+                            required
+                            value={formData.numberOfEmployees}
+                            onChange={handleInputChange}
+                        />
+                    </div>
 
                     {/* Postal Code */}
                     <div className="mb-6">
@@ -252,7 +264,7 @@ export default function AddFacilityPage() {
                         <FormInput
                             name="floorArea"
                             label="Floor Area (sq ft)"
-                            type="text"
+                            type="number"
                             placeholder="Enter floor area in square feet"
                             required
                             value={formData.floorArea}
