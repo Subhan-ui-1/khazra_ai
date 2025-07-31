@@ -10,15 +10,36 @@ export default function MobileCombustionSection() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewMode, setReviewMode] = useState<'add-mobile' | 'edit-mobile' | null>(null);
   const [reviewData, setReviewData] = useState<any>(null);
+  // Facility types array
+  const facilityTypes = [
+    { id: 'FAC-001', name: 'Main Production Facility' },
+    { id: 'FAC-002', name: 'Warehouse & Distribution Center' },
+    { id: 'FAC-003', name: 'Office Building' },
+    { id: 'FAC-004', name: 'Research & Development Lab' },
+    { id: 'FAC-005', name: 'Manufacturing Plant A' },
+    { id: 'FAC-006', name: 'Manufacturing Plant B' },
+    { id: 'FAC-007', name: 'Service Center' },
+    { id: 'FAC-008', name: 'Training Facility' }
+  ];
+
+  // Default emission factors from DB
+  const defaultEmissionFactors = {
+    'Diesel': '2.68 kg CO₂e/L',
+    'Gasoline': '2.31 kg CO₂e/L',
+    'Hybrid': '1.85 kg CO₂e/L',
+    'Electric': '0.0 kg CO₂e/kWh',
+    'Biodiesel': '2.45 kg CO₂e/L'
+  };
+
   const [mobileFormData, setMobileFormData] = useState({
     month: '',
     year: '',
     facilityId: '',
     equipmentType: '',
     fuelType: '',
-    fuelConsumed: false,
+    fuelConsumed: '',
     amountOfFuelUsed: '',
-    customEmissionFactor: '',
+    emissionFactor: '',
     useCustomEmissionFactor: false,
     total: ''
   });
@@ -32,9 +53,9 @@ export default function MobileCombustionSection() {
       facilityId: 'FAC-001',
       equipmentType: 'Delivery Truck',
       fuelType: 'Diesel',
-      fuelConsumed: true,
+      fuelConsumed: 'Yes',
       amountOfFuelUsed: '450 L',
-      customEmissionFactor: '2.68 kg CO₂e/L',
+      emissionFactor: '2.68 kg CO₂e/L',
       useCustomEmissionFactor: false,
       total: '1,206 kg CO₂e'
     },
@@ -45,9 +66,9 @@ export default function MobileCombustionSection() {
       facilityId: 'FAC-002',
       equipmentType: 'Forklift',
       fuelType: 'Gasoline',
-      fuelConsumed: true,
+      fuelConsumed: 'Yes',
       amountOfFuelUsed: '180 L',
-      customEmissionFactor: '2.31 kg CO₂e/L',
+      emissionFactor: '2.31 kg CO₂e/L',
       useCustomEmissionFactor: true,
       total: '415.8 kg CO₂e'
     },
@@ -58,9 +79,9 @@ export default function MobileCombustionSection() {
       facilityId: 'FAC-003',
       equipmentType: 'Company Car',
       fuelType: 'Hybrid',
-      fuelConsumed: true,
+      fuelConsumed: 'Yes',
       amountOfFuelUsed: '95 L',
-      customEmissionFactor: '1.85 kg CO₂e/L',
+      emissionFactor: '1.85 kg CO₂e/L',
       useCustomEmissionFactor: false,
       total: '175.75 kg CO₂e'
     }
@@ -88,7 +109,7 @@ export default function MobileCombustionSection() {
       fuelType: rowData.fuelType,
       fuelConsumed: rowData.fuelConsumed,
       amountOfFuelUsed: rowData.amountOfFuelUsed,
-      customEmissionFactor: rowData.customEmissionFactor,
+      emissionFactor: rowData.emissionFactor,
       useCustomEmissionFactor: rowData.useCustomEmissionFactor,
       total: rowData.total
     });
@@ -142,9 +163,9 @@ export default function MobileCombustionSection() {
       facilityId: '',
       equipmentType: '',
       fuelType: '',
-      fuelConsumed: false,
+      fuelConsumed: '',
       amountOfFuelUsed: '',
-      customEmissionFactor: '',
+      emissionFactor: '',
       useCustomEmissionFactor: false,
       total: ''
     });
@@ -166,9 +187,9 @@ export default function MobileCombustionSection() {
       facilityId: '',
       equipmentType: '',
       fuelType: '',
-      fuelConsumed: false,
+      fuelConsumed: '',
       amountOfFuelUsed: '',
-      customEmissionFactor: '',
+      emissionFactor: '',
       useCustomEmissionFactor: false,
       total: ''
     });
@@ -301,9 +322,9 @@ export default function MobileCombustionSection() {
                   <td className="px-6 py-4 text-sm text-green-800">{row.facilityId}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.equipmentType}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.fuelType}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.fuelConsumed ? 'Yes' : 'No'}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.fuelConsumed}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.amountOfFuelUsed}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.customEmissionFactor}</td>
+                  <td className="px-6 py-4 text-sm text-green-800">{row.emissionFactor}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.useCustomEmissionFactor ? 'Yes' : 'No'}</td>
                   <td className="px-6 py-4 text-sm text-green-800">{row.total}</td>
                   <td className="px-6 py-4">
@@ -328,8 +349,8 @@ export default function MobileCombustionSection() {
 
       {/* Mobile Combustion Modal */}
       {isMobileModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white border-2 border-green-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-green-800">Add Mobile Combustion</h2>
               <button 
@@ -379,15 +400,20 @@ export default function MobileCombustionSection() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility ID</label>
-                  <input 
-                    type="text"
+                  <label className="block text-sm font-medium text-green-800 mb-2">Facility</label>
+                  <select 
                     value={mobileFormData.facilityId}
                     onChange={(e) => setMobileFormData({...mobileFormData, facilityId: e.target.value})}
                     className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="FAC-001"
                     required
-                  />
+                  >
+                    <option value="">Select Facility</option>
+                    {facilityTypes.map((facility) => (
+                      <option key={facility.id} value={facility.id}>
+                        {facility.id} - {facility.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -411,7 +437,14 @@ export default function MobileCombustionSection() {
                   <label className="block text-sm font-medium text-green-800 mb-2">Fuel Type</label>
                   <select 
                     value={mobileFormData.fuelType}
-                    onChange={(e) => setMobileFormData({...mobileFormData, fuelType: e.target.value})}
+                    onChange={(e) => {
+                      const selectedFuelType = e.target.value;
+                      setMobileFormData({
+                        ...mobileFormData, 
+                        fuelType: selectedFuelType,
+                        emissionFactor: mobileFormData.useCustomEmissionFactor ? mobileFormData.emissionFactor : defaultEmissionFactors[selectedFuelType as keyof typeof defaultEmissionFactors] || ''
+                      });
+                    }}
                     className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   >
@@ -422,6 +455,18 @@ export default function MobileCombustionSection() {
                     <option value="Electric">Electric</option>
                     <option value="Biodiesel">Biodiesel</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Consumed</label>
+                  <input 
+                    type="text"
+                    value={mobileFormData.fuelConsumed}
+                    onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Yes/No"
+                    required
+                  />
                 </div>
                 
                 <div>
@@ -437,13 +482,14 @@ export default function MobileCombustionSection() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Emission Factor</label>
                   <input 
                     type="text"
-                    value={mobileFormData.customEmissionFactor}
-                    onChange={(e) => setMobileFormData({...mobileFormData, customEmissionFactor: e.target.value})}
+                    value={mobileFormData.emissionFactor}
+                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
                     className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="2.68 kg CO₂e/L"
+                    required
                   />
                 </div>
                 
@@ -463,28 +509,36 @@ export default function MobileCombustionSection() {
               <div className="flex items-center space-x-2">
                 <input 
                   type="checkbox"
-                  id="fuelConsumed"
-                  checked={mobileFormData.fuelConsumed}
-                  onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.checked})}
-                  className="rounded border-green-200 text-green-600 focus:ring-green-500"
-                />
-                <label htmlFor="fuelConsumed" className="text-sm font-medium text-green-800">
-                  Fuel Consumed
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox"
                   id="useCustomEmissionFactorMobile"
                   checked={mobileFormData.useCustomEmissionFactor}
-                  onChange={(e) => setMobileFormData({...mobileFormData, useCustomEmissionFactor: e.target.checked})}
+                  onChange={(e) => {
+                    const useCustom = e.target.checked;
+                    setMobileFormData({
+                      ...mobileFormData, 
+                      useCustomEmissionFactor: useCustom,
+                      emissionFactor: useCustom ? mobileFormData.emissionFactor : (defaultEmissionFactors[mobileFormData.fuelType as keyof typeof defaultEmissionFactors] || '')
+                    });
+                  }}
                   className="rounded border-green-200 text-green-600 focus:ring-green-500"
                 />
                 <label htmlFor="useCustomEmissionFactorMobile" className="text-sm font-medium text-green-800">
                   Use Custom Emission Factor
                 </label>
               </div>
+              
+              {mobileFormData.useCustomEmissionFactor && (
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
+                  <input 
+                    type="text"
+                    value={mobileFormData.emissionFactor}
+                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Enter custom emission factor"
+                    required
+                  />
+                </div>
+              )}
               
               <div className="flex justify-end space-x-3 pt-4">
                 <button 
@@ -508,8 +562,8 @@ export default function MobileCombustionSection() {
 
       {/* Edit Mobile Combustion Modal */}
       {isEditMobileModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white border-2 border-green-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-green-800">Edit Mobile Combustion</h2>
               <button 
@@ -559,15 +613,20 @@ export default function MobileCombustionSection() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility ID</label>
-                  <input 
-                    type="text"
+                  <label className="block text-sm font-medium text-green-800 mb-2">Facility</label>
+                  <select 
                     value={mobileFormData.facilityId}
                     onChange={(e) => setMobileFormData({...mobileFormData, facilityId: e.target.value})}
                     className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="FAC-001"
                     required
-                  />
+                  >
+                    <option value="">Select Facility</option>
+                    {facilityTypes.map((facility) => (
+                      <option key={facility.id} value={facility.id}>
+                        {facility.id} - {facility.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -591,7 +650,14 @@ export default function MobileCombustionSection() {
                   <label className="block text-sm font-medium text-green-800 mb-2">Fuel Type</label>
                   <select 
                     value={mobileFormData.fuelType}
-                    onChange={(e) => setMobileFormData({...mobileFormData, fuelType: e.target.value})}
+                    onChange={(e) => {
+                      const selectedFuelType = e.target.value;
+                      setMobileFormData({
+                        ...mobileFormData, 
+                        fuelType: selectedFuelType,
+                        emissionFactor: mobileFormData.useCustomEmissionFactor ? mobileFormData.emissionFactor : defaultEmissionFactors[selectedFuelType as keyof typeof defaultEmissionFactors] || ''
+                      });
+                    }}
                     className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   >
@@ -602,6 +668,18 @@ export default function MobileCombustionSection() {
                     <option value="Electric">Electric</option>
                     <option value="Biodiesel">Biodiesel</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Consumed</label>
+                  <input 
+                    type="text"
+                    value={mobileFormData.fuelConsumed}
+                    onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Yes/No"
+                    required
+                  />
                 </div>
                 
                 <div>
@@ -617,13 +695,14 @@ export default function MobileCombustionSection() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Emission Factor</label>
                   <input 
                     type="text"
-                    value={mobileFormData.customEmissionFactor}
-                    onChange={(e) => setMobileFormData({...mobileFormData, customEmissionFactor: e.target.value})}
+                    value={mobileFormData.emissionFactor}
+                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
                     className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="2.68 kg CO₂e/L"
+                    required
                   />
                 </div>
                 
@@ -643,28 +722,36 @@ export default function MobileCombustionSection() {
               <div className="flex items-center space-x-2">
                 <input 
                   type="checkbox"
-                  id="editFuelConsumed"
-                  checked={mobileFormData.fuelConsumed}
-                  onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.checked})}
-                  className="rounded border-green-200 text-green-600 focus:ring-green-500"
-                />
-                <label htmlFor="editFuelConsumed" className="text-sm font-medium text-green-800">
-                  Fuel Consumed
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox"
                   id="editUseCustomEmissionFactorMobile"
                   checked={mobileFormData.useCustomEmissionFactor}
-                  onChange={(e) => setMobileFormData({...mobileFormData, useCustomEmissionFactor: e.target.checked})}
+                  onChange={(e) => {
+                    const useCustom = e.target.checked;
+                    setMobileFormData({
+                      ...mobileFormData, 
+                      useCustomEmissionFactor: useCustom,
+                      emissionFactor: useCustom ? mobileFormData.emissionFactor : (defaultEmissionFactors[mobileFormData.fuelType as keyof typeof defaultEmissionFactors] || '')
+                    });
+                  }}
                   className="rounded border-green-200 text-green-600 focus:ring-green-500"
                 />
                 <label htmlFor="editUseCustomEmissionFactorMobile" className="text-sm font-medium text-green-800">
                   Use Custom Emission Factor
                 </label>
               </div>
+              
+              {mobileFormData.useCustomEmissionFactor && (
+                <div>
+                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
+                  <input 
+                    type="text"
+                    value={mobileFormData.emissionFactor}
+                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
+                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Enter custom emission factor"
+                    required
+                  />
+                </div>
+              )}
               
               <div className="flex justify-end space-x-3 pt-4">
                 <button 

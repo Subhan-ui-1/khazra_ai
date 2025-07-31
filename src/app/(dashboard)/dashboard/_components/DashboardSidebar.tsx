@@ -53,11 +53,12 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       ]
     },
     {
-      section: 'Management',
+      section: 'DECARBONIZATION',
       items: [
-        { id: 'targets', icon: '🎯', label: 'Targets' },
-        { id: 'performance', icon: '📈', label: 'Performance' },
-        { id: 'esg-kpis', icon: '🏆', label: 'ESG KPIs' }
+        { id: 'performance', icon: '📈', label: 'Performance Dashboard' },
+        { id: 'customTargets', icon: '🎯', label: 'Custom Targets' },
+        { id: 'granularTargets', icon: '🎯', label: 'Granular Targets' },
+        { id: 'esg-kpis', icon: '🏆', label: 'Initiative Management' }
       ]
     },
     {
@@ -70,7 +71,8 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
     {
       section: 'Support',
       items: [
-        { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' }
+        { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' },
+        { id: 'feedback', icon: '📝', label: 'Feedback' }
       ]
     },
     {
@@ -79,7 +81,8 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
         { id: 'add-facility', icon: '🏭', label: 'Facility'},
         { id: 'add-boundary', icon: '🏭', label: 'Boundary'},
         { id: 'add-vehicle', icon: '🏭', label: 'Vehicle'},
-        { id: 'add-equipment', icon: '🏭', label: 'Equipment'}
+        { id: 'add-equipment', icon: '🏭', label: 'Equipment'},
+        { id: 'equipment-type', icon: '⚙️', label: 'Equipment Type'}
       ]
     },
     {

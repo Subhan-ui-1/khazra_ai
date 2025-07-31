@@ -22,13 +22,15 @@ import AddBoundarySection from './_components/sections/AddBoundarySection';
 import { useSearchParams } from 'next/navigation';
 import AddVehicleSection from './_components/sections/AddVehicleSection';
 import AddEquipmentSection from './_components/sections/AddEquipmentSection';
-import FlexibleTargetPlatform from './_components/sections/khazra-target-setting (2)';
+import FlexibleTargetPlatform from './_components/sections/khazra-target-setting (2)'; 
 import Scope2DataEntry from './_components/sections/scope2-data-entry';
 import AssetLevelTargetPlatform from './_components/sections/Asset level targets';
 import Scope2ElectricityEntry from './_components/sections/Scope2ElectricityEntry';
 import Scope2SteamEntry from './_components/sections/Scope2SteamEntry';
 import Scope2HeatingEntry from './_components/sections/Scope2HeatingEntry';
 import Scope2CoolingEntry from './_components/sections/Scope2CoolingEntry';
+import EquipmentTypeSection from './_components/sections/EquipmentTypeSection';
+import FeedbackSection from './_components/sections/FeedbackSection';
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview');
@@ -41,7 +43,7 @@ export default function DashboardPage() {
   }, [section])
 
   const sections = {
-    overview: <OverviewSection />,
+    overview: <OverviewSection />, // decarbonization
     'data-collection': <DataCollectionSection />,
     overallEmissionDashboard: <OverallEmissionDashboard />,
     scope1: <Scope1Section />,
@@ -53,16 +55,20 @@ export default function DashboardPage() {
     'scope2-heating': <Scope2HeatingEntry />,
     'scope2-cooling': <Scope2CoolingEntry />,
     scope3: <Scope3Section />,
-    targets: <TargetsSection />,
+    // targets: <TargetsSection />,
+    "customTargets":<FlexibleTargetPlatform />,
+    "granularTargets":<AssetLevelTargetPlatform />,
     performance: <PerformanceSection />,
     'esg-kpis': <ESGKPIsSection />,
     'sustainability-reporting': <SustainabilityReportingSection />,
     analytics: <AnalyticsSection />,
     chatbot: <ChatbotSection />,
+    feedback: <FeedbackSection />,
     'add-facility': <AddFacilitySection />,
     'add-boundary': <AddBoundarySection />,
     'add-vehicle': <AddVehicleSection />,
-    'add-equipment': <AddEquipmentSection />
+    'add-equipment': <AddEquipmentSection />,
+    'equipment-type': <EquipmentTypeSection />
   };
 
   return (
