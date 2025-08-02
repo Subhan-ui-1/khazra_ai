@@ -32,12 +32,12 @@ const ScopeCard = memo(({ scope, onCardClick }: ScopeCardProps) => {
           {scope.icon}
         </div>
         <div>
-          <h4 className="font-semibold text-green-800">{scope.title}</h4>
-          <div className="text-xs text-green-800 opacity-60">{scope.subtitle}</div>
+          <h4 className="font-semibold text-black">{scope.title}</h4>
+          <div className="text-xs text-black opacity-60">{scope.subtitle}</div>
         </div>
       </div>
       <div className="flex justify-between items-center mb-3">
-        <div className="text-2xl font-bold text-green-800">{scope.value}</div>
+        <div className="text-2xl font-bold text-black">{scope.value}</div>
         <div className="text-sm text-green-800 opacity-60">{scope.percentage}%</div>
       </div>
       <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">

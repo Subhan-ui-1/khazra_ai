@@ -1,4 +1,6 @@
 'use client';
+import { useRouter } from 'next/navigation';
+import { Router } from 'next/router';
 import { useState } from 'react';
 
 const BarChartData = {
@@ -17,10 +19,18 @@ const BarChartData = {
     { height: 0.85, value: '1,275', label: 'Dec' },
   ],
   Quarterly: [
-    { height: 0.78, value: '3,700', label: 'Q1' },
-    { height: 0.70, value: '3,345', label: 'Q2' },
-    { height: 0.86, value: '4,095', label: 'Q3' },
-    { height: 0.75, value: '3,375', label: 'Q4' },
+    { height: 0.85, value: '1,280', label: 'Jan', quarter: 'Q1' },
+    { height: 0.78, value: '1,170', label: 'Feb', quarter: 'Q1' },
+    { height: 0.82, value: '1,230', label: 'Mar', quarter: 'Q1' },
+    { height: 0.65, value: '975', label: 'Apr', quarter: 'Q2' },
+    { height: 0.70, value: '1,050', label: 'May', quarter: 'Q2' },
+    { height: 0.88, value: '1,320', label: 'Jun', quarter: 'Q2' },
+    { height: 0.92, value: '1,380', label: 'Jul', quarter: 'Q3' },
+    { height: 0.89, value: '1,335', label: 'Aug', quarter: 'Q3' },
+    { height: 0.75, value: '1,125', label: 'Sep', quarter: 'Q3' },
+    { height: 0.68, value: '1,020', label: 'Oct', quarter: 'Q4' },
+    { height: 0.72, value: '1,080', label: 'Nov', quarter: 'Q4' },
+    { height: 0.85, value: '1,275', label: 'Dec', quarter: 'Q4' },
   ],
   Annual: [
     { height: 0.33, value: '5,515', label: '2013' },
@@ -67,6 +77,7 @@ export default function OverallEmissionDashboard() {
 
   const [duration, setDuration] = useState<'Monthly' | 'Quarterly' | 'Annual'>('Monthly');
   const TOTAL_CIRCUMFERENCE = 2 * Math.PI * 80;
+  // const router = useRouter()
   let offset = 0;
 
   return (
@@ -179,7 +190,7 @@ export default function OverallEmissionDashboard() {
                   onClick={() => setDuration(type as 'Monthly' | 'Quarterly' | 'Annual')}
                   className={`px-4 py-2 text-xs font-medium ${
                     duration === type
-                      ? 'bg-teal-700 text-white'
+                      ? 'bg-green-800 text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-50'
                   }`}
                 >
@@ -200,21 +211,48 @@ export default function OverallEmissionDashboard() {
               <span>0</span>
             </div>
 
-            {/* Bar Graph */}
-            <div className="xl:ml-14 ml-10 w-[91%] h-full flex justify-between items-end gap-6 pt-5 relative z-10 overflow-x-scroll no-scrollbar">
-              {BarChartData[duration].map((bar, index) => (
-                <div key={index} className="flex flex-col justify-end items-center min-w-7 h-full relative group">
+            <div className="xl:ml-14 ml-10 w-[91%] h-full flex justify-between items-end ga-x-2 relative z-10 overflow-x-scroll no-scrollbar">
+              {duration === 'Quarterly' ? (
+                // Grouped bars for quarterly view
+                ['Q1', 'Q2', 'Q3', 'Q4'].map((quarter) => (
                   <div
-                    className="w-full bg-gradient-to-t from-teal-700 to-green-400 rounded-t-2xl transition-all duration-300 group-hover:opacity-80"
-                    style={{ height: `${bar.height * 100}%` }}
-                  />
-                  <div className="absolute -top-6 text-xs font-semibold text-gray-800 group-hover:opacity-100 opacity-0 transition">
-                    {bar.value}
+                    key={quarter}
+                    className="flex flex-col items-center px-2 bg-white border-x border-green-100 shadow-sm h-full"
+                  >
+                    <div className="text-sm font-semibold text-gray-600 mb-5">{quarter}</div>
+                    <div className="flex gap-6 items-end h-full">
+                      {BarChartData.Quarterly.filter(bar => bar.quarter === quarter).map((bar, index) => (
+                        <div key={index} className="flex flex-col justify-end items-center min-w-7 h-full relative group">
+                          <div
+                            className="w-full bg-gradient-to-t from-[#0a1c10] to-[#41ffb9] rounded-t-2xl transition-all duration-300 group-hover:opacity-80"
+                            style={{ height: `${bar.height * 100}%` }}
+                          />
+                          <div className="absolute -top-6 text-xs font-semibold text-gray-800 group-hover:opacity-100 opacity-0 transition">
+                            {bar.value}
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500">{bar.label}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">{bar.label}</div>
-                </div>
-              ))}
+                ))
+              ) : (
+                // Default flat bars for Monthly or Yearly
+                BarChartData[duration].map((bar, index) => (
+                  <div key={index} className="flex flex-col justify-end items-center min-w-7 h-full relative group">
+                    <div
+                      className="w-full bg-gradient-to-t from-[#0a1c10] to-[#3cf6b2] rounded-t-2xl transition-all duration-300 group-hover:opacity-80"
+                      style={{ height: `${bar.height * 100}%` }}
+                    />
+                    <div className="absolute -top-6 text-xs font-semibold text-gray-800 group-hover:opacity-100 opacity-0 transition">
+                      {bar.value}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500">{bar.label}</div>
+                  </div>
+                ))
+              )}
             </div>
+
           </div>
         </div>
 
@@ -269,7 +307,7 @@ export default function OverallEmissionDashboard() {
       </div>
 
       {/* Breakdown Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {[
           { icon: '🚗', title: 'Fleet Vehicles', subtitle: 'Company vehicles, delivery trucks, employee commuting', value: '4,235', change: '-5.2%', color: 'bg-teal-700' },
           { icon: '🏢', title: 'Buildings & Facilities', subtitle: 'Offices, data centers, warehouses, manufacturing', value: '3,890', change: '+2.1%', color: 'bg-green-600' },

@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from "react";
+
+type ChartType = 'monthly' | 'quarterly' | 'annual';
 interface EmissionTrendsChartProps {
-  activeChart: string;
-  setActiveChart: (chart: string) => void;
-  emissionTrendsData: any;
+  activeChart: ChartType;
+  setActiveChart: (chart: ChartType) => void;
+  emissionTrendsData: Record<ChartType, any[]>;
   scopeBreakdownData: any[];
 }
 
@@ -30,6 +33,8 @@ export default function EmissionTrendsChart({
     return emissionTrendsData[activeChart as keyof typeof emissionTrendsData];
   };
 
+  const [duration, setDuration] = useState<'Monthly' | 'Qaurterly' | 'Annual'>('Monthly');
+
   // Calculate max value for chart scaling
   const getMaxValue = (data: any[]) => {
     const allValues = data.flatMap(item => [item.scope1, item.scope2, item.scope3]);
@@ -48,36 +53,21 @@ export default function EmissionTrendsChart({
           📈 Emission Trends by Scope
         </h3>
         <div className="flex gap-2">
-          <button 
-            className={`px-3 py-1 text-xs rounded-md transition-colors ${
-              activeChart === 'monthly' 
-                ? 'bg-green-800 text-white' 
-                : 'bg-white text-green-800 border border-green-200 hover:bg-green-50'
-            }`}
-            onClick={() => setActiveChart('monthly')}
-          >
-            Monthly
-          </button>
-          <button 
-            className={`px-3 py-1 text-xs rounded-md transition-colors ${
-              activeChart === 'quarterly' 
-                ? 'bg-green-800 text-white' 
-                : 'bg-white text-green-800 border border-green-200 hover:bg-green-50'
-            }`}
-            onClick={() => setActiveChart('quarterly')}
-          >
-            Quarterly
-          </button>
-          <button 
-            className={`px-3 py-1 text-xs rounded-md transition-colors ${
-              activeChart === 'annual' 
-                ? 'bg-green-800 text-white' 
-                : 'bg-white text-green-800 border border-green-200 hover:bg-green-50'
-            }`}
-            onClick={() => setActiveChart('annual')}
-          >
-            Annual
-          </button>
+          <div className="flex gap-1 border border-gray-200 rounded overflow-hidden">
+            {(['monthly', 'quarterly', 'annual'] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setActiveChart(type)}
+                className={`px-4 py-2 text-xs font-medium ${
+                  activeChart === type
+                    ? 'bg-green-800 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="h-80 relative">
@@ -92,7 +82,7 @@ export default function EmissionTrendsChart({
           {/* Scope 1 */}
           <polyline
             fill="none"
-            stroke="#0f5744"
+            stroke="#0a1c10"
             strokeWidth="3"
             points={generateChartPoints(currentData, 'scope1', maxValue, chartHeight, chartWidth)}
           />
@@ -100,7 +90,7 @@ export default function EmissionTrendsChart({
           {/* Scope 2 */}
           <polyline
             fill="none"
-            stroke="#0f5744"
+            stroke="#34d399"
             strokeWidth="2"
             opacity="0.7"
             points={generateChartPoints(currentData, 'scope2', maxValue, chartHeight, chartWidth)}
@@ -109,7 +99,7 @@ export default function EmissionTrendsChart({
           {/* Scope 3 */}
           <polyline
             fill="none"
-            stroke="#0f5744"
+            stroke="#35896d"
             strokeWidth="2"
             opacity="0.5"
             points={generateChartPoints(currentData, 'scope3', maxValue, chartHeight, chartWidth)}

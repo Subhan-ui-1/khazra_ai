@@ -169,16 +169,8 @@ export default function Scope1Section() {
               🏭
             </div>
           </div>
-          <div className="h-10 relative">
-            <svg width="100%" height="40" viewBox="0 0 200 40" className="absolute inset-0">
-              <polyline
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="text-green-800"
-                points="0,35 20,32 40,30 60,28 80,25 100,23 120,20 140,18 160,15 180,12 200,10"
-              />
-            </svg>
+          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
+            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '83.8%' }}></div>
           </div>
         </div>
 

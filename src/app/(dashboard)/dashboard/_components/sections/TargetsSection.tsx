@@ -1,6 +1,81 @@
 'use client';
 
+import { useState } from "react";
+import ScopeAlignmentChart from "./overview/ScopeAlignmentChart";
+
+const BarChartData = {
+  Monthly: [
+    { height: 0.85, value: '1,280', label: 'Jan' },
+    { height: 0.78, value: '1,170', label: 'Feb' },
+    { height: 0.82, value: '1,230', label: 'Mar' },
+    { height: 0.65, value: '975', label: 'Apr' },
+    { height: 0.70, value: '1,050', label: 'May' },
+    { height: 0.88, value: '1,320', label: 'Jun' },
+    { height: 0.92, value: '1,380', label: 'Jul' },
+    { height: 0.89, value: '1,335', label: 'Aug' },
+    { height: 0.75, value: '1,125', label: 'Sep' },
+    { height: 0.68, value: '1,020', label: 'Oct' },
+    { height: 0.72, value: '1,080', label: 'Nov' },
+    { height: 0.85, value: '1,275', label: 'Dec' },
+  ],
+  Quarterly: [
+    { height: 0.85, value: '1,280', label: 'Jan', quarter: 'Q1' },
+    { height: 0.78, value: '1,170', label: 'Feb', quarter: 'Q1' },
+    { height: 0.82, value: '1,230', label: 'Mar', quarter: 'Q1' },
+    { height: 0.65, value: '975', label: 'Apr', quarter: 'Q2' },
+    { height: 0.70, value: '1,050', label: 'May', quarter: 'Q2' },
+    { height: 0.88, value: '1,320', label: 'Jun', quarter: 'Q2' },
+    { height: 0.92, value: '1,380', label: 'Jul', quarter: 'Q3' },
+    { height: 0.89, value: '1,335', label: 'Aug', quarter: 'Q3' },
+    { height: 0.75, value: '1,125', label: 'Sep', quarter: 'Q3' },
+    { height: 0.68, value: '1,020', label: 'Oct', quarter: 'Q4' },
+    { height: 0.72, value: '1,080', label: 'Nov', quarter: 'Q4' },
+    { height: 0.85, value: '1,275', label: 'Dec', quarter: 'Q4' },
+  ],
+  Annual: [
+    { height: 0.33, value: '5,515', label: '2013' },
+    { height: 0.43, value: '6,515', label: '2014' },
+    { height: 0.53, value: '7,515', label: '2015' },
+    { height: 0.88, value: '14,015', label: '2016' },
+    { height: 0.53, value: '10,515', label: '2017' },
+    { height: 0.83, value: '13,515', label: '2018' },
+    { height: 0.53, value: '10,515', label: '2019' },
+    { height: 0.65, value: '12,515', label: '2020' },
+    { height: 0.97, value: '16,515', label: '2021' },
+    { height: 0.82, value: '14,515', label: '2022' },
+    { height: 0.68, value: '11,880', label: '2023' },
+    { height: 0.91, value: '15,410', label: '2024' },
+  ]
+};
+
+const emissionsData = [
+  {
+    label: 'Scope 1 (Direct)',
+    value: 5781,
+    color: '#0f766e',
+    displayColor: 'bg-teal-700',
+    percentage: 25,
+  },
+  {
+    label: 'Scope 2 (Electricity)',
+    value: 4496,
+    color: '#059669',
+    displayColor: 'bg-green-600',
+    percentage: 40,
+  },
+  {
+    label: 'Scope 3 (Indirect)',
+    value: 2570,
+    color: '#34d399',
+    displayColor: 'bg-green-400',
+    percentage: 35,
+  },
+];
+
 export default function TargetsSection() {
+  const [duration, setDuration] = useState<'Monthly' | 'Quarterly' | 'Annual'>('Monthly');
+  const TOTAL_CIRCUMFERENCE = 2 * Math.PI * 80;
+  let offset = 0;
   return (
     <div className="space-y-10">
       {/* Page Header */}
@@ -90,7 +165,7 @@ export default function TargetsSection() {
       </div>
 
       {/* Targets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {[
           {
             name: 'Scope 1&2 Emissions Reduction',
@@ -100,33 +175,6 @@ export default function TargetsSection() {
             meta: 'Absolute reduction • Baseline: 2020 • Deadline: 2030',
             status: 'Ahead of schedule by 1.2 years',
             current: '35.7% achieved vs 2020 baseline'
-          },
-          {
-            name: 'Carbon Intensity Target',
-            badge: 'SBTi',
-            progress: 72,
-            target: '70% target by 2030',
-            meta: 'Per compute hour • Baseline: 2020 • Deadline: 2030',
-            status: 'On track',
-            current: '0.187 tCO₂e per unit (50.4% reduction)'
-          },
-          {
-            name: 'Renewable Energy Target',
-            badge: 'SBTi',
-            progress: 95,
-            target: '100% target by 2025',
-            meta: 'Data centers • Deadline: December 2025',
-            status: 'Nearly complete',
-            current: '95% renewable energy (solar + wind + hydro)'
-          },
-          {
-            name: 'Supply Chain Emissions',
-            badge: 'SBTi',
-            progress: 45,
-            target: '25% target by 2030',
-            meta: 'Scope 3 • Baseline: 2020 • Deadline: 2030',
-            status: 'Ahead of schedule',
-            current: '78% suppliers with targets set'
           },
           {
             name: 'Net-Zero Target',
@@ -172,6 +220,147 @@ export default function TargetsSection() {
           </div>
         ))}
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div>
+          <ScopeAlignmentChart title="📊 Targets by facility" />
+        </div>
+        <div>
+          <ScopeAlignmentChart title="📊 Targets by equipments" />
+        </div>
+        <div>
+          <ScopeAlignmentChart title="📊 Targets by vehicle" />
+        </div>
+      </div>
+
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm w-full">
+          <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+            <div className="text-lg font-semibold text-gray-800">Emissions by Scope</div>
+          </div>
+
+          <div className="flex justify-center mb-6">
+            <div className="relative w-48 h-48">
+              <svg width="250" height="250" viewBox="0 0 250 250" className="w-full h-full">
+                <circle cx="125" cy="125" r="100" fill="none" stroke="#e2e8f0" strokeWidth="2" />
+                  {emissionsData.map((item, index) => {
+                    const length = (item.percentage / 100) * TOTAL_CIRCUMFERENCE;
+                    const strokeDasharray = `${length} ${TOTAL_CIRCUMFERENCE}`;
+                    const strokeDashoffset = -offset;
+                    offset += length;
+                    return (
+                      <circle
+                        key={index}
+                        cx="125"
+                        cy="125"
+                        r="80"
+                        fill="none"
+                        stroke={item.color}
+                        strokeWidth="40"
+                        strokeDasharray={strokeDasharray}
+                        strokeDashoffset={strokeDashoffset}
+                        transform="rotate(-90 125 125)"
+                      />
+                    );
+                  })}
+              </svg>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {emissionsData.map((item, index) => (
+              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 ${item.displayColor} rounded-sm`}></div>
+                  <span className="text-sm text-gray-800">{item.label}</span>
+                </div>
+                <div className="font-semibold text-gray-800">
+                  {item.value.toLocaleString()} tCO₂e
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6 shadow-sm w-full">
+          <div className="flex flex-wrap gap-y-2.5 justify-between items-center mb-6 border-b border-gray-200 pb-4 w-full">
+            <div className="text-lg font-semibold text-gray-800">Emissions Trends by {duration}</div>
+            <div className="flex gap-1 border border-gray-200 rounded overflow-hidden">
+              {['Monthly', 'Quarterly', 'Annual'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setDuration(type as 'Monthly' | 'Quarterly' | 'Annual')}
+                  className={`px-4 py-2 text-xs font-medium ${
+                    duration === type
+                      ? 'bg-green-800 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+
+            <div className="h-90 relative overflow-visible">
+            {/* Y-axis labels */}
+            <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500">
+              <span>1,500</span>
+              <span>1,200</span>
+              <span>900</span>
+              <span>600</span>
+              <span>300</span>
+              <span>0</span>
+            </div>
+
+            <div className="xl:ml-14 ml-10 xl:w-[91%] h-full flex justify-between items-end ga-x-2 relative z-10 overflow-x-scroll no-scrollbar">
+              {duration === 'Quarterly' ? (
+                // Grouped bars for quarterly view
+                ['Q1', 'Q2', 'Q3', 'Q4'].map((quarter) => (
+                  <div
+                    key={quarter}
+                    className="flex flex-col items-center px-2 bg-white border-x border-green-100 shadow-sm h-full"
+                  >
+                    <div className="text-sm font-semibold text-gray-600 mb-5">{quarter}</div>
+                    <div className="flex gap-6 items-end h-full">
+                      {BarChartData.Quarterly.filter(bar => bar.quarter === quarter).map((bar, index) => (
+                        <div key={index} className="flex flex-col justify-end items-center min-w-7 h-full relative group">
+                          <div
+                            className="w-full bg-gradient-to-t from-[#0a1c10] to-[#41ffb9] rounded-t-2xl transition-all duration-300 group-hover:opacity-80"
+                            style={{ height: `${bar.height * 100}%` }}
+                          />
+                          <div className="absolute -top-6 text-xs font-semibold text-gray-800 group-hover:opacity-100 opacity-0 transition">
+                            {bar.value}
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500">{bar.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Default flat bars for Monthly or Yearly
+                BarChartData[duration].map((bar, index) => (
+                  <div key={index} className="flex flex-col justify-end items-center min-w-7 h-full relative group">
+                    <div
+                      className="w-full bg-gradient-to-t from-[#0a1c10] to-[#3cf6b2] rounded-t-2xl transition-all duration-300 group-hover:opacity-80"
+                      style={{ height: `${bar.height * 100}%` }}
+                    />
+                    <div className="absolute -top-6 text-xs font-semibold text-gray-800 group-hover:opacity-100 opacity-0 transition">
+                      {bar.value}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500">{bar.label}</div>
+                  </div>
+                ))
+              )}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
 
       {/* Data Table */}
       <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
