@@ -1,134 +1,314 @@
-import React, { useState } from 'react';
-import { Plus, X, Save, Edit3, Trash2, Zap } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Plus, X, Save, Edit3, Trash2, Zap } from "lucide-react";
+import { getRequest, postRequest } from "@/utils/api";
+import toast from "react-hot-toast";
 
-const facilities = [
-  {
-    id: 'fac_001',
-    name: 'Manufacturing Plant A',
-    location: 'Texas, USA',
-    type: 'manufacturing',
-    gridRegion: 'ERCOT',
-    locationFactor: 0.396 // kg CO2e/kWh
-  },
-  {
-    id: 'fac_002',
-    name: 'Distribution Center B',
-    location: 'California, USA',
-    type: 'warehouse',
-    gridRegion: 'CAISO',
-    locationFactor: 0.287
-  },
-  {
-    id: 'fac_003',
-    name: 'Office Headquarters',
-    location: 'New York, USA',
-    type: 'office',
-    gridRegion: 'NYISO',
-    locationFactor: 0.315
-  }
-];
+interface Facility {
+  _id: string;
+  facilityName: string;
+  facilityType: string;
+  city: string;
+  country: string;
+}
 
-function calculateElectricityEmissions(record: any) {
-  const consumption_MWh = record.consumption / 1000; // Convert kWh to MWh
-  const facility = facilities.find(f => f.id === record.facilityId);
-  const location_based = consumption_MWh * (facility?.locationFactor || 0);
-  const market_based_gross = consumption_MWh * record.supplierFactor;
-  const recs_adjustment = record.recs * 0; // RECs reduce market-based to zero for renewable portion
-  const market_based = Math.max(0, market_based_gross - recs_adjustment);
-  return {
-    location_based,
-    market_based
-  };
+interface EnergyType {
+  _id: string;
+  energyType: string;
+  energyTypeUnit: string;
+  emissionFactorC02: number;
+}
+
+interface ElectricityFormData {
+  month: string;
+  year: string;
+  facility: string;
+  energyType: string;
+  gridLocation: string;
+  consumedUnits: string;
+  amountOfConsumption: string;
+  emissionFactor: string;
+  customEmissionFactor: boolean;
 }
 
 const Scope2ElectricityEntry: React.FC = () => {
-  const [selectedFacility, setSelectedFacility] = useState('all');
-  const [calculationMethod, setCalculationMethod] = useState('market_based');
+  const [selectedFacility, setSelectedFacility] = useState("all");
   const [electricityData, setElectricityData] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [formData, setFormData] = useState<any>({
-    facilityId: '',
-    supplier: '',
-    accountNumber: '',
-    meterNumber: '',
-    consumption: '',
-    consumptionUnit: 'kWh',
-    billingPeriod: '',
-    startDate: '',
-    endDate: '',
-    cost: '',
-    currency: 'USD',
-    supplierFactor: '',
-    recs: 0,
-    energyMix: {
-      renewable: 0,
-      natural_gas: 0,
-      coal: 0,
-      nuclear: 0
-    }
+  const [loading, setLoading] = useState(false);
+
+  // Dropdown data states
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [energyTypes, setEnergyTypes] = useState<EnergyType[]>([]);
+
+  const [formData, setFormData] = useState<ElectricityFormData>({
+    month: "",
+    year: "",
+    facility: "",
+    energyType: "",
+    gridLocation: "",
+    consumedUnits: "",
+    amountOfConsumption: "",
+    emissionFactor: "",
+    customEmissionFactor: false,
   });
 
-  const handleSubmit = () => {
-    const newRecord = {
-      id: editingItem ? editingItem.id : `elec_${Date.now()}`,
-      ...formData,
-      consumption: parseFloat(formData.consumption),
-      cost: parseFloat(formData.cost),
-      supplierFactor: parseFloat(formData.supplierFactor),
-      recs: parseFloat(formData.recs || 0),
-      calculatedEmissions: calculateElectricityEmissions({
-        ...formData,
-        consumption: parseFloat(formData.consumption),
-        supplierFactor: parseFloat(formData.supplierFactor),
-        recs: parseFloat(formData.recs || 0)
-      })
-    };
-    if (editingItem) {
-      setElectricityData(prev => prev.map(item => item.id === editingItem.id ? newRecord : item));
-    } else {
-      setElectricityData(prev => [...prev, newRecord]);
+  const getToken = () => {
+    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    return tokenData.accessToken;
+  };
+
+  // Fetch dropdown data
+  const fetchFacilities = async () => {
+    try {
+      const response = await getRequest("facilities/getFacilities", getToken());
+      if (response.success) {
+        setFacilities(response.data.facilities || []);
+      } else {
+        toast.error(response.message || "Failed to fetch facilities");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch facilities");
     }
-    setShowForm(false);
-    setEditingItem(null);
+  };
+
+  const fetchEnergyTypes = async () => {
+    try {
+      const response = await getRequest(
+        "energy-types/getEnergyTypes",
+        getToken()
+      );
+      if (response.success) {
+        setEnergyTypes(response.data.energyTypes || []);
+      } else {
+        toast.error(response.message || "Failed to fetch energy types");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch energy types");
+    }
+  };
+
+  const getElectricityTotal = async () => {
+    try {
+      const response = await getRequest(
+        "purchased-electricity/getPurchasedElectricity?scopeType=electricity",
+        getToken()
+      );
+      if (response.success) {
+        setElectricityData(response.data.purchasedElectricity || []);
+      } else {
+        toast.error(response.message || "Failed to fetch electricity data");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch electricity data");
+    }
+  };
+
+  // Load dropdown data on component mount
+  useEffect(() => {
+    fetchFacilities();
+    fetchEnergyTypes();
+    getElectricityTotal();
+  }, []);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    // const energyType = energyTypes.find(e => e._id === formData.energyType)
+    try {
+      const energyType = energyTypes.find(
+        (e) => e.energyType === "Purchased Electricity"
+      );
+      
+      // Prepare the data according to the API specification
+      const requestData = {
+        month: parseInt(formData.month),
+        year: parseInt(formData.year),
+        facility: formData.facility,
+        energyType: energyType._id,
+        gridLocation: formData.gridLocation,
+        consumedUnits: parseFloat(formData.consumedUnits),
+        amountOfConsumption: parseFloat(formData.amountOfConsumption),
+        emissionFactor: formData.customEmissionFactor
+          ? parseFloat(formData.emissionFactor)
+          : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
+      };
+      console.log(energyTypes, "energyType");
+      if (editingItem) {
+        // Update existing record
+        const editingId = editingItem?._id || editingItem?.id;
+
+        if (!editingId) {
+          toast.error("No item ID found for editing");
+          return;
+        }
+
+        const response = await postRequest(
+          `purchased-electricity/updatePurchasedElectricity/${editingId}`,
+          requestData,
+          "Electricity data updated successfully",
+          getToken(),
+          "put",
+          true, 
+          'purchasedElectricity'
+        );
+
+        if (response.success) {
+          toast.success("Electricity data updated successfully");
+          await getElectricityTotal();
+          setShowForm(false);
+          setEditingItem(null);
+          resetForm();
+        } else {
+          toast.error(response.message || "Failed to update electricity data");
+        }
+      } else {
+        const response = await postRequest(
+          "purchased-electricity/addPurchasedElectricity",
+          {
+            ...requestData,
+            scope: "scope2",
+            scopeType: "electricity",
+           
+          },
+          "Electricity data added successfully",
+          getToken(),
+          "post",
+          true,
+          'purchasedElectricity'
+        );
+
+        if (response.success) {
+          toast.success("Electricity data added successfully");
+          await getElectricityTotal();
+          setShowForm(false);
+          resetForm();
+        } else {
+          toast.error(response.message || "Failed to add electricity data");
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save electricity data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
     setFormData({
-      facilityId: '',
-      supplier: '',
-      accountNumber: '',
-      meterNumber: '',
-      consumption: '',
-      consumptionUnit: 'kWh',
-      billingPeriod: '',
-      startDate: '',
-      endDate: '',
-      cost: '',
-      currency: 'USD',
-      supplierFactor: '',
-      recs: 0,
-      energyMix: { renewable: 0, natural_gas: 0, coal: 0, nuclear: 0 }
+      month: "",
+      year: "",
+      facility: "",
+      energyType: "",
+      gridLocation: "",
+      consumedUnits: "",
+      amountOfConsumption: "",
+      emissionFactor: "",
+      customEmissionFactor: false,
     });
   };
 
   const startEdit = (item: any) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      month: item.month?.toString() || "",
+      year: item.year?.toString() || "",
+      facility: item.facility || "",
+      energyType: item.energyType || "",
+      gridLocation: item.gridLocation || "",
+      consumedUnits: item.consumedUnits?.toString() || "",
+      amountOfConsumption: item.amountOfConsumption?.toString() || "",
+      emissionFactor: item.emissionFactor?.toString() || "",
+      customEmissionFactor: false,
+    });
     setShowForm(true);
   };
 
-  const filteredData = selectedFacility === 'all'
-    ? electricityData
-    : electricityData.filter(item => item.facilityId === selectedFacility);
+  const deleteRecord = async (item: any) => {
+    try {
+      const editingId = item?._id || item?.id;
+
+      if (!editingId) {
+        toast.error("No item ID found for deletion");
+        return;
+      }
+
+      const response = await postRequest(
+        `purchased-electricity/deletePurchasedElectricity/${editingId}`,
+        {},
+        "Electricity record deleted successfully",
+        getToken(),
+        "delete",
+        true,
+        'purchasedElectricity'
+      );
+
+      if (response.success) {
+        toast.success("Electricity record deleted successfully");
+        await getElectricityTotal();
+      } else {
+        toast.error(response.message || "Failed to delete electricity record");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete electricity record");
+    }
+  };
+
+  // Helper functions to get names from IDs
+  const getFacilityName = (facilityId: string) => {
+    const facility = facilities.find((f) => f._id === facilityId);
+    return facility ? facility.facilityName : facilityId;
+  };
+
+  const getEnergyTypeName = (energyTypeId: string) => {
+    const energyType = energyTypes.find((e) => e._id === energyTypeId);
+    return energyType ? energyType.energyType : energyTypeId;
+  };
+
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear; year >= currentYear - 10; year--) {
+      years.push(year);
+    }
+    return years;
+  };
+
+  const getMonthName = (monthNumber: number | string) => {
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const monthIndex = parseInt(monthNumber.toString()) - 1;
+    return months[monthIndex] || monthNumber;
+  };
+
+  const filteredData =
+    selectedFacility === "all"
+      ? electricityData
+      : electricityData.filter((item) => item.facility === selectedFacility);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Zap className="w-6 h-6 text-blue-600" />
-          <h3 className="text-xl font-semibold text-gray-900">Purchased Electricity</h3>
+          <h3 className="text-xl font-semibold text-gray-900">
+            Purchased Electricity
+          </h3>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg "
         >
           <Plus className="w-4 h-4" />
           <span>Add Electricity Record</span>
@@ -138,12 +318,13 @@ const Scope2ElectricityEntry: React.FC = () => {
         <div className="bg-white border border-blue-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-medium text-blue-900">
-              {editingItem ? 'Edit' : 'Add'} Electricity Consumption
+              {editingItem ? "Edit" : "Add"} Electricity Consumption
             </h4>
             <button
               onClick={() => {
                 setShowForm(false);
                 setEditingItem(null);
+                resetForm();
               }}
               className="text-gray-500 hover:text-gray-700"
             >
@@ -153,171 +334,203 @@ const Scope2ElectricityEntry: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Facility *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Month *
+                </label>
                 <select
-                  value={formData.facilityId}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, facilityId: e.target.value }))}
+                  value={formData.month}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      month: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   required
                 >
-                  <option value="">Select Facility</option>
-                  {facilities.map(facility => (
-                    <option key={facility.id} value={facility.id}>{facility.name}</option>
+                  <option value="">Select Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Year *
+                </label>
+                <select
+                  value={formData.year}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      year: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Year</option>
+                  {generateYearOptions().map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Supplier *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Facility *
+                </label>
+                <select
+                  value={formData.facility}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      facility: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Facility</option>
+                  {facilities.map((facility) => (
+                    <option key={facility._id} value={facility._id}>
+                      {facility.facilityName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Energy Type *</label>
+                <select
+                  value={formData.energyType}
+                  onChange={(e) => {
+                    const selectedEnergyType = e.target.value;
+                    const energyType = energyTypes.find(e => e._id === selectedEnergyType);
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      energyType: selectedEnergyType,
+                      // emissionFactor: energyType?.emissionFactorC02?.toString() || ''
+                    }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Energy Type</option>
+                  {energyTypes.map((energyType) => (
+                    <option key={energyType._id} value={energyType._id}>
+                      {energyType.energyType}
+                    </option>
+                  ))}
+                </select>
+              </div> */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Grid Location *
+                </label>
                 <input
                   type="text"
-                  value={formData.supplier}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, supplier: e.target.value }))}
+                  value={formData.gridLocation}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      gridLocation: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., Argentina Kwh"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Consumed Units *
+                </label>
                 <input
-                  type="text"
-                  value={formData.accountNumber}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, accountNumber: e.target.value }))}
+                  type="number"
+                  value={formData.consumedUnits}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      consumedUnits: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="20"
+                  required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Meter Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount of Consumption *
+                </label>
                 <input
-                  type="text"
-                  value={formData.meterNumber}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, meterNumber: e.target.value }))}
+                  type="number"
+                  value={formData.amountOfConsumption}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      amountOfConsumption: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="24"
+                  required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Consumption *</label>
-                <div className="flex space-x-2">
+              <div className="col-span-2">
+                <div className="flex items-center mb-2">
                   <input
-                    type="number"
-                    value={formData.consumption}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, consumption: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                  <select
-                    value={formData.consumptionUnit}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, consumptionUnit: e.target.value }))}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="kWh">kWh</option>
-                    <option value="MWh">MWh</option>
-                    <option value="GWh">GWh</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Billing Period</label>
-                <input
-                  type="text"
-                  value={formData.billingPeriod}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, billingPeriod: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., January 2024"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Cost</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    value={formData.cost}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, cost: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    step="0.01"
-                  />
-                  <select
-                    value={formData.currency}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, currency: e.target.value }))}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Emission Factor *</label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    value={formData.supplierFactor}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, supplierFactor: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    step="0.001"
-                    required
-                  />
-                  <span className="text-sm text-gray-500">kg CO₂e/kWh</span>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">RECs Purchased</label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    value={formData.recs}
-                    onChange={(e) => setFormData((prev: any) => ({ ...prev, recs: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    step="0.1"
-                  />
-                  <span className="text-sm text-gray-500">MWh</span>
-                </div>
-              </div>
-            </div>
-            {/* Energy Mix */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Energy Mix (%)</label>
-              <div className="grid grid-cols-4 gap-4">
-                {Object.entries(formData.energyMix).map(([source, value]) => (
-                  <div key={source}>
-                    <label className="block text-xs text-gray-600 mb-1 capitalize">
-                      {source.replace('_', ' ')}
-                    </label>
-                    <input
-                      type="number"
-                      value={value}
-                      onChange={(e) => setFormData((prev: any) => ({
+                    type="checkbox"
+                    id="customEmissionFactor"
+                    checked={formData.customEmissionFactor}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      setFormData((prev: any) => ({
                         ...prev,
-                        energyMix: { ...prev.energyMix, [source]: parseFloat(e.target.value) || 0 }
-                      }))}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-                ))}
+                        customEmissionFactor: isChecked,
+                        emissionFactor: isChecked ? "" : "",
+                      }));
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="customEmissionFactor"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
+                    Use Custom Emission Factor
+                  </label>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Total: {Object.values(formData.energyMix).reduce((sum, val) => sum + val, 0)}%
-              </p>
+              {formData.customEmissionFactor && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Custom Emission Factor *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.emissionFactor}
+                    onChange={(e) =>
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        emissionFactor: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter custom emission factor"
+                    required
+                  />
+                </div>
+              )}
             </div>
             <div className="flex justify-end space-x-3">
               <button
@@ -325,6 +538,7 @@ const Scope2ElectricityEntry: React.FC = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingItem(null);
+                  resetForm();
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >
@@ -332,10 +546,14 @@ const Scope2ElectricityEntry: React.FC = () => {
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                disabled={loading}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>{editingItem ? 'Update' : 'Save'} Record</span>
+                <span>
+                  {loading ? "Saving..." : editingItem ? "Update" : "Save"}{" "}
+                  Record
+                </span>
               </button>
             </div>
           </div>
@@ -345,68 +563,84 @@ const Scope2ElectricityEntry: React.FC = () => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facility</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Consumption</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Emissions</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Month/Year
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Facility
+              </th>
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Energy Type</th> */}
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Grid Location
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Consumed Units
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Amount of Consumption
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Emission Factor
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredData.map((record) => {
-              const facility = facilities.find(f => f.id === record.facilityId);
-              return (
-                <tr key={record.id}>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{facility?.name}</div>
-                    <div className="text-sm text-gray-500">{facility?.location}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">{record.supplier}</div>
-                    <div className="text-sm text-gray-500">{record.accountNumber}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {record.consumption?.toLocaleString()} {record.consumptionUnit}
-                    </div>
-                    {record.recs > 0 && (
-                      <div className="text-sm text-green-600">RECs: {record.recs} MWh</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{record.billingPeriod}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-900">
-                        {calculationMethod === 'market_based'
-                          ? record.calculatedEmissions.market_based?.toLocaleString()
-                          : record.calculatedEmissions.location_based?.toLocaleString()
-                        } tCO₂e
-                      </div>
-                      <div className="text-gray-500">
-                        {calculationMethod === 'market_based' ? 'Market-based' : 'Location-based'}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => startEdit(record)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setElectricityData(prev => prev.filter(item => item.id !== record.id))}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            {filteredData.map((record) => (
+              <tr key={record._id || record.id}>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {getMonthName(record.month)} {record.year}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900">
+                    {getFacilityName(record.facility)}
+                  </div>
+                </td>
+                {/* <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900">{getEnergyTypeName(record.energyType)}</div>
+                </td> */}
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900">
+                    {record.gridLocation}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {record.consumedUnits?.toLocaleString()}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {record.amountOfConsumption?.toLocaleString()}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {record.emissionFactor}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => startEdit(record)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    {/* <button
+                      onClick={() => deleteRecord(record)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button> */}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -414,4 +648,4 @@ const Scope2ElectricityEntry: React.FC = () => {
   );
 };
 
-export default Scope2ElectricityEntry; 
+export default Scope2ElectricityEntry;

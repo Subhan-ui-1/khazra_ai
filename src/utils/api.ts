@@ -2,8 +2,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const BASE_URLs =
-  "https://dev-kai-backend-production.up.railway.app/api/";
-  // "http://localhost:4001/api/v1/";
+  // "https://dev-kai-backend-production.up.railway.app/api/";
+  "http://192.168.18.140:4000/api/";
 
 const getHeaders = (token?: string) => {
   const headers = {
@@ -51,22 +51,57 @@ export const getRequest = async (
   }
 };
 
+const organization = JSON.parse(localStorage.getItem("user") || "{}");
+const organizationId = organization.organization;
+
 export const postRequest = async (
   endPoint: string,
   data: any,
   successMessage?: string,
   token?: string,
-  method: "post" | "patch" = "post"
+  method: "post" | "patch" | "delete" | "put" = "post",
+  dashboard: boolean = false,
+  scope?: "stationary" | "mobile" | "purchasedElectricity"
 ) => {
   try {
     console.log("base url", BASE_URLs + endPoint);
+    console.log("data", data, getHeaders(token), method);
 
-    const response = await axios[method](`${BASE_URLs}${endPoint}`, data, {
-      headers: getHeaders(token),
-    });
+    let response;
+    if (method === "delete") {
+      // For DELETE requests, headers go in the second parameter
+      response = await axios.delete(`${BASE_URLs}${endPoint}`, {
+        headers: getHeaders(token),
+        data: data, // DELETE requests can have a body, but it's passed as 'data' in config
+      });
+    } else {
+      // For POST, PUT, PATCH requests
+      response = await axios[method](`${BASE_URLs}${endPoint}`, data, {
+        headers: getHeaders(token),
+      });
+    }
+
     console.log(response.data);
     if (response.status >= 200 && response.status < 300) {
       console.log("post request whole response.", response);
+      console.log(
+        "something ehre ",
+        response.data.mobile
+          ? response.data.mobile.totalEmissions
+          : response.data.stationary.totalEmissions
+      );
+      if (dashboard) {
+        await axios.put(
+          `${BASE_URLs}dashboard/updateDashboardData/${organizationId}`,
+          {
+            recentActivities: response.data,
+            totalEmissions: scope
+              ? response.data[scope]?.totalEmissions || 0
+              : 0,
+          },
+          { headers: getHeaders(token) }
+        );
+      }
       return response.data;
     } else {
       throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);

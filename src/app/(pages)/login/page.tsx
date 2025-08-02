@@ -61,24 +61,24 @@ export default function LoginPage() {
   };
 
   const validatePassword = (password: string): boolean => {
-    if (!password) {
-      setPasswordError("Password is required");
-      return false;
-    }
+    // if (!password) {
+    //   setPasswordError("Password is required");
+    //   return false;
+    // }
 
-    if (password.length < 8) {
-      setPasswordError("Password must be at least 8 characters long");
-      return false;
-    }
+    // if (password.length < 8) {
+    //   setPasswordError("Password must be at least 8 characters long");
+    //   return false;
+    // }
 
-    if (!passwordRegex.test(password)) {
-      setPasswordError(
-        "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character"
-      );
-      return false;
-    }
+    // if (!passwordRegex.test(password)) {
+    //   setPasswordError(
+    //     "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character"
+    //   );
+    //   return false;
+    // }
 
-    setPasswordError("");
+    // setPasswordError("");
     return true;
   };
 
@@ -100,14 +100,14 @@ export default function LoginPage() {
   ) => {
     const value = e.target.value;
     setPassword(value);
-    validatePassword(value);
-    checkFormValidity(email, value);
+    // validatePassword(value);
+    // checkFormValidity(email, value);
   };
 
   const checkFormValidity = (emailValue: string, passwordValue: string) => {
     const isEmailValid = validateEmail(emailValue);
-    const isPasswordValid = validatePassword(passwordValue);
-    setIsFormValid(isEmailValid && isPasswordValid);
+    // const isPasswordValid = validatePassword(passwordValue);
+    setIsFormValid(isEmailValid);
   };
 
   const handleNavigate = (route: string) => {
@@ -139,13 +139,19 @@ export default function LoginPage() {
       console.log(response);
       if (response.success === true) {
         toast.success(response.message);
+        if(response.resetToken){
+          localStorage.setItem('resetToken', response.resetToken)
+          router.replace("/resetPassword")
+          return;
+        }
         localStorage.setItem("tokens", JSON.stringify(response.tokens));
         localStorage.setItem("user", JSON.stringify(response.user));
-        if (response.user.boundary) {
+        localStorage.setItem('permissions', JSON.stringify(response.user.role.permissions))
+        // if (response.user.boundary) {
           router.replace("/dashboard");
-        } else {
-          router.replace("/dashboard?section=add-boundary");
-        }
+        // } else {
+        //   router.replace("/dashboard?section=add-boundary");
+        // }
       } else {
         toast.error(response.message);
       }
@@ -241,7 +247,7 @@ export default function LoginPage() {
               placeholder="Your password"
               required
               value={password}
-              onChange={handlePasswordChange}
+              onChange={(e)=>setPassword(e.target.value)}
             />
             <button
               type="button"

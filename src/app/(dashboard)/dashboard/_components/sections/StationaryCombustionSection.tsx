@@ -1,76 +1,324 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import Table from "@/components/Table";
+import { getRequest, postRequest } from "@/utils/api";
+import { useState, useEffect } from "react";
+import { Edit3, Trash2, Eye, Plus } from "lucide-react";
+import toast from "react-hot-toast";
+
+interface Facility {
+  _id: string;
+  facilityName: string;
+  facilityType: string;
+  city: string;
+  country: string;
+}
+
+interface EquipmentType {
+  _id: string;
+  equipmentName: string;
+  capacityUnit?: string;
+}
+
+interface FuelType {
+  _id: string;
+  fuelType: string;
+  fuelTypeUnit: string;
+  emissionFactorC02: number;
+}
+
+interface StationaryFormData {
+  month: string;
+  year: string;
+  facility: string;
+  facilityDescription: string;
+  equipment: string;
+  fuelType: string;
+  quantityOfFuelUsed: string;
+  emissionFactor: number;
+  useCustomEmissionFactor: boolean;
+}
 
 export default function StationaryCombustionSection() {
   const [isStationaryModalOpen, setIsStationaryModalOpen] = useState(false);
-  const [isEditStationaryModalOpen, setIsEditStationaryModalOpen] = useState(false);
+  const [isEditStationaryModalOpen, setIsEditStationaryModalOpen] =
+    useState(false);
   const [editingStationaryData, setEditingStationaryData] = useState<any>(null);
-  const [editingStationaryIndex, setEditingStationaryIndex] = useState<number | null>(null);
+  const [editingStationaryIndex, setEditingStationaryIndex] = useState<
+    number | null
+  >(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewMode, setReviewMode] = useState<'add-stationary' | 'edit-stationary' | null>(null);
+  const [reviewMode, setReviewMode] = useState<
+    "add-stationary" | "edit-stationary" | null
+  >(null);
   const [reviewData, setReviewData] = useState<any>(null);
-  const [stationaryFormData, setStationaryFormData] = useState({
-    month: '',
-    year: '',
-    facilityId: '',
-    facilityDescription: '',
-    equipmentType: '',
-    fuelType: '',
-    quantityOfFuelUsed: '',
-    customEmissionFactor: '',
-    useCustomEmissionFactor: false
-  });
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Dropdown data states
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [equipments, setEquipments] = useState<EquipmentType[]>([]);
+  const [fuelTypes, setFuelTypes] = useState<FuelType[]>([]);
+
+  const [stationaryFormData, setStationaryFormData] =
+    useState<StationaryFormData>({
+      month: "",
+      year: "",
+      facility: "",
+      facilityDescription: "",
+      equipment: "",
+      fuelType: "",
+      quantityOfFuelUsed: "",
+      emissionFactor: 0,
+      useCustomEmissionFactor: false,
+    });
 
   // State for Stationary Combustion table data array
-  const [stationaryCombustionData, setStationaryCombustionData] = useState([
-    {
-      id: 1,
-      month: 'January',
-      year: '2024',
-      facilityId: 'FAC-001',
-      facilityDescription: 'Main Production Plant',
-      equipmentType: 'Boiler',
-      fuelType: 'Natural Gas',
-      quantityOfFuelUsed: '1,250 m³',
-      customEmissionFactor: '2.162 kg CO₂e/m³',
-      useCustomEmissionFactor: true
-    },
-    {
-      id: 2,
-      month: 'January',
-      year: '2024',
-      facilityId: 'FAC-002',
-      facilityDescription: 'Secondary Processing Unit',
-      equipmentType: 'Furnace',
-      fuelType: 'Heating Oil',
-      quantityOfFuelUsed: '850 L',
-      customEmissionFactor: '3.15 kg CO₂e/L',
-      useCustomEmissionFactor: false
-    },
-    {
-      id: 3,
-      month: 'January',
-      year: '2024',
-      facilityId: 'FAC-003',
-      facilityDescription: 'Backup Power Station',
-      equipmentType: 'Generator',
-      fuelType: 'Diesel',
-      quantityOfFuelUsed: '320 L',
-      customEmissionFactor: '2.68 kg CO₂e/L',
-      useCustomEmissionFactor: true
-    }
+  const [stationaryCombustionData, setStationaryCombustionData] = useState<any[]>([
+    // {
+    //   id: 1,
+    //   month: "January",
+    //   year: "2024",
+    //   facilityId: "FAC-001",
+    //   facilityDescription: "Main Production Plant",
+    //   equipmentType: "Boiler",
+    //   fuelType: "Natural Gas",
+    //   quantityOfFuelUsed: "1,250 m³",
+    //   customEmissionFactor: "2.162 kg CO₂e/m³",
+    //   useCustomEmissionFactor: true,
+    // },
+    // {
+    //   id: 2,
+    //   month: "January",
+    //   year: "2024",
+    //   facilityId: "FAC-002",
+    //   facilityDescription: "Secondary Processing Unit",
+    //   equipmentType: "Furnace",
+    //   fuelType: "Heating Oil",
+    //   quantityOfFuelUsed: "850 L",
+    //   customEmissionFactor: "3.15 kg CO₂e/L",
+    //   useCustomEmissionFactor: false,
+    // },
+    // {
+    //   id: 3,
+    //   month: "January",
+    //   year: "2024",
+    //   facilityId: "FAC-003",
+    //   facilityDescription: "Backup Power Station",
+    //   equipmentType: "Generator",
+    //   fuelType: "Diesel",
+    //   quantityOfFuelUsed: "320 L",
+    //   customEmissionFactor: "2.68 kg CO₂e/L",
+    //   useCustomEmissionFactor: true,
+    // },
   ]);
 
-  const handleStationarySubmit = (e: React.FormEvent) => {
+  // Get token from localStorage
+  const getToken = () => {
+    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    return tokenData.accessToken;
+  };
+
+  // Fetch dropdown data
+  const fetchFacilities = async () => {
+    try {
+      const response = await getRequest("facilities/getFacilities", getToken());
+      if (response.success) {
+        setFacilities(response.data.facilities || []);
+      } else {
+        toast.error(response.message || "Failed to fetch facilities");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch facilities");
+    }
+  };
+
+  const fetchEquipments = async () => {
+    try {
+      const response = await getRequest(
+        "equipments/getEquipments",
+        getToken()
+      );
+      if (response.success) {
+        setEquipments(response.data.equipments || []);
+      } else {
+        toast.error(response.message || "Failed to fetch equipments");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch equipments");
+    }
+  };
+
+  const fetchFuelTypes = async () => {
+    try {
+      const response = await getRequest(
+        "stationary-fuel-types/getStationaryFuelTypes?limit=1000",
+        getToken()
+      );
+      if (response.success) {
+        setFuelTypes(response.data.stationaryFuelTypes || []);
+      } else {
+        toast.error(response.message || "Failed to fetch fuel types");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch fuel types");
+    }
+  };
+  const getStationaryTotal = async () => {
+    try {
+      const response = await getRequest("stationary/getStationary", getToken());
+      if (response.success) {
+        setStationaryCombustionData(response.data.stationary);
+      } else {
+        toast.error(response.message || "Failed to fetch stationary total");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch stationary total");
+    }
+  };
+
+  // Load dropdown data on component mount
+  useEffect(() => {
+    fetchFacilities();
+    fetchEquipments();
+    fetchFuelTypes();
+    getStationaryTotal();
+  }, []);
+
+  const handleStationarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Stationary Combustion Data:', stationaryFormData);
-    
-    // Show review modal instead of directly adding
-    setReviewData(stationaryFormData);
-    setReviewMode('add-stationary');
-    setShowReviewModal(true);
-    setIsStationaryModalOpen(false);
+    setSubmitting(true);
+
+    try {
+      // Prepare the data according to the API specification
+      const requestData = {
+        scope: "scope1",
+        scopeType: "stationary",
+        month: stationaryFormData.month,
+        year: parseInt(stationaryFormData.year),
+        facility: stationaryFormData.facility,
+        facilityDescription:stationaryFormData.facilityDescription,
+        equipment: stationaryFormData.equipment,
+        fuelType: stationaryFormData.fuelType,
+        quantityOfFuelUsed: parseFloat(stationaryFormData.quantityOfFuelUsed),
+        emissionFactor: stationaryFormData.emissionFactor,
+      };
+
+      const response = await postRequest(
+        "stationary/addStationary",
+        requestData,
+        "Stationary combustion data added successfully",
+        getToken(),
+        "post",
+        true, 
+        'stationary'
+      );
+
+      if (response.success) {
+        toast.success("Stationary combustion data added successfully");
+        
+        // Refresh the data from the server
+        await getStationaryTotal();
+        
+        setIsStationaryModalOpen(false);
+
+        // Reset form
+        setStationaryFormData({
+          month: "",
+          year: "",
+          facility: "",
+          facilityDescription: "",
+          equipment: "",
+          fuelType: "",
+          quantityOfFuelUsed: "",
+          emissionFactor: 0,
+          useCustomEmissionFactor: false,
+        });
+      } else {
+        toast.error(
+          response.message || "Failed to add stationary combustion data"
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add stationary combustion data");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditStationarySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      // Prepare the data according to the API specification
+      const requestData = {
+        // scope: "scope1",
+        // scopeType: "stationary",
+        month: stationaryFormData.month,
+        year: parseInt(stationaryFormData.year),
+        facility: stationaryFormData.facility,
+        facilityDescription: stationaryFormData.facilityDescription,
+        equipment: stationaryFormData.equipment,
+        fuelType: stationaryFormData.fuelType,
+        quantityOfFuelUsed: parseFloat(stationaryFormData.quantityOfFuelUsed),
+        emissionFactor: stationaryFormData.emissionFactor,
+      };
+
+      // Get the ID of the item being edited
+      const editingId = editingStationaryData?._id || editingStationaryData?.id;
+      
+      if (!editingId) {
+        toast.error("No item ID found for editing");
+        return;
+      }
+
+      const response = await postRequest(
+        `stationary/updateStationary/${editingId}`,
+        requestData,
+        "Stationary combustion data updated successfully",
+        getToken(),
+        "put",
+        true, 
+        'stationary'
+      );
+
+      if (response.success) {
+        toast.success("Stationary combustion data updated successfully");
+        
+        // Refresh the data from the server
+        await getStationaryTotal();
+        
+        setIsEditStationaryModalOpen(false);
+        
+        // Reset editing states
+        setEditingStationaryData(null);
+        setEditingStationaryIndex(null);
+        
+        // Reset form
+        setStationaryFormData({
+          month: "",
+          year: "",
+          facility: "",
+          facilityDescription: "",
+          equipment: "",
+          fuelType: "",
+          quantityOfFuelUsed: "",
+          emissionFactor: 0,
+          useCustomEmissionFactor: false,
+        });
+      } else {
+        toast.error(
+          response.message || "Failed to update stationary combustion data"
+        );
+      }
+    } catch (error: any) {
+      toast.error(
+        error.message || "Failed to update stationary combustion data"
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEditStationary = (rowData: any, index: number) => {
@@ -78,69 +326,90 @@ export default function StationaryCombustionSection() {
     setEditingStationaryIndex(index);
     setStationaryFormData({
       month: rowData.month,
-      year: rowData.year,
-      facilityId: rowData.facilityId,
+      year: rowData.year.toString(),
+      facility: rowData.facility || rowData.facilityId,
       facilityDescription: rowData.facilityDescription,
-      equipmentType: rowData.equipmentType,
-      fuelType: rowData.fuelType,
+      equipment: rowData.equipment || rowData.equipmentId,
+      fuelType: rowData.fuelType || rowData.fuelTypeId,
       quantityOfFuelUsed: rowData.quantityOfFuelUsed,
-      customEmissionFactor: rowData.customEmissionFactor,
-      useCustomEmissionFactor: rowData.useCustomEmissionFactor
+      emissionFactor: rowData.emissionFactor || 0,
+      useCustomEmissionFactor: rowData.useCustomEmissionFactor || false,
     });
     setIsEditStationaryModalOpen(true);
   };
 
-  const handleEditStationarySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Updated Stationary Combustion Data:', stationaryFormData);
-    console.log('Original Data:', editingStationaryData);
-    
-    // Show review modal instead of directly updating
-    setReviewData(stationaryFormData);
-    setReviewMode('edit-stationary');
-    setShowReviewModal(true);
-    setIsEditStationaryModalOpen(false);
+  // Get facility name by ID
+  const getFacilityName = (facilityId: string) => {
+    const facility = facilities.find((f) => f._id === facilityId);
+    return facility ? facility.facilityName : facilityId;
+  };
+
+  // Get equipment type name by ID
+  const getEquipmentTypeName = (equipmentTypeId: string) => {
+    const equipment = equipments.find((e) => e._id === equipmentTypeId);
+    return equipment ? equipment.equipmentName : equipmentTypeId;
+  };
+
+  // Get fuel type name by ID
+  const getFuelTypeName = (fuelTypeId: string) => {
+    const fuelType = fuelTypes.find((f) => f._id === fuelTypeId);
+    return fuelType
+      ? `${fuelType.fuelType} (${fuelType.fuelTypeUnit})`
+      : fuelTypeId;
+  };
+
+  // Generate years for dropdown (current year - 10 to current year + 5)
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear - 10; year <= currentYear + 5; year++) {
+      years.push(year);
+    }
+    return years;
   };
 
   // Review modal handlers
   const handleReviewConfirm = () => {
-    if (reviewMode === 'add-stationary') {
+    if (reviewMode === "add-stationary") {
       const newRow = {
-        id: Math.max(...stationaryCombustionData.map(row => row.id)) + 1,
-        ...reviewData
+        id: Math.max(...stationaryCombustionData.map((row) => row.id)) + 1,
+        ...reviewData,
       };
       setStationaryCombustionData([...stationaryCombustionData, newRow]);
-      console.log('Confirmed: Added new stationary combustion row');
-    } else if (reviewMode === 'edit-stationary' && editingStationaryIndex !== null) {
+      console.log("Confirmed: Added new stationary combustion row");
+    } else if (
+      reviewMode === "edit-stationary" &&
+      editingStationaryIndex !== null
+    ) {
       const updatedData = [...stationaryCombustionData];
       updatedData[editingStationaryIndex] = {
         ...updatedData[editingStationaryIndex],
-        ...reviewData
+        ...reviewData,
       };
       setStationaryCombustionData(updatedData);
-      console.log('Confirmed: Updated stationary combustion row');
+      console.log("Confirmed: Updated stationary combustion row");
     }
-    
+
     // Reset review modal
     setShowReviewModal(false);
     setReviewMode(null);
     setReviewData(null);
-    
+
     // Reset editing states
     setEditingStationaryData(null);
     setEditingStationaryIndex(null);
-    
+
     // Reset forms
     setStationaryFormData({
-      month: '',
-      year: '',
-      facilityId: '',
-      facilityDescription: '',
-      equipmentType: '',
-      fuelType: '',
-      quantityOfFuelUsed: '',
-      customEmissionFactor: '',
-      useCustomEmissionFactor: false
+      month: "",
+      year: "",
+      facility: "",
+      facilityDescription: "",
+      equipment: "",
+      fuelType: "",
+      quantityOfFuelUsed: "",
+      emissionFactor: 0,
+      useCustomEmissionFactor: false,
     });
   };
 
@@ -148,36 +417,54 @@ export default function StationaryCombustionSection() {
     setShowReviewModal(false);
     setReviewMode(null);
     setReviewData(null);
-    
+
     // Reset editing states
     setEditingStationaryData(null);
     setEditingStationaryIndex(null);
-    
+
     // Reset forms
     setStationaryFormData({
-      month: '',
-      year: '',
-      facilityId: '',
-      facilityDescription: '',
-      equipmentType: '',
-      fuelType: '',
-      quantityOfFuelUsed: '',
-      customEmissionFactor: '',
-      useCustomEmissionFactor: false
+      month: "",
+      year: "",
+      facility: "",
+      facilityDescription: "",
+      equipment: "",
+      fuelType: "",
+      quantityOfFuelUsed: "",
+      emissionFactor: 0,
+      useCustomEmissionFactor: false,
     });
   };
 
   const handleReviewEdit = () => {
     setShowReviewModal(false);
-    
+
     // Reopen the appropriate modal for editing
-    if (reviewMode === 'add-stationary' || reviewMode === 'edit-stationary') {
+    if (reviewMode === "add-stationary" || reviewMode === "edit-stationary") {
       setStationaryFormData(reviewData);
       setIsStationaryModalOpen(true);
     }
-    
+
     setReviewMode(null);
     setReviewData(null);
+  };
+
+  const resetForm = () => {
+    setStationaryFormData({
+      month: "",
+      year: "",
+      facility: "",
+      facilityDescription: "",
+      equipment: "",
+      fuelType: "",
+      quantityOfFuelUsed: "",
+      emissionFactor: 0,
+      useCustomEmissionFactor: false,
+    });
+    setEditingStationaryData(null);
+    setEditingStationaryIndex(null);
+    setIsStationaryModalOpen(false);
+    setIsEditStationaryModalOpen(false);
   };
 
   return (
@@ -188,8 +475,9 @@ export default function StationaryCombustionSection() {
           Stationary Combustion Emissions
         </h1>
         <p className="text-green-800 opacity-70 max-w-4xl leading-relaxed">
-          Direct greenhouse gas emissions from stationary combustion sources owned or controlled by your organization, 
-          including boilers, furnaces, generators, and other stationary equipment.
+          Direct greenhouse gas emissions from stationary combustion sources
+          owned or controlled by your organization, including boilers, furnaces,
+          generators, and other stationary equipment.
         </p>
       </div>
 
@@ -201,8 +489,12 @@ export default function StationaryCombustionSection() {
               <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
                 Total Stationary
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">1,746.2</div>
-              <div className="text-sm text-green-800 mb-2">▼ 8.5% vs last year</div>
+              <div className="text-3xl font-bold text-green-800 mb-2">
+                1,746.2
+              </div>
+              <div className="text-sm text-green-800 mb-2">
+                ▼ 8.5% vs last year
+              </div>
               <div className="text-xs text-green-800 opacity-60">
                 tonnes CO₂e • 53.8% of Scope 1
               </div>
@@ -212,7 +504,10 @@ export default function StationaryCombustionSection() {
             </div>
           </div>
           <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
-            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '53.8%' }}></div>
+            <div
+              className="h-full bg-green-800 transition-all duration-1000"
+              style={{ width: "53.8%" }}
+            ></div>
           </div>
         </div>
 
@@ -223,7 +518,9 @@ export default function StationaryCombustionSection() {
                 Active Sources
               </div>
               <div className="text-3xl font-bold text-green-800 mb-2">23</div>
-              <div className="text-sm text-green-800 mb-2">Across 5 facilities</div>
+              <div className="text-sm text-green-800 mb-2">
+                Across 5 facilities
+              </div>
               <div className="text-xs text-green-800 opacity-60">
                 Boilers, furnaces, generators
               </div>
@@ -240,8 +537,12 @@ export default function StationaryCombustionSection() {
               <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
                 Primary Fuel
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">Natural Gas</div>
-              <div className="text-sm text-green-800 mb-2">65% of consumption</div>
+              <div className="text-3xl font-bold text-green-800 mb-2">
+                Natural Gas
+              </div>
+              <div className="text-sm text-green-800 mb-2">
+                65% of consumption
+              </div>
               <div className="text-xs text-green-800 opacity-60">
                 Followed by heating oil
               </div>
@@ -252,402 +553,573 @@ export default function StationaryCombustionSection() {
           </div>
         </div>
       </div>
+      <Table
+        title="Stationary Combustion Data"
+        columns={[
+          { key: 'month', label: 'Month' },
+          { key: 'year', label: 'Year' },
+          { 
+            key: 'facility', 
+            label: 'Facility',
+            render: (value, row) => getFacilityName(row.facility || row.facilityId)
+          },
+          { 
+            key: 'equipment', 
+            label: 'Equipment',
+            render: (value, row) => getEquipmentTypeName(row.equipment || row.equipmentId)
+          },
+          { 
+            key: 'fuelType', 
+            label: 'Fuel Type',
+            render: (value, row) => getFuelTypeName(row.fuelType || row.fuelTypeId)
+          },
+          { key: 'quantityOfFuelUsed', label: 'Quantity of Fuel Used' },
+          { key: 'emissionFactor', label: 'Emissions Factor' },
+          { 
+            key: 'totalEmissions', 
+            label: 'Total Emissions',
+            type: 'number',
+            align: 'right'
+          }
+        ]}
+        data={stationaryCombustionData}
+        actions={[
+          {
+            // label: 'Edit',
+            icon: <Edit3 className="w-4 h-4" />,
+            onClick: (row) => handleEditStationary(row, stationaryCombustionData.findIndex(item => item._id === row._id)),
+            variant: 'primary'
+          },
 
-      {/* Stationary Combustion Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
-        <div className="flex justify-between items-center p-6 border-b border-green-100">
-          <div className="text-lg font-semibold text-green-800">Stationary Combustion Data</div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
-              Filter
-            </button>
-            <button 
-              onClick={() => setIsStationaryModalOpen(true)}
-              className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          {
+            // label: 'Delete',
+            icon: <Trash2 className="w-4 h-4" />,
+            onClick: (row) => console.log('Delete row:', row),
+            variant: 'danger'
+          }
+        ]}
+        showAddButton={true}
+        addButtonLabel="Add Stationary Combustion"
+        onAddClick={() => setIsStationaryModalOpen(true)}
+        showSearch={true}
+        // showFilter={true}
+        rowKey="_id"
+      />
+
+      {/* Stationary Combustion Form */}
+      {isStationaryModalOpen && (
+        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
+          <div className='flex justify-between items-center mb-4'>
+            <h2 className='text-xl font-semibold text-gray-800'>
+              Add New Stationary Combustion
+            </h2>
+            <button
+              onClick={resetForm}
+              className='text-gray-500 hover:text-gray-700'
             >
-              Add Stationary Combustion
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-center">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Month</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Year</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Facility ID</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Facility Description</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Equipment Type</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Fuel Type</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Quantity of Fuel Used</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Custom Emission Factor</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">If Use Custom Emission Factor</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stationaryCombustionData.map((row, index) => (
-                <tr key={row.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-green-800">{row.month}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.year}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.facilityId}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.facilityDescription}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.equipmentType}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.fuelType}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.quantityOfFuelUsed}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.customEmissionFactor}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.useCustomEmissionFactor ? 'Yes' : 'No'}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleEditStationary(row, index)}
-                        className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-200 hover:bg-blue-200 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded border border-orange-200 hover:bg-orange-200 transition-colors">
-                        Revert
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {/* Stationary Combustion Modal */}
-      {isStationaryModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-green-800">Add Stationary Combustion</h2>
-              <button 
-                onClick={() => setIsStationaryModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+          <form onSubmit={handleStationarySubmit} className='space-y-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor='month' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Month *
+                </label>
+                <select
+                  id='month'
+                  value={stationaryFormData.month}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      month: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Month</option>
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September">September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='year' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Year *
+                </label>
+                <select
+                  id='year'
+                  value={stationaryFormData.year}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      year: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Year</option>
+                  {generateYearOptions().map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='facility' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Facility *
+                </label>
+                <select
+                  id='facility'
+                  value={stationaryFormData.facility}
+                  onChange={(e) =>{
+                    const desc = facilities.find(f => f._id === e.target.value)
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      facility: e.target.value,
+                      facilityDescription: desc?.facilityName || "",
+                    })}
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Facility</option>
+                  {facilities.map((facility) => (
+                    <option key={facility._id} value={facility._id}>
+                      {facility.facilityName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='equipment' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Equipment *
+                </label>
+                <select
+                  id='equipment'
+                  value={stationaryFormData.equipment}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      equipment: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Equipment</option>
+                  {equipments.map((equipment) => (
+                    <option
+                      key={equipment._id}
+                      value={equipment._id}
+                      className="text-black"
+                    >
+                      {equipment.equipmentName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='fuelType' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Type *
+                </label>
+                <select
+                  id='fuelType'
+                  value={stationaryFormData.fuelType}
+                  onChange={(e) =>{
+                    const desc = fuelTypes.find(f => f._id === e.target.value)
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      fuelType: e.target.value,
+                      emissionFactor: desc?.emissionFactorC02||0,
+                    })
+                  }
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Fuel Type</option>
+                  {fuelTypes.map((fuel) => (
+                    <option key={fuel._id} value={fuel._id}>
+                      {fuel.fuelType} ({fuel.fuelTypeUnit})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='quantityOfFuelUsed' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Quantity of Fuel Used *
+                </label>
+                <input
+                  id='quantityOfFuelUsed'
+                  type="text"
+                  value={stationaryFormData.quantityOfFuelUsed}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      quantityOfFuelUsed: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="1,250 m³"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="useCustomEmissionFactor"
+                checked={stationaryFormData.useCustomEmissionFactor}
+                onChange={(e) =>
+                  setStationaryFormData({
+                    ...stationaryFormData,
+                    useCustomEmissionFactor: e.target.checked,
+                  })
+                }
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <label
+                htmlFor="useCustomEmissionFactor"
+                className="text-sm font-medium text-gray-700"
               >
-                ×
+                Use Custom Emission Factor
+              </label>
+            </div>
+
+            {stationaryFormData.useCustomEmissionFactor && (
+              <div>
+                <label htmlFor='customEmissionFactor' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Custom Emission Factor *
+                </label>
+                <input
+                  id='customEmissionFactor'
+                  type="number"
+                  value={stationaryFormData.emissionFactor}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      emissionFactor: parseFloat(e.target.value),
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="2.162 kg CO₂e/m³"
+                  required
+                />
+              </div>
+            )}
+
+            <div className='flex gap-3 pt-4'>
+              <button
+                type='submit'
+                disabled={submitting}
+                className='bg-[#0D5942]  text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Add Stationary Combustion
+                  </>
+                )}
+              </button>
+              <button
+                type='button'
+                onClick={resetForm}
+                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+              >
+                Cancel
               </button>
             </div>
-            
-            <form onSubmit={handleStationarySubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Month</label>
-                  <select 
-                    value={stationaryFormData.month}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, month: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Year</label>
-                  <input 
-                    type="number"
-                    value={stationaryFormData.year}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, year: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2024"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility ID</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.facilityId}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, facilityId: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="FAC-001"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility Description</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.facilityDescription}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, facilityDescription: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Main Production Plant"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Equipment Type</label>
-                  <select 
-                    value={stationaryFormData.equipmentType}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, equipmentType: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Equipment Type</option>
-                    <option value="Boiler">Boiler</option>
-                    <option value="Furnace">Furnace</option>
-                    <option value="Generator">Generator</option>
-                    <option value="Heater">Heater</option>
-                    <option value="Oven">Oven</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Type</label>
-                  <select 
-                    value={stationaryFormData.fuelType}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, fuelType: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Fuel Type</option>
-                    <option value="Natural Gas">Natural Gas</option>
-                    <option value="Heating Oil">Heating Oil</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Coal">Coal</option>
-                    <option value="Propane">Propane</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Quantity of Fuel Used</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.quantityOfFuelUsed}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, quantityOfFuelUsed: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="1,250 m³"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.customEmissionFactor}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, customEmissionFactor: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2.162 kg CO₂e/m³"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox"
-                  id="useCustomEmissionFactor"
-                  checked={stationaryFormData.useCustomEmissionFactor}
-                  onChange={(e) => setStationaryFormData({...stationaryFormData, useCustomEmissionFactor: e.target.checked})}
-                  className="rounded border-green-200 text-green-600 focus:ring-green-500"
-                />
-                <label htmlFor="useCustomEmissionFactor" className="text-sm font-medium text-green-800">
-                  Use Custom Emission Factor
-                </label>
-              </div>
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsStationaryModalOpen(false)}
-                  className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg hover:bg-green-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Add Entry
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
       )}
 
-      {/* Edit Stationary Combustion Modal */}
+      {/* Edit Stationary Combustion Form */}
       {isEditStationaryModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-green-800">Edit Stationary Combustion</h2>
-              <button 
-                onClick={() => setIsEditStationaryModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
+          <div className='flex justify-between items-center mb-4'>
+            <h2 className='text-xl font-semibold text-gray-800'>
+              Edit Stationary Combustion
+            </h2>
+            <button
+              onClick={resetForm}
+              className='text-gray-500 hover:text-gray-700'
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleEditStationarySubmit} className='space-y-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor='editMonth' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Month *
+                </label>
+                <select
+                  id='editMonth'
+                  value={stationaryFormData.month}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      month: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Month</option>
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September">September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='editYear' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Year *
+                </label>
+                <select
+                  id='editYear'
+                  value={stationaryFormData.year}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      year: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Year</option>
+                  {generateYearOptions().map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='editFacility' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Facility *
+                </label>
+                <select
+                  id='editFacility'
+                  value={stationaryFormData.facility}
+                  onChange={(e) =>{
+                    const desc = facilities.find(f => f._id === e.target.value)
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      facility: e.target.value,
+                      facilityDescription: desc?.facilityName || "",
+                    })}
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Facility</option>
+                  {facilities.map((facility) => (
+                    <option key={facility._id} value={facility._id}>
+                      {facility.facilityName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='editEquipment' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Equipment *
+                </label>
+                <select
+                  id='editEquipment'
+                  value={stationaryFormData.equipment}
+                  onChange={(e) =>{
+                    const desc = equipments.find(f => f._id === e.target.value)
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      equipment: e.target.value,
+                      emissionFactor: desc?.emissionFactorC02||0,
+                    })
+                  }
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Equipment</option>
+                  {equipments.map((equipment) => (
+                    <option key={equipment._id} value={equipment._id}>
+                      {equipment.equipmentName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='editFuelType' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Type *
+                </label>
+                <select
+                  id='editFuelType'
+                  value={stationaryFormData.fuelType}
+                  onChange={(e) =>{
+                    const desc = fuelTypes.find(f => f._id === e.target.value)
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      fuelType: e.target.value,
+                      emissionFactor: desc?.emissionFactorC02||0,
+                    })
+                  }
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Fuel Type</option>
+                  {fuelTypes.map((fuel) => (
+                    <option key={fuel._id} value={fuel._id}>
+                      {fuel.fuelType} ({fuel.fuelTypeUnit})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor='editQuantityOfFuelUsed' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Quantity of Fuel Used *
+                </label>
+                <input
+                  id='editQuantityOfFuelUsed'
+                  type="text"
+                  value={stationaryFormData.quantityOfFuelUsed}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      quantityOfFuelUsed: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="1,250 m³"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="editUseCustomEmissionFactor"
+                checked={stationaryFormData.useCustomEmissionFactor}
+                onChange={(e) =>
+                  setStationaryFormData({
+                    ...stationaryFormData,
+                    useCustomEmissionFactor: e.target.checked,
+                  })
+                }
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <label
+                htmlFor="editUseCustomEmissionFactor"
+                className="text-sm font-medium text-gray-700"
               >
-                ×
+                Use Custom Emission Factor
+              </label>
+            </div>
+
+            {stationaryFormData.useCustomEmissionFactor && (
+              <div>
+                <label htmlFor='editCustomEmissionFactor' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Custom Emission Factor *
+                </label>
+                <input
+                  id='editCustomEmissionFactor'
+                  type="number"
+                  value={stationaryFormData.emissionFactor}
+                  onChange={(e) =>
+                    setStationaryFormData({
+                      ...stationaryFormData,
+                      emissionFactor: parseFloat(e.target.value),
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="2.162 kg CO₂e/m³"
+                  required
+                />
+              </div>
+            )}
+
+            <div className='flex gap-3 pt-4'>
+              <button
+                type='submit'
+                disabled={submitting}
+                className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Update Stationary Combustion
+                  </>
+                )}
+              </button>
+              <button
+                type='button'
+                onClick={resetForm}
+                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+              >
+                Cancel
               </button>
             </div>
-            
-            <form onSubmit={handleEditStationarySubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Month</label>
-                  <select 
-                    value={stationaryFormData.month}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, month: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Year</label>
-                  <input 
-                    type="number"
-                    value={stationaryFormData.year}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, year: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2024"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility ID</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.facilityId}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, facilityId: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="FAC-001"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility Description</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.facilityDescription}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, facilityDescription: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Main Production Plant"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Equipment Type</label>
-                  <select 
-                    value={stationaryFormData.equipmentType}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, equipmentType: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Equipment Type</option>
-                    <option value="Boiler">Boiler</option>
-                    <option value="Furnace">Furnace</option>
-                    <option value="Generator">Generator</option>
-                    <option value="Heater">Heater</option>
-                    <option value="Oven">Oven</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Type</label>
-                  <select 
-                    value={stationaryFormData.fuelType}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, fuelType: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Fuel Type</option>
-                    <option value="Natural Gas">Natural Gas</option>
-                    <option value="Heating Oil">Heating Oil</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Coal">Coal</option>
-                    <option value="Propane">Propane</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Quantity of Fuel Used</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.quantityOfFuelUsed}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, quantityOfFuelUsed: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="1,250 m³"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
-                  <input 
-                    type="text"
-                    value={stationaryFormData.customEmissionFactor}
-                    onChange={(e) => setStationaryFormData({...stationaryFormData, customEmissionFactor: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2.162 kg CO₂e/m³"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox"
-                  id="editUseCustomEmissionFactor"
-                  checked={stationaryFormData.useCustomEmissionFactor}
-                  onChange={(e) => setStationaryFormData({...stationaryFormData, useCustomEmissionFactor: e.target.checked})}
-                  className="rounded border-green-200 text-green-600 focus:ring-green-500"
-                />
-                <label htmlFor="editUseCustomEmissionFactor" className="text-sm font-medium text-green-800">
-                  Use Custom Emission Factor
-                </label>
-              </div>
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsEditStationaryModalOpen(false)}
-                  className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg hover:bg-green-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Update Entry
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
       )}
 
@@ -660,26 +1132,50 @@ export default function StationaryCombustionSection() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold">
-                      {reviewMode?.includes('add') ? 'Review New Entry' : 'Review Changes'}
+                      {reviewMode?.includes("add")
+                        ? "Review New Entry"
+                        : "Review Changes"}
                     </h2>
                     <p className="text-green-100 text-sm">
-                      {reviewMode === 'add-stationary' && 'New Stationary Combustion Entry'}
-                      {reviewMode === 'edit-stationary' && 'Edit Stationary Combustion Entry'}
+                      {reviewMode === "add-stationary" &&
+                        "New Stationary Combustion Entry"}
+                      {reviewMode === "edit-stationary" &&
+                        "Edit Stationary Combustion Entry"}
                     </p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={handleReviewCancel}
                   className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-all"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -691,39 +1187,63 @@ export default function StationaryCombustionSection() {
                 {/* Left Column */}
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Basic Information</h4>
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+                      Basic Information
+                    </h4>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600 font-medium">Month</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.month}</span>
+                        <span className="text-gray-900 font-semibold">
+                          {reviewData.month}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600 font-medium">Year</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.year}</span>
+                        <span className="text-gray-900 font-semibold">
+                          {reviewData.year}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600 font-medium">Facility ID</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.facilityId}</span>
+                        <span className="text-gray-600 font-medium">
+                          Facility ID
+                        </span>
+                        <span className="text-gray-900 font-semibold">
+                          {reviewData.facilityId}
+                        </span>
                       </div>
-                      {reviewData.facilityDescription && (
+                      {/* {reviewData.facilityDescription && (
                         <div className="flex items-center justify-between py-2">
-                          <span className="text-gray-600 font-medium">Facility Description</span>
-                          <span className="text-gray-900 font-semibold">{reviewData.facilityDescription}</span>
+                          <span className="text-gray-600 font-medium">
+                            Facility Description
+                          </span>
+                          <span className="text-gray-900 font-semibold">
+                            {reviewData.facilityDescription}
+                          </span>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Equipment Details</h4>
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+                      Equipment Details
+                    </h4>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600 font-medium">Equipment Type</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.equipmentType}</span>
+                        <span className="text-gray-600 font-medium">
+                          Equipment
+                        </span>
+                        <span className="text-gray-900 font-semibold">
+                          {reviewData.equipmentType}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between py-2">
-                        <span className="text-gray-600 font-medium">Fuel Type</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.fuelType}</span>
+                        <span className="text-gray-600 font-medium">
+                          Fuel Type
+                        </span>
+                        <span className="text-gray-900 font-semibold">
+                          {reviewData.fuelType}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -732,34 +1252,50 @@ export default function StationaryCombustionSection() {
                 {/* Right Column */}
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Consumption Data</h4>
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+                      Consumption Data
+                    </h4>
                     <div className="space-y-3">
                       {reviewData.quantityOfFuelUsed && (
                         <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                          <span className="text-gray-600 font-medium">Quantity of Fuel Used</span>
-                          <span className="text-gray-900 font-semibold">{reviewData.quantityOfFuelUsed}</span>
+                          <span className="text-gray-600 font-medium">
+                            Quantity of Fuel Used
+                          </span>
+                          <span className="text-gray-900 font-semibold">
+                            {reviewData.quantityOfFuelUsed}
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Emission Factors</h4>
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
+                      Emission Factors
+                    </h4>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600 font-medium">Custom Emission Factor</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.customEmissionFactor || 'Not specified'}</span>
-                      </div>
-                      <div className="flex items-center justify-between py-2">
-                        <span className="text-gray-600 font-medium">Use Custom Factor</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          reviewData.useCustomEmissionFactor 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {reviewData.useCustomEmissionFactor ? 'Yes' : 'No'}
+                        <span className="text-gray-600 font-medium">
+                          Total Emissions
+                        </span>
+                        <span className="text-gray-900 font-semibold">
+                          {reviewData.totalEmissions.toFixed(2) || "Not specified"}
                         </span>
                       </div>
+                      {/* <div className="flex items-center justify-between py-2">
+                        <span className="text-gray-600 font-medium">
+                          Use Custom Factor
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            reviewData.useCustomEmissionFactor
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {reviewData.useCustomEmissionFactor ? "Yes" : "No"}
+                        </span>
+                      </div> */}
                     </div>
                   </div>
                 </div>
@@ -769,29 +1305,51 @@ export default function StationaryCombustionSection() {
             {/* Footer */}
             <div className="bg-gray-50 px-6 py-4 rounded-b-2xl border-t border-gray-200">
               <div className="flex justify-end gap-3">
-                <button 
+                <button
                   onClick={handleReviewCancel}
                   className="px-6 py-3 text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleReviewEdit}
                   className="px-6 py-3 text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 font-medium"
                 >
-                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <svg
+                    className="w-4 h-4 inline mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                   Edit
                 </button>
-                <button 
+                <button
                   onClick={handleReviewConfirm}
                   className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
                 >
-                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-4 h-4 inline mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
-                  {reviewMode?.includes('add') ? 'Confirm Add' : 'Confirm Update'}
+                  {reviewMode?.includes("add")
+                    ? "Confirm Add"
+                    : "Confirm Update"}
                 </button>
               </div>
             </div>
@@ -800,4 +1358,4 @@ export default function StationaryCombustionSection() {
       )}
     </div>
   );
-} 
+}

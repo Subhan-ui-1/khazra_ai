@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
-import { Plus, Save, X, Edit3, Trash2, MessageSquare, Star, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Save, X, Edit3, Trash2, MessageSquare, Star, Send, CheckCircle } from 'lucide-react';
+import { postRequest, getRequest } from '@/utils/api';
+import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import { usePermissions, PermissionGuard } from '@/utils/permissions';
 
 // Define TypeScript interfaces
 interface FeedbackFormData {
@@ -8,10 +12,31 @@ interface FeedbackFormData {
   category: string;
 }
 
-interface FeedbackItem extends FeedbackFormData {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
+interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  profilePic: string | null;
+  email: string;
+}
+
+interface FeedbackItem {
+  _id: string;
+  userId: User;
+  content: string;
+  rating: number;
+  category: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 }
 
 const feedbackCategories = [
@@ -25,33 +50,128 @@ const FeedbackSection = () => {
   const [feedbackData, setFeedbackData] = useState<FeedbackItem[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<FeedbackItem | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false
+  });
+  const [hasUserSubmitted, setHasUserSubmitted] = useState(false);
+  const router = useRouter();
+  const { canView } = usePermissions();
+  
+  const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+
   const [formData, setFormData] = useState<FeedbackFormData>({
     rating: 0,
     content: '',
     category: 'general'
   });
 
-  const handleSubmit = () => {
-    const newRecord: FeedbackItem = {
-      id: editingItem ? editingItem.id : `feedback_${Date.now()}`,
-      ...formData,
-      createdAt: editingItem ? editingItem.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    if (editingItem) {
-      setFeedbackData(prev => prev.map(item => item.id === editingItem.id ? newRecord : item));
-    } else {
-      setFeedbackData(prev => [...prev, newRecord]);
+  // Check authentication
+  useEffect(() => {
+    if (!tokenData.accessToken) {
+      toast.error("Please login to continue");
+      router.push("/login");
+      return;
     }
     
-    setShowForm(false);
-    setEditingItem(null);
-    setFormData({
-      rating: 0,
-      content: '',
-      category: 'general'
-    });
+    // Fetch feedback data if user has permission to view
+    if (canView('feedback')) {
+      fetchFeedbacks();
+    }
+  }, []);
+
+  // Fetch feedbacks from API
+  const fetchFeedbacks = async () => {
+    try {
+      setLoading(true);
+      const response = await getRequest('feedback/getFeedbacks', tokenData.accessToken);
+      
+      if (response.success) {
+        setFeedbackData(response.data.feedbacks || []);
+        setPagination(response.data.pagination || {
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+          hasNext: false,
+          hasPrevious: false
+        });
+        
+        // Check if current user has already submitted feedback
+        checkIfUserHasSubmitted(response.data.feedbacks || []);
+      } else {
+        toast.error(response.message || "Failed to fetch feedbacks");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch feedbacks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Check if current user has already submitted feedback
+  const checkIfUserHasSubmitted = (feedbacks: FeedbackItem[]) => {
+    const user = JSON.parse(localStorage.getItem('user')||"")
+    const currentUserEmail = user.email
+    const userHasSubmitted = feedbacks.some(feedback => 
+      feedback.userId.email === currentUserEmail
+    );
+    setHasUserSubmitted(userHasSubmitted);
+  };
+
+  const handleSubmit = async () => {
+    // Validate form data
+    if (formData.rating === 0 || !formData.content.trim()) {
+      toast.error("Please provide rating and feedback content");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const requestBody = {
+        rating: formData.rating,
+        content: formData.content.trim(),
+        category: formData.category
+      };
+
+      const response = await postRequest(
+        'feedback/addFeedback',
+        requestBody,
+        'Feedback submitted successfully',
+        tokenData.accessToken,
+        'post'
+      );
+
+        if (response.success) {
+         toast.success('Feedback submitted successfully');
+         setShowForm(false);
+         setFormData({
+           rating: 0,
+           content: '',
+           category: 'general'
+         });
+         
+         // Mark that user has submitted feedback
+         setHasUserSubmitted(true);
+         
+         // Refresh feedback list if user has permission to view
+         if (canView('feedback')) {
+           fetchFeedbacks();
+         }
+       } else {
+         toast.error(response.message || 'Failed to submit feedback');
+       }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit feedback');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const startEdit = (item: FeedbackItem) => {
@@ -109,60 +229,72 @@ const FeedbackSection = () => {
   };
 
   const stats = getFeedbackStats();
+  const showMOdalFeedback = ()=>{
+     setShowForm(true)
 
+  }
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <MessageSquare className="w-6 h-6 text-green-600" />
           <h3 className="text-xl font-semibold text-gray-900">Feedback & Suggestions</h3>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Submit Feedback</span>
-        </button>
+        {hasUserSubmitted ? (
+          <div className="flex items-center space-x-2 px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed">
+            <CheckCircle className="w-4 h-4" />
+            <span>Feedback Submitted</span>
+          </div>
+        ) : (
+          <button
+            onClick={showMOdalFeedback}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Submit Feedback</span>
+          </button>
+        )}
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Feedback</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-            <MessageSquare className="w-8 h-8 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <div className="flex items-center space-x-2">
-                <p className="text-2xl font-bold text-gray-900">{stats.avgRating}</p>
-                <Star className="w-5 h-5 text-yellow-400 fill-current" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {stats.categoryCounts.slice(0, 2).map((category) => (
-          <div key={category.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+      {/* Statistics Cards - Only show if user has permission to view feedback */}
+      {canView('feedback') && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{category.name}</p>
-                <p className="text-2xl font-bold text-gray-900">{category.count}</p>
+                <p className="text-sm font-medium text-gray-600">Total Feedback</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
-              <span className="text-2xl">{category.icon}</span>
+              <MessageSquare className="w-8 h-8 text-green-600" />
             </div>
           </div>
-        ))}
-      </div>
+          
+          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Average Rating</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-2xl font-bold text-gray-900">{stats.avgRating}</p>
+                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {stats.categoryCounts.slice(0, 2).map((category) => (
+            <div key={category.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{category.name}</p>
+                  <p className="text-2xl font-bold text-gray-900">{category.count}</p>
+                </div>
+                <span className="text-2xl">{category.icon}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Feedback Form */}
       {showForm && (
@@ -175,6 +307,11 @@ const FeedbackSection = () => {
               onClick={() => {
                 setShowForm(false);
                 setEditingItem(null);
+                setFormData({
+                  rating: 0,
+                  content: '',
+                  category: 'general'
+                });
               }}
               className="text-gray-500 hover:text-gray-700"
             >
@@ -252,78 +389,100 @@ const FeedbackSection = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingItem(null);
+                  setFormData({
+                    rating: 0,
+                    content: '',
+                    category: 'general'
+                  });
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={formData.rating === 0 || !formData.content.trim()}
+                disabled={formData.rating === 0 || !formData.content.trim() || loading}
                 className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="w-4 h-4" />
-                <span>{editingItem ? 'Update' : 'Submit'} Feedback</span>
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                <span>{loading ? 'Submitting...' : 'Submit Feedback'}</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Feedback List */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h4 className="text-lg font-medium text-gray-900">Recent Feedback</h4>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {feedbackData.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No feedback yet</h3>
-              <p className="text-gray-500">Be the first to share your thoughts and help us improve!</p>
+      {/* Feedback List - Only show if user has permission to view feedback */}
+      {canView('feedback') ? (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h4 className="text-lg font-medium text-gray-900">Recent Feedback</h4>
+          </div>
+          {hasUserSubmitted && (
+            <div className="px-6 py-3 bg-green-50 border-b border-green-200">
+              <div className="flex items-center space-x-2 text-green-700">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">You have already submitted feedback. Thank you!</span>
+              </div>
             </div>
-          ) : (
-            feedbackData.map((feedback) => {
-              const categoryInfo = getCategoryInfo(feedback.category);
-              return (
-                <div key={feedback.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${categoryInfo.color}`}>
-                          <span className="mr-1">{categoryInfo.icon}</span>
-                          {categoryInfo.name}
-                        </span>
-                        <div className="flex items-center">
-                          {renderStars(feedback.rating)}
+          )}
+          <div className="divide-y divide-gray-200">
+            {loading ? (
+              <div className="px-6 py-12 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading feedback...</p>
+              </div>
+            ) : feedbackData.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No feedback yet</h3>
+                <p className="text-gray-500">Be the first to share your thoughts and help us improve!</p>
+              </div>
+            ) : (
+              feedbackData.map((feedback) => {
+                const categoryInfo = getCategoryInfo(feedback.category);
+                return (
+                  <div key={feedback._id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${categoryInfo.color}`}>
+                            <span className="mr-1">{categoryInfo.icon}</span>
+                            {categoryInfo.name}
+                          </span>
+                          <div className="flex items-center">
+                            {renderStars(feedback.rating)}
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            by {feedback.userId.firstName} {feedback.userId.lastName}
+                          </span>
+                          {feedback.createdAt && (
+                            <span className="text-sm text-gray-500">
+                              {new Date(feedback.createdAt).toLocaleDateString()}
+                            </span>
+                          )}
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {new Date(feedback.createdAt).toLocaleDateString()}
-                        </span>
+                        <p className="text-gray-700 leading-relaxed">{feedback.content}</p>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{feedback.content}</p>
-                    </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => startEdit(feedback)}
-                        className="text-green-600 hover:text-green-800"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setFeedbackData(prev => prev.filter(item => item.id !== feedback.id))}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
+          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">You can't view feedback, because you don't have permissions!</h3>
+          <p className="text-gray-500">Please contact the administrator to get access to the feedback section.</p>
+        </div>
+      )}
     </div>
   );
 };

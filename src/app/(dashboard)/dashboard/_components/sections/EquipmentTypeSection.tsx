@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Save, X, Edit3, Trash2, Settings } from 'lucide-react';
+import { usePermissions, PermissionGuard } from '@/utils/permissions';
 
 // Define TypeScript interfaces
 interface EquipmentTypeFormData {
@@ -45,12 +46,22 @@ const EquipmentTypeSection = () => {
   const [equipmentTypeData, setEquipmentTypeData] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   const [formData, setFormData] = useState<EquipmentTypeFormData>({
     equipmentName: '',
     fuelTypeId: '',
     capacityUnit: '',
     isActive: true
   });
+
+  // Check if user has permission to view equipment types
+  if (!canView('equipmentType')) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        You don't have permission to view equipment types.
+      </div>
+    );
+  }
 
   const handleSubmit = () => {
     const newRecord = {
@@ -100,13 +111,15 @@ const EquipmentTypeSection = () => {
           <Settings className="w-6 h-6 text-green-600" />
           <h3 className="text-xl font-semibold text-gray-900">Equipment Type Management</h3>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Equipment Type</span>
-        </button>
+        <PermissionGuard permission="equipmentType.create">
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Equipment Type</span>
+          </button>
+        </PermissionGuard>
       </div>
 
       {showForm && (
@@ -271,18 +284,22 @@ const EquipmentTypeSection = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => startEdit(equipmentType)}
-                        className="text-green-600 hover:text-green-800"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setEquipmentTypeData(prev => prev.filter(item => item.id !== equipmentType.id))}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <PermissionGuard permission="equipmentType.update">
+                        <button
+                          onClick={() => startEdit(equipmentType)}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                      </PermissionGuard>
+                      <PermissionGuard permission="equipmentType.delete">
+                        <button
+                          onClick={() => setEquipmentTypeData(prev => prev.filter(item => item.id !== equipmentType.id))}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </td>
                 </tr>

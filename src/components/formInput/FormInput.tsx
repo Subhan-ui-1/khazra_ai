@@ -13,7 +13,7 @@ const countries = [
 
 type FormInputProps = {
     label?: string;
-    type?: 'text' | 'email' | 'textarea' | 'select' | 'tel' | 'password' | 'number';
+    type?: 'text' | 'email' | 'textarea' | 'select' | 'tel' | 'password' | 'number' | 'date';
     name: string;
     placeholder?: string;
     iconSrc?: string;
@@ -22,7 +22,8 @@ type FormInputProps = {
     flag?: string;
     fullWidth?: boolean;
     value?: string|number;
-    readOnly?:boolean
+    readOnly?:boolean;
+    maxDate?: string; // Add maxDate prop for date inputs
     onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 };
 
@@ -39,9 +40,14 @@ const FormInput = ({
     value,
     onChange,
     readOnly = false,
+    maxDate, // Add maxDate parameter
 }: FormInputProps) => {
     const [selected, setSelected] = useState(countries[0]);
     const [showDropdown, setShowDropdown] = useState(false);
+    
+    // Get today's date in YYYY-MM-DD format for maxDate
+    const today = new Date().toISOString().split('T')[0];
+    
     return (
         <div className={`flex flex-col w-full`}>
             {label && (
@@ -131,7 +137,7 @@ const FormInput = ({
             )}
 
             {/* Default input types */}
-            {(type === 'text' || type === 'email' || type === 'password' || type === 'number') && !flag && !options.length && (
+            {(type === 'text' || type === 'email' || type === 'password' || type === 'number' || type === 'date') && !flag && !options.length && (
                 <div className="flex items-center border border-[var(--Outline)] rounded-lg px-3 py-2.5 gap-3 bg-white w-full">
                     {iconSrc && (
                         <img src={iconSrc} className="w-6 h-6 text-[#969998]" alt="icon" />
@@ -141,10 +147,11 @@ const FormInput = ({
                         name={name}
                         placeholder={placeholder}
                         required={required}
-                        className="w-full outline-none text-[var(--P2-size)]"
+                        className="w-full outline-none  text-[#969998]"
                         style={{color: 'text-[#969998]'}}
                         value={value}
                         readOnly={readOnly}
+                        max={type === 'date' ? (maxDate || today) : undefined} // Apply max date for date inputs
                         onChange={onChange}
                     />
                 </div>

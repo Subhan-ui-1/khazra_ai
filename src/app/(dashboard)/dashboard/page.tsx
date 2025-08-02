@@ -31,11 +31,18 @@ import Scope2HeatingEntry from './_components/sections/Scope2HeatingEntry';
 import Scope2CoolingEntry from './_components/sections/Scope2CoolingEntry';
 import EquipmentTypeSection from './_components/sections/EquipmentTypeSection';
 import FeedbackSection from './_components/sections/FeedbackSection';
+import AddDepartmentSection from './_components/sections/AddDepartmentSection';
+import AddRoleSection from './_components/sections/AddRoleSection';
+import AddUserSection from './_components/sections/AddUserSection';
+import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import MaterialityAssessmentEngine from './_components/sections/materiality_assessment_demo';
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview');
   const searchParams = useSearchParams();
   const section = searchParams.get('section');
+  const { canView, canCreate, canManage } = usePermissions();
+  
   useEffect(()=>{
     if(section){
       setActiveSection(section)
@@ -63,12 +70,32 @@ export default function DashboardPage() {
     'sustainability-reporting': <SustainabilityReportingSection />,
     analytics: <AnalyticsSection />,
     chatbot: <ChatbotSection />,
+    reporting: <MaterialityAssessmentEngine />,
     feedback: <FeedbackSection />,
-    'add-facility': <AddFacilitySection />,
-    'add-boundary': <AddBoundarySection />,
-    'add-vehicle': <AddVehicleSection />,
-    'add-equipment': <AddEquipmentSection />,
-    'equipment-type': <EquipmentTypeSection />
+    'add-facility': <PermissionGuard permission="facilities.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view facilities.</div>}>
+      <AddFacilitySection />
+    </PermissionGuard>,
+    'add-boundary': <PermissionGuard permission="boundaries.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view boundaries.</div>}>
+      <AddBoundarySection />
+    </PermissionGuard>,
+    'add-vehicle': <PermissionGuard permission="vehicle.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view vehicles.</div>}>
+      <AddVehicleSection />
+    </PermissionGuard>,
+    'add-equipment': <PermissionGuard permission="equipment.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view equipment.</div>}>
+      <AddEquipmentSection />
+    </PermissionGuard>,
+    'add-department': <PermissionGuard permission="department.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view departments.</div>}>
+      <AddDepartmentSection />
+    </PermissionGuard>,
+    'add-role': <PermissionGuard permission="role.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view roles.</div>}>
+      <AddRoleSection />
+    </PermissionGuard>,
+    'add-user': <PermissionGuard permission="user.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view users.</div>}>
+      <AddUserSection />
+    </PermissionGuard>,
+    // 'equipment-type': <PermissionGuard permission="equipmentType.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view equipment types.</div>}>
+    //   <EquipmentTypeSection />
+    // </PermissionGuard>
   };
 
   return (

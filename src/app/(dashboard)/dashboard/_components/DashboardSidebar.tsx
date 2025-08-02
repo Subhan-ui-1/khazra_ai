@@ -1,5 +1,8 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { usePermissions } from '@/utils/permissions';
+
 interface DashboardSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
@@ -10,6 +13,8 @@ interface SidebarItem {
   label: string;
   href?: string;
   children?: SidebarItem[];
+  permission?: string;
+  resource?: string; // For checking if user has any permission for this resource
 }
 interface SidebarGroup {
   section: string;
@@ -17,6 +22,20 @@ interface SidebarGroup {
 }
 export default function DashboardSidebar({ activeSection, onSectionChange }: DashboardSidebarProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const router = useRouter();
+  const { hasPermission, canView, canManage } = usePermissions();
+  
+  const permission = localStorage.getItem('permissions')
+  if(!permission){
+    router.replace('/login')
+    return;
+  }
+
+  // Helper function to check if user has any permission for a resource
+  const hasAnyPermissionForResource = (resource: string): boolean => {
+    return canManage(resource);
+  };
+
   const sidebarItems: SidebarGroup[] = [
     {
       section: 'Overview',
@@ -28,7 +47,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
     {
       section: 'Emissions',
       items: [
-        { id: 'overallEmissionDashboard', icon: '🏭', label: 'Overall Emissions Dashboard' },
+        // { id: 'overallEmissionDashboard', icon: '🏭', label: 'Overall Emissions Dashboard' },
         {
           id: 'scope1',
           icon: '🏭',
@@ -49,13 +68,13 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
             { id: 'scope2-cooling', icon: '❄️', label: 'Cooling' }
           ]
         },
-        { id: 'scope3', icon: '📦', label: 'Scope 3 Emissions' }
+        // { id: 'scope3', icon: '📦', label: 'Scope 3 Emissions' }
       ]
     },
     {
       section: 'DECARBONIZATION',
       items: [
-        { id: 'performance', icon: '📈', label: 'Performance Dashboard' },
+        // { id: 'performance', icon: '📈', label: 'Performance Dashboard' },
         { id: 'customTargets', icon: '🎯', label: 'Custom Targets' },
         { id: 'granularTargets', icon: '🎯', label: 'Granular Targets' },
         { id: 'esg-kpis', icon: '🏆', label: 'Initiative Management' }
@@ -65,45 +84,54 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       section: 'Reporting',
       items: [
         { id: 'sustainability-reporting', icon: '📋', label: 'Sustainability Reporting' },
-        { id: 'analytics', icon: '📊', label: 'Analytics & Insights' }
+        { id: 'analytics', icon: '📊', label: 'Analytics & Insights' },
+        { id: 'reporting', icon: '📊', label: 'Reporting' }
       ]
     },
     {
       section: 'Support',
       items: [
         { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' },
-        { id: 'feedback', icon: '📝', label: 'Feedback' }
+        { id: 'feedback', icon: '📝', label: 'Feedback', permission: 'feedback.view' }
       ]
     },
     {
       section: 'Add',
       items: [
-        { id: 'add-facility', icon: '🏭', label: 'Facility'},
-        { id: 'add-boundary', icon: '🏭', label: 'Boundary'},
-        { id: 'add-vehicle', icon: '🏭', label: 'Vehicle'},
-        { id: 'add-equipment', icon: '🏭', label: 'Equipment'},
-        { id: 'equipment-type', icon: '⚙️', label: 'Equipment Type'}
-      ]
-    },
-    {
-      section: 'Prototype',
-      items: [
-        { id: 'process-emissions', icon: '💬', label: 'Process Emissions', href: '/tool/process_emissions.html' },
-        { id: 'fugitive-emissions', icon: '💬', label: 'Fugitive Emissions', href: '/tool/fugitive_emissions.html' },
-        { id: 'refrigerant-emissions', icon: '💬', label: 'Refrigerant Emissions', href: '/tool/refrigerant_emissions.html' },
-        { id: 'stationary-emissions', icon: '💬', label: 'Stationary Emissions', href: '/tool/stationary_combustion.html' },
-        { id: 'mobile-emissions', icon: '💬', label: 'Mobile Emissions', href: '/tool/mobile_combustion.html' }
-      ]
+        { id: 'add-boundary', icon: '🏭', label: 'Boundary', resource: 'boundaries' },
+        { id: 'add-department', icon: '🏭', label: 'Department', resource: 'department' },
+        { id: 'add-facility', icon: '🏭', label: 'Facility', resource: 'facilities' },
+        { id: 'add-vehicle', icon: '🏭', label: 'Vehicle', resource: 'vehicle' },
+        { id: 'add-equipment', icon: '🏭', label: 'Equipment', resource: 'equipment' },
+        { id: 'add-role', icon: '🏭', label: 'Role', resource: 'role' },
+        { id: 'add-user', icon: '🏭', label: 'Users', resource: 'user' },
+        // { id: 'equipment-type', icon: '⚙️', label: 'Equipment Type', resource: 'equipmentType' }
+      ].filter(item => {
+        // If item has a specific permission, check that permission
+        if ('permission' in item && item.permission) {
+          return hasPermission(item.permission as string);
+        }
+        // If item has a resource, check if user has any permission for that resource
+        if ('resource' in item && item.resource) {
+          return hasAnyPermissionForResource(item.resource as string);
+        }
+        // If no permission specified, show the item
+        return true;
+      })
     }
   ];
+
+  // Filter out empty sections
+  const filteredSidebarItems = sidebarItems.filter(group => group.items.length > 0);
+
   const handleDropdown = (id: string) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
   return (
-    <aside className="w-72 bg-white border-r border-green-100 py-6 px-2.5 overflow-y-auto h-screen">
-      {sidebarItems.map((group) => (
+    <aside className="w-70 bg-[#01383c] text-white border-r border-green-100 p-6 pb-12 fixed h-screen overflow-y-auto">
+      {filteredSidebarItems.map((group) => (
         <div key={group.section} className="mb-6">
-          <div className="px-6 py-2 text-xs font-semibold text-green-800 opacity-60 uppercase tracking-wider">
+          <div className="px-6 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider">
             {group.section}
           </div>
           {group.items.map((item) => {
@@ -115,10 +143,11 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                 <div key={item.id}>
                   <button
                     onClick={() => handleDropdown(item.id)}
-                    className={`w-full flex items-center gap-2 px-6 py-3 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
-                      isDropdownOpen ? 'bg-green-50 border-l-3 border-green-800 font-semibold' : ''
+                    className={`w-full flex items-center gap-3 px-6 py-3 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
+                      isDropdownOpen ? 'bg-green-50 text-[#013b3f] border-l-3 border-green-800 font-semibold' : ''
                     }`}
                   >
+                    
                     <span className="text-base">{item.icon}</span>
                     {item.label}
                     <span className="ml-auto">{isDropdownOpen ? '▲' : '▼'}</span>
@@ -129,8 +158,8 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                         <button
                           key={child.id}
                           onClick={() => onSectionChange(child.id)}
-                          className={`w-full flex items-center gap-3 px-6 py-2 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 ${
-                            activeSection === child.id ? 'bg-green-100 font-semibold' : ''
+                          className={`w-full flex items-center gap-3 px-6 py-2 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 ${
+                            activeSection === child.id ? 'bg- text-[#013b3f] font-semibold' : ''
                           }`}
                         >
                           <span className="text-base">{child.icon}</span>
@@ -149,7 +178,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                 key={item.id}
                 href={item.href}
                 onClick={!item.href ? () => onSectionChange(item.id) : undefined}
-                className={`w-full flex items-center gap-2 px-4.5 py-2.5 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
+                className={`w-full flex items-center gap-3 px-6 py-3 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#013b3f1a] hover:translate-x-1 ${
                   isActive ? 'bg-green-50 border-l-3 border-green-800 font-semibold' : ''
                 }`}
               >

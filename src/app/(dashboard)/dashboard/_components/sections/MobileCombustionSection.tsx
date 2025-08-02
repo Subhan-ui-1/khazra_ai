@@ -1,6 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getRequest, postRequest } from "@/utils/api";
+import { Edit3, Trash2, Eye, Plus } from "lucide-react";
+import Table from "@/components/Table";
+import toast from "react-hot-toast";
+
+interface Facility {
+  _id: string;
+  facilityName: string;
+  facilityType: string;
+  city: string;
+  country: string;
+}
+
+interface Vehicle {
+  _id: string;
+  make: string;
+  model: string;
+  vehicleType: string;
+  fuelType: string;
+  modelYear: number;
+}
+
+interface MobileFuelType {
+  _id: string;
+  fuelType: string;
+  fuelTypeUnit: string;
+  emissionFactorC02: number;
+}
+
+interface MobileFormData {
+  month: string;
+  year: string;
+  facility: string;
+  equipmentType: string;
+  fuelType: string;
+  vehicle: string;
+  fuelConsumed: string;
+  amountOfFuelUsed: string;
+  emissionFactor: string;
+  useCustomEmissionFactor: boolean;
+  total: string;
+}
 
 export default function MobileCombustionSection() {
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
@@ -10,33 +52,21 @@ export default function MobileCombustionSection() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewMode, setReviewMode] = useState<'add-mobile' | 'edit-mobile' | null>(null);
   const [reviewData, setReviewData] = useState<any>(null);
-  // Facility types array
-  const facilityTypes = [
-    { id: 'FAC-001', name: 'Main Production Facility' },
-    { id: 'FAC-002', name: 'Warehouse & Distribution Center' },
-    { id: 'FAC-003', name: 'Office Building' },
-    { id: 'FAC-004', name: 'Research & Development Lab' },
-    { id: 'FAC-005', name: 'Manufacturing Plant A' },
-    { id: 'FAC-006', name: 'Manufacturing Plant B' },
-    { id: 'FAC-007', name: 'Service Center' },
-    { id: 'FAC-008', name: 'Training Facility' }
-  ];
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Default emission factors from DB
-  const defaultEmissionFactors = {
-    'Diesel': '2.68 kg CO₂e/L',
-    'Gasoline': '2.31 kg CO₂e/L',
-    'Hybrid': '1.85 kg CO₂e/L',
-    'Electric': '0.0 kg CO₂e/kWh',
-    'Biodiesel': '2.45 kg CO₂e/L'
-  };
+  // Dropdown data states
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [mobileFuelTypes, setMobileFuelTypes] = useState<MobileFuelType[]>([]);
 
-  const [mobileFormData, setMobileFormData] = useState({
+  const [mobileFormData, setMobileFormData] = useState<MobileFormData>({
     month: '',
     year: '',
-    facilityId: '',
+    facility: '',
     equipmentType: '',
     fuelType: '',
+    vehicle: '',
     fuelConsumed: '',
     amountOfFuelUsed: '',
     emissionFactor: '',
@@ -45,130 +75,286 @@ export default function MobileCombustionSection() {
   });
 
   // State for Mobile Combustion table data array
-  const [mobileCombustionData, setMobileCombustionData] = useState([
-    {
-      id: 1,
-      month: 'January',
-      year: '2024',
-      facilityId: 'FAC-001',
-      equipmentType: 'Delivery Truck',
-      fuelType: 'Diesel',
-      fuelConsumed: 'Yes',
-      amountOfFuelUsed: '450 L',
-      emissionFactor: '2.68 kg CO₂e/L',
-      useCustomEmissionFactor: false,
-      total: '1,206 kg CO₂e'
-    },
-    {
-      id: 2,
-      month: 'January',
-      year: '2024',
-      facilityId: 'FAC-002',
-      equipmentType: 'Forklift',
-      fuelType: 'Gasoline',
-      fuelConsumed: 'Yes',
-      amountOfFuelUsed: '180 L',
-      emissionFactor: '2.31 kg CO₂e/L',
-      useCustomEmissionFactor: true,
-      total: '415.8 kg CO₂e'
-    },
-    {
-      id: 3,
-      month: 'January',
-      year: '2024',
-      facilityId: 'FAC-003',
-      equipmentType: 'Company Car',
-      fuelType: 'Hybrid',
-      fuelConsumed: 'Yes',
-      amountOfFuelUsed: '95 L',
-      emissionFactor: '1.85 kg CO₂e/L',
-      useCustomEmissionFactor: false,
-      total: '175.75 kg CO₂e'
-    }
-  ]);
+  const [mobileCombustionData, setMobileCombustionData] = useState<any[]>([]);
 
-  const handleMobileSubmit = (e: React.FormEvent) => {
+  const getToken = () => {
+    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    return tokenData.accessToken;
+  };
+
+  // Fetch dropdown data
+  const fetchFacilities = async () => {
+    try {
+      const response = await getRequest("facilities/getFacilities", getToken());
+      if (response.success) {
+        setFacilities(response.data.facilities || []);
+      } else {
+        toast.error(response.message || "Failed to fetch facilities");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch facilities");
+    }
+  };
+
+  const fetchVehicles = async () => {
+    try {
+      const response = await getRequest(
+        "vehicles/getVehicles",
+        getToken()
+      );
+      if (response.success) {
+        setVehicles(response.data.vehicles);
+        // console.log(vehicles, 'vehicles from useEffect.')
+        console.log(response.data.vehicles)
+      } else {
+        toast.error(response.message || "Failed to fetch vehicles");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch vehicles");
+    }
+  };
+
+  const fetchMobileFuelTypes = async () => {
+    try {
+      const response = await getRequest(
+        "mobile-fuel-types/getMobileFuelTypes",
+        getToken()
+      );
+      if (response.success) {
+        setMobileFuelTypes(response.data.mobileFuelTypes || []);
+      } else {
+        toast.error(response.message || "Failed to fetch mobile fuel types");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch mobile fuel types");
+    }
+  };
+
+  const getMobileTotal = async () => {
+    try {
+      const response = await getRequest("mobile/getMobiles", getToken());
+      if (response.success) {
+        setMobileCombustionData(response.data.mobile || []);
+      } else {
+        toast.error(response.message || "Failed to fetch mobile data");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch mobile data");
+    }
+  };
+
+  // Load dropdown data on component mount
+  useEffect(() => {
+    fetchFacilities();
+    fetchVehicles();
+    fetchMobileFuelTypes();
+    getMobileTotal();
+  }, []);
+
+  const handleMobileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Mobile Combustion Data:', mobileFormData);
-    
-    // Show review modal instead of directly adding
-    setReviewData(mobileFormData);
-    setReviewMode('add-mobile');
-    setShowReviewModal(true);
-    setIsMobileModalOpen(false);
+    setSubmitting(true);
+
+    try {
+      // Prepare the data according to the API specification
+      const requestData = {
+        scope: "scope1",
+        scopeType: "mobile",
+        month: parseInt(mobileFormData.month),
+        year: parseInt(mobileFormData.year),
+        facility: mobileFormData.facility,
+        vehicle: mobileFormData.equipmentType,
+        fuelType: mobileFormData.fuelType,
+        equipmentType: mobileFormData.vehicle,
+        fuelConsumed: parseFloat(mobileFormData.fuelConsumed),
+        amountOfFuelUsed: parseFloat(mobileFormData.amountOfFuelUsed),
+        emissionFactor: parseFloat(mobileFormData.emissionFactor),
+      };
+
+      const response = await postRequest(
+        "mobile/addMobile",
+        requestData,
+        "Mobile combustion data added successfully",
+        getToken(),
+        "post",
+        true, 
+        'mobile'
+      );
+
+      if (response.success) {
+        toast.success("Mobile combustion data added successfully");
+        
+        // Refresh the data from the server
+        await getMobileTotal();
+        
+        setIsMobileModalOpen(false);
+
+        // Reset form
+        setMobileFormData({
+          month: '',
+          year: '',
+          facility: '', 
+          equipmentType: '',
+          fuelType: '',
+          vehicle: '',
+          fuelConsumed: '',
+          amountOfFuelUsed: '',
+          emissionFactor: '',
+          useCustomEmissionFactor: false,
+          total: ''
+        });
+      } else {
+        toast.error(
+          response.message || "Failed to add mobile combustion data"
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add mobile combustion data");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditMobileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      // Prepare the data according to the API specification
+      const requestData = {
+        // scope: "scope1",
+        // scopeType: "mobile",
+        month: parseInt(mobileFormData.month),
+        year: parseInt(mobileFormData.year),
+        facility: mobileFormData.facility,
+        vehicle: mobileFormData.equipmentType,
+        fuelType: mobileFormData.fuelType,
+        fuelConsumed: parseFloat(mobileFormData.fuelConsumed),
+        amountOfFuelUsed: parseFloat(mobileFormData.amountOfFuelUsed),
+        emissionFactor: parseFloat(mobileFormData.emissionFactor),
+      };
+
+      // Get the ID of the item being edited
+      const editingId = editingMobileData?._id || editingMobileData?.id;
+      
+      if (!editingId) {
+        toast.error("No item ID found for editing");
+        return;
+      }
+
+      const response = await postRequest(
+        `mobile/updateMobile/${editingId}`,
+        requestData,
+        "Mobile combustion data updated successfully",
+        getToken(),
+        "put",
+        true, 'mobile'
+      );
+
+      if (response.success) {
+        toast.success("Mobile combustion data updated successfully");
+        
+        // Refresh the data from the server
+        await getMobileTotal();
+        
+        setIsEditMobileModalOpen(false);
+
+        // Reset editing states
+        setEditingMobileData(null);
+        setEditingMobileIndex(null);
+
+        // Reset form
+        setMobileFormData({
+          month: '',
+          year: '',
+          facility: '',
+          equipmentType: '',
+          fuelType: '',
+          vehicle: '',
+          fuelConsumed: '',
+          amountOfFuelUsed: '',
+          emissionFactor: '',
+          useCustomEmissionFactor: false,
+          total: ''
+        });
+      } else {
+        toast.error(
+          response.message || "Failed to update mobile combustion data"
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update mobile combustion data");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEditMobile = (rowData: any, index: number) => {
     setEditingMobileData(rowData);
     setEditingMobileIndex(index);
     setMobileFormData({
-      month: rowData.month,
-      year: rowData.year,
-      facilityId: rowData.facilityId,
-      equipmentType: rowData.equipmentType,
-      fuelType: rowData.fuelType,
-      fuelConsumed: rowData.fuelConsumed,
-      amountOfFuelUsed: rowData.amountOfFuelUsed,
-      emissionFactor: rowData.emissionFactor,
-      useCustomEmissionFactor: rowData.useCustomEmissionFactor,
-      total: rowData.total
+      month: rowData.month?.toString() || '',
+      year: rowData.year?.toString() || '',
+      facility: rowData.facility || '',
+      vehicle: rowData.equipmentType || '',
+      fuelType: rowData.fuelType || '',
+      // vehicle: rowData.vehicle || '',
+      equipmentType: '',
+      fuelConsumed: rowData.fuelConsumed?.toString() || '',
+      amountOfFuelUsed: rowData.amountOfFuelUsed?.toString() || '',
+      emissionFactor: rowData.emissionFactor?.toString() || '',
+      useCustomEmissionFactor: rowData.useCustomEmissionFactor || false,
+      total: rowData.total || ''
     });
     setIsEditMobileModalOpen(true);
   };
 
-  const handleEditMobileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Updated Mobile Combustion Data:', mobileFormData);
-    console.log('Original Data:', editingMobileData);
-    
-    // Show review modal instead of directly updating
-    setReviewData(mobileFormData);
-    setReviewMode('edit-mobile');
-    setShowReviewModal(true);
-    setIsEditMobileModalOpen(false);
+  // Helper functions to get names from IDs
+  const getFacilityName = (facilityId: string) => {
+    const facility = facilities.find(f => f._id === facilityId);
+    return facility ? facility.facilityName : facilityId;
+  };
+
+  const getVehicleName = (vehicleId: string) => {
+    const vehicle = vehicles.find(v => v._id === vehicleId);
+    return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.vehicleType})` : vehicleId;
+  };
+
+  const getFuelTypeName = (fuelTypeId: string) => {
+    const fuelType = mobileFuelTypes.find(f => f._id === fuelTypeId);
+    return fuelType ? fuelType.fuelType : fuelTypeId;
+  };
+
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear; year >= currentYear - 10; year--) {
+      years.push(year);
+    }
+    return years;
+  };
+
+  const getMonthName = (monthNumber: number | string) => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const monthIndex = parseInt(monthNumber.toString()) - 1;
+    return months[monthIndex] || monthNumber;
   };
 
   // Review modal handlers
-  const handleReviewConfirm = () => {
+  const handleReviewConfirm = async () => {
     if (reviewMode === 'add-mobile') {
-      const newRow = {
-        id: Math.max(...mobileCombustionData.map(row => row.id)) + 1,
-        ...reviewData
-      };
-      setMobileCombustionData([...mobileCombustionData, newRow]);
-      console.log('Confirmed: Added new mobile combustion row');
-    } else if (reviewMode === 'edit-mobile' && editingMobileIndex !== null) {
-      const updatedData = [...mobileCombustionData];
-      updatedData[editingMobileIndex] = {
-        ...updatedData[editingMobileIndex],
-        ...reviewData
-      };
-      setMobileCombustionData(updatedData);
-      console.log('Confirmed: Updated mobile combustion row');
+      await handleMobileSubmit(new Event('submit') as any);
+    } else if (reviewMode === 'edit-mobile') {
+      await handleEditMobileSubmit(new Event('submit') as any);
     }
     
     // Reset review modal
     setShowReviewModal(false);
     setReviewMode(null);
     setReviewData(null);
-    
-    // Reset editing states
-    setEditingMobileData(null);
-    setEditingMobileIndex(null);
-    
-    // Reset forms
-    setMobileFormData({
-      month: '',
-      year: '',
-      facilityId: '',
-      equipmentType: '',
-      fuelType: '',
-      fuelConsumed: '',
-      amountOfFuelUsed: '',
-      emissionFactor: '',
-      useCustomEmissionFactor: false,
-      total: ''
-    });
   };
 
   const handleReviewCancel = () => {
@@ -184,9 +370,10 @@ export default function MobileCombustionSection() {
     setMobileFormData({
       month: '',
       year: '',
-      facilityId: '',
+      facility: '',
       equipmentType: '',
       fuelType: '',
+      vehicle: '',
       fuelConsumed: '',
       amountOfFuelUsed: '',
       emissionFactor: '',
@@ -199,13 +386,36 @@ export default function MobileCombustionSection() {
     setShowReviewModal(false);
     
     // Reopen the appropriate modal for editing
-    if (reviewMode === 'add-mobile' || reviewMode === 'edit-mobile') {
+    if (reviewMode === 'add-mobile') {
       setMobileFormData(reviewData);
       setIsMobileModalOpen(true);
+    } else if (reviewMode === 'edit-mobile') {
+      setMobileFormData(reviewData);
+      setIsEditMobileModalOpen(true);
     }
     
     setReviewMode(null);
     setReviewData(null);
+  };
+
+  const resetForm = () => {
+    setMobileFormData({
+      month: '',
+      year: '',
+      facility: '',
+      equipmentType: '',
+      fuelType: '',
+      vehicle: '',
+      fuelConsumed: '',
+      amountOfFuelUsed: '',
+      emissionFactor: '',
+      useCustomEmissionFactor: false,
+      total: ''
+    });
+    setEditingMobileData(null);
+    setEditingMobileIndex(null);
+    setIsMobileModalOpen(false);
+    setIsEditMobileModalOpen(false);
   };
 
   return (
@@ -282,494 +492,541 @@ export default function MobileCombustionSection() {
       </div>
 
       {/* Mobile Combustion Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
-        <div className="flex justify-between items-center p-6 border-b border-green-100">
-          <div className="text-lg font-semibold text-green-800">Mobile Combustion Data</div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
-              Filter
-            </button>
-            <button 
-              onClick={() => setIsMobileModalOpen(true)}
-              className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+      <Table
+        title="Mobile Combustion Data"
+        columns={[
+          { 
+            key: 'month', 
+            label: 'Month',
+            render: (value, row) => getMonthName(row.month)
+          },
+          { key: 'year', label: 'Year' },
+          { 
+            key: 'facility', 
+            label: 'Facility',
+            render: (value, row) => getFacilityName(row.facility)
+          },
+         
+          { 
+            key: 'fuelType', 
+            label: 'Fuel Type',
+            render: (value, row) => getFuelTypeName(row.fuelType)
+          },
+          { 
+            key: 'fuelConsumed', 
+            label: 'Fuel Consumed',
+            render: (value, row) => row.fuelConsumed > 0 ? 'Yes' : 'No',
+            type: 'status'
+          },
+          { key: 'amountOfFuelUsed', label: 'Amount of Fuel Used' },
+          { key: 'emissionFactor', label: 'Emission Factor' }
+        ]}
+        data={mobileCombustionData}
+        actions={[
+          {
+            // label: 'Edit',
+            icon: <Edit3 className="w-4 h-4" />,
+            onClick: (row) => handleEditMobile(row, mobileCombustionData.findIndex(item => item._id === row._id)),
+            variant: 'primary'
+          },
+          
+          {
+            // label: 'Delete',
+            icon: <Trash2 className="w-4 h-4" />,
+            onClick: (row) => console.log('Delete row:', row),
+            variant: 'danger'
+          }
+        ]}
+        showAddButton={true}
+        addButtonLabel="Add Mobile Combustion"
+        onAddClick={() => setIsMobileModalOpen(true)}
+        showSearch={true}
+        // showFilter={true}
+        rowKey="_id"
+      />
+
+      {/* Mobile Combustion Form */}
+      {isMobileModalOpen && (
+        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
+          <div className='flex justify-between items-center mb-4'>
+            <h2 className='text-xl font-semibold text-gray-800'>
+              Add New Mobile Combustion
+            </h2>
+            <button
+              onClick={resetForm}
+              className='text-gray-500 hover:text-gray-700'
             >
-              Add Mobile Combustion
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-center">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Month</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Year</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Facility ID</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Equipment Type</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Fuel Type</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Fuel Consumed</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Amount of Fuel Used</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Custom Emission Factor</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">If Use Custom Emission Factor</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Total</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mobileCombustionData.map((row, index) => (
-                <tr key={row.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-green-800">{row.month}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.year}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.facilityId}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.equipmentType}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.fuelType}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.fuelConsumed}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.amountOfFuelUsed}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.emissionFactor}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.useCustomEmissionFactor ? 'Yes' : 'No'}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.total}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => handleEditMobile(row, index)}
-                        className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-200 hover:bg-blue-200 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded border border-orange-200 hover:bg-orange-200 transition-colors">
-                        Revert
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Mobile Combustion Modal */}
-      {isMobileModalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white border-2 border-green-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-green-800">Add Mobile Combustion</h2>
-              <button 
-                onClick={() => setIsMobileModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            
-            <form onSubmit={handleMobileSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Month</label>
-                  <select 
-                    value={mobileFormData.month}
-                    onChange={(e) => setMobileFormData({...mobileFormData, month: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Year</label>
-                  <input 
-                    type="number"
-                    value={mobileFormData.year}
-                    onChange={(e) => setMobileFormData({...mobileFormData, year: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2024"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility</label>
-                  <select 
-                    value={mobileFormData.facilityId}
-                    onChange={(e) => setMobileFormData({...mobileFormData, facilityId: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Facility</option>
-                    {facilityTypes.map((facility) => (
-                      <option key={facility.id} value={facility.id}>
-                        {facility.id} - {facility.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Equipment Type</label>
-                  <select 
-                    value={mobileFormData.equipmentType}
-                    onChange={(e) => setMobileFormData({...mobileFormData, equipmentType: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Equipment Type</option>
-                    <option value="Delivery Truck">Delivery Truck</option>
-                    <option value="Forklift">Forklift</option>
-                    <option value="Company Car">Company Car</option>
-                    <option value="Van">Van</option>
-                    <option value="Tractor">Tractor</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Type</label>
-                  <select 
-                    value={mobileFormData.fuelType}
-                    onChange={(e) => {
-                      const selectedFuelType = e.target.value;
-                      setMobileFormData({
-                        ...mobileFormData, 
-                        fuelType: selectedFuelType,
-                        emissionFactor: mobileFormData.useCustomEmissionFactor ? mobileFormData.emissionFactor : defaultEmissionFactors[selectedFuelType as keyof typeof defaultEmissionFactors] || ''
-                      });
-                    }}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Fuel Type</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Gasoline">Gasoline</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Electric">Electric</option>
-                    <option value="Biodiesel">Biodiesel</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Consumed</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.fuelConsumed}
-                    onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Yes/No"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Amount of Fuel Used</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.amountOfFuelUsed}
-                    onChange={(e) => setMobileFormData({...mobileFormData, amountOfFuelUsed: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="450 L"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Emission Factor</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.emissionFactor}
-                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2.68 kg CO₂e/L"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Total</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.total}
-                    onChange={(e) => setMobileFormData({...mobileFormData, total: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="1,206 kg CO₂e"
-                    required
-                  />
-                </div>
+          
+          <form onSubmit={handleMobileSubmit} className='space-y-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor='month' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Month *
+                </label>
+                <select 
+                  id='month'
+                  value={mobileFormData.month}
+                  onChange={(e) => setMobileFormData({...mobileFormData, month: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox"
-                  id="useCustomEmissionFactorMobile"
-                  checked={mobileFormData.useCustomEmissionFactor}
+              <div>
+                <label htmlFor='year' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Year *
+                </label>
+                <select 
+                  id='year'
+                  value={mobileFormData.year}
+                  onChange={(e) => setMobileFormData({...mobileFormData, year: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Year</option>
+                  {generateYearOptions().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='facility' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Facility *
+                </label>
+                <select 
+                  id='facility'
+                  value={mobileFormData.facility}
+                  onChange={(e) => setMobileFormData({...mobileFormData, facility: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Facility</option>
+                  {facilities.map((facility) => (
+                    <option key={facility._id} value={facility._id}>
+                      {facility.facilityName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='vehicle' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Vehicle *
+                </label>
+                <select 
+                  id='vehicle'
+                  value={mobileFormData.equipmentType}
+                  onChange={(e) => setMobileFormData({...mobileFormData, equipmentType: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Vehicle</option>
+                  {vehicles.map((vehicle) => (
+                    <option key={vehicle._id} value={vehicle._id}>
+                      {vehicle.make} {vehicle.model} ({vehicle.vehicleType})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='fuelType' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Type *
+                </label>
+                <select 
+                  id='fuelType'
+                  value={mobileFormData.fuelType}
                   onChange={(e) => {
-                    const useCustom = e.target.checked;
+                    const selectedFuelType = e.target.value;
+                    const fuelType = mobileFuelTypes.find(f => f._id === selectedFuelType);
                     setMobileFormData({
                       ...mobileFormData, 
-                      useCustomEmissionFactor: useCustom,
-                      emissionFactor: useCustom ? mobileFormData.emissionFactor : (defaultEmissionFactors[mobileFormData.fuelType as keyof typeof defaultEmissionFactors] || '')
+                      fuelType: selectedFuelType,
+                      emissionFactor: fuelType?.emissionFactorC02?.toString() || ''
                     });
                   }}
-                  className="rounded border-green-200 text-green-600 focus:ring-green-500"
-                />
-                <label htmlFor="useCustomEmissionFactorMobile" className="text-sm font-medium text-green-800">
-                  Use Custom Emission Factor
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Fuel Type</option>
+                  {mobileFuelTypes.map((fuelType) => (
+                    <option key={fuelType._id} value={fuelType._id}>
+                      {fuelType.fuelType}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='fuelConsumed' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Consumed *
                 </label>
+                <input 
+                  id='fuelConsumed'
+                  type="number"
+                  value={mobileFormData.fuelConsumed}
+                  onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="Enter amount consumed"
+                  required
+                />
               </div>
               
-              {mobileFormData.useCustomEmissionFactor && (
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.emissionFactor}
-                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter custom emission factor"
-                    required
-                  />
-                </div>
-              )}
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsMobileModalOpen(false)}
-                  className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg hover:bg-green-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Add Entry
-                </button>
+              <div>
+                <label htmlFor='amountOfFuelUsed' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Amount of Fuel Used *
+                </label>
+                <input 
+                  id='amountOfFuelUsed'
+                  type="number"
+                  value={mobileFormData.amountOfFuelUsed}
+                  onChange={(e) => setMobileFormData({...mobileFormData, amountOfFuelUsed: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="450 L"
+                  required
+                />
               </div>
-            </form>
-          </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox"
+                id="useCustomEmissionFactorMobile"
+                checked={mobileFormData.useCustomEmissionFactor}
+                onChange={(e) => {
+                  const useCustom = e.target.checked;
+                  setMobileFormData({
+                    ...mobileFormData, 
+                    useCustomEmissionFactor: useCustom,
+                    emissionFactor: useCustom ? mobileFormData.emissionFactor : (mobileFuelTypes.find(f => f._id === mobileFormData.fuelType)?.emissionFactorC02?.toString() || '')
+                  });
+                }}
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <label htmlFor="useCustomEmissionFactorMobile" className="text-sm font-medium text-gray-700">
+                Use Custom Emission Factor
+              </label>
+            </div>
+            
+            {mobileFormData.useCustomEmissionFactor && (
+              <div>
+                <label htmlFor='customEmissionFactor' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Custom Emission Factor *
+                </label>
+                <input 
+                  id='customEmissionFactor'
+                  type="number"
+                  value={mobileFormData.emissionFactor}
+                  onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="Enter custom emission factor"
+                  required
+                />
+              </div>
+            )}
+            
+            <div className='flex gap-3 pt-4'>
+              <button
+                type='submit'
+                disabled={submitting}
+                className='bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Add Mobile Combustion
+                  </>
+                )}
+              </button>
+              <button
+                type='button'
+                onClick={resetForm}
+                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* Edit Mobile Combustion Modal */}
+      {/* Edit Mobile Combustion Form */}
       {isEditMobileModalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white border-2 border-green-800 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-green-800">Edit Mobile Combustion</h2>
-              <button 
-                onClick={() => setIsEditMobileModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            
-            <form onSubmit={handleEditMobileSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Month</label>
-                  <select 
-                    value={mobileFormData.month}
-                    onChange={(e) => setMobileFormData({...mobileFormData, month: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Year</label>
-                  <input 
-                    type="number"
-                    value={mobileFormData.year}
-                    onChange={(e) => setMobileFormData({...mobileFormData, year: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2024"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Facility</label>
-                  <select 
-                    value={mobileFormData.facilityId}
-                    onChange={(e) => setMobileFormData({...mobileFormData, facilityId: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Facility</option>
-                    {facilityTypes.map((facility) => (
-                      <option key={facility.id} value={facility.id}>
-                        {facility.id} - {facility.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Equipment Type</label>
-                  <select 
-                    value={mobileFormData.equipmentType}
-                    onChange={(e) => setMobileFormData({...mobileFormData, equipmentType: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Equipment Type</option>
-                    <option value="Delivery Truck">Delivery Truck</option>
-                    <option value="Forklift">Forklift</option>
-                    <option value="Company Car">Company Car</option>
-                    <option value="Van">Van</option>
-                    <option value="Tractor">Tractor</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Type</label>
-                  <select 
-                    value={mobileFormData.fuelType}
-                    onChange={(e) => {
-                      const selectedFuelType = e.target.value;
-                      setMobileFormData({
-                        ...mobileFormData, 
-                        fuelType: selectedFuelType,
-                        emissionFactor: mobileFormData.useCustomEmissionFactor ? mobileFormData.emissionFactor : defaultEmissionFactors[selectedFuelType as keyof typeof defaultEmissionFactors] || ''
-                      });
-                    }}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  >
-                    <option value="">Select Fuel Type</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Gasoline">Gasoline</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Electric">Electric</option>
-                    <option value="Biodiesel">Biodiesel</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Fuel Consumed</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.fuelConsumed}
-                    onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Yes/No"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Amount of Fuel Used</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.amountOfFuelUsed}
-                    onChange={(e) => setMobileFormData({...mobileFormData, amountOfFuelUsed: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="450 L"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Emission Factor</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.emissionFactor}
-                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="2.68 kg CO₂e/L"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Total</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.total}
-                    onChange={(e) => setMobileFormData({...mobileFormData, total: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="1,206 kg CO₂e"
-                    required
-                  />
-                </div>
+        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
+          <div className='flex justify-between items-center mb-4'>
+            <h2 className='text-xl font-semibold text-gray-800'>
+              Edit Mobile Combustion
+            </h2>
+            <button
+              onClick={resetForm}
+              className='text-gray-500 hover:text-gray-700'
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <form onSubmit={handleEditMobileSubmit} className='space-y-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor='editMonth' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Month *
+                </label>
+                <select 
+                  id='editMonth'
+                  value={mobileFormData.month}
+                  onChange={(e) => setMobileFormData({...mobileFormData, month: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox"
-                  id="editUseCustomEmissionFactorMobile"
-                  checked={mobileFormData.useCustomEmissionFactor}
+              <div>
+                <label htmlFor='editYear' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Year *
+                </label>
+                <select 
+                  id='editYear'
+                  value={mobileFormData.year}
+                  onChange={(e) => setMobileFormData({...mobileFormData, year: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Year</option>
+                  {generateYearOptions().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='editFacility' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Facility *
+                </label>
+                <select 
+                  id='editFacility'
+                  value={mobileFormData.facility}
+                  onChange={(e) => setMobileFormData({...mobileFormData, facility: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Facility</option>
+                  {facilities.map((facility) => (
+                    <option key={facility._id} value={facility._id}>
+                      {facility.facilityName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='editVehicle' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Vehicle *
+                </label>
+                <select 
+                  id='editVehicle'
+                  value={mobileFormData.equipmentType}
+                  onChange={(e) => setMobileFormData({...mobileFormData, equipmentType: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Vehicle</option>
+                  {vehicles.map((vehicle) => (
+                    <option key={vehicle._id} value={vehicle._id}>
+                      {vehicle.make} {vehicle.model} ({vehicle.vehicleType})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='editFuelType' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Type *
+                </label>
+                <select 
+                  id='editFuelType'
+                  value={mobileFormData.fuelType}
                   onChange={(e) => {
-                    const useCustom = e.target.checked;
+                    const selectedFuelType = e.target.value;
+                    const fuelType = mobileFuelTypes.find(f => f._id === selectedFuelType);
                     setMobileFormData({
                       ...mobileFormData, 
-                      useCustomEmissionFactor: useCustom,
-                      emissionFactor: useCustom ? mobileFormData.emissionFactor : (defaultEmissionFactors[mobileFormData.fuelType as keyof typeof defaultEmissionFactors] || '')
+                      fuelType: selectedFuelType,
+                      emissionFactor: fuelType?.emissionFactorC02?.toString() || ''
                     });
                   }}
-                  className="rounded border-green-200 text-green-600 focus:ring-green-500"
-                />
-                <label htmlFor="editUseCustomEmissionFactorMobile" className="text-sm font-medium text-green-800">
-                  Use Custom Emission Factor
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  required
+                >
+                  <option value="">Select Fuel Type</option>
+                  {mobileFuelTypes.map((fuelType) => (
+                    <option key={fuelType._id} value={fuelType._id}>
+                      {fuelType.fuelType}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor='editFuelConsumed' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Consumed *
                 </label>
+                <input 
+                  id='editFuelConsumed'
+                  type="number"
+                  value={mobileFormData.fuelConsumed}
+                  onChange={(e) => setMobileFormData({...mobileFormData, fuelConsumed: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="Enter amount consumed"
+                  required
+                />
               </div>
               
-              {mobileFormData.useCustomEmissionFactor && (
-                <div>
-                  <label className="block text-sm font-medium text-green-800 mb-2">Custom Emission Factor</label>
-                  <input 
-                    type="text"
-                    value={mobileFormData.emissionFactor}
-                    onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
-                    className="w-full px-3 py-2 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Enter custom emission factor"
-                    required
-                  />
-                </div>
-              )}
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsEditMobileModalOpen(false)}
-                  className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg hover:bg-green-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Update Entry
-                </button>
+              <div>
+                <label htmlFor='editAmountOfFuelUsed' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Amount of Fuel Used *
+                </label>
+                <input 
+                  id='editAmountOfFuelUsed'
+                  type="number"
+                  value={mobileFormData.amountOfFuelUsed}
+                  onChange={(e) => setMobileFormData({...mobileFormData, amountOfFuelUsed: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="450 L"
+                  required
+                />
               </div>
-            </form>
-          </div>
+              
+              <div>
+                <label htmlFor='editEmissionFactor' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Emission Factor *
+                </label>
+                <input 
+                  id='editEmissionFactor'
+                  type="number"
+                  value={mobileFormData.emissionFactor}
+                  onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="2.68 kg CO₂e/L"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox"
+                id="editUseCustomEmissionFactorMobile"
+                checked={mobileFormData.useCustomEmissionFactor}
+                onChange={(e) => {
+                  const useCustom = e.target.checked;
+                  setMobileFormData({
+                    ...mobileFormData, 
+                    useCustomEmissionFactor: useCustom,
+                    emissionFactor: useCustom ? mobileFormData.emissionFactor : (mobileFuelTypes.find(f => f._id === mobileFormData.fuelType)?.emissionFactorC02?.toString() || '')
+                  });
+                }}
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <label htmlFor="editUseCustomEmissionFactorMobile" className="text-sm font-medium text-gray-700">
+                Use Custom Emission Factor
+              </label>
+            </div>
+            
+            {mobileFormData.useCustomEmissionFactor && (
+              <div>
+                <label htmlFor='editCustomEmissionFactor' className='block text-sm font-medium text-gray-700 mb-2'>
+                  Custom Emission Factor *
+                </label>
+                <input 
+                  id='editCustomEmissionFactor'
+                  type="number"
+                  value={mobileFormData.emissionFactor}
+                  onChange={(e) => setMobileFormData({...mobileFormData, emissionFactor: e.target.value})}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  placeholder="Enter custom emission factor"
+                  required
+                />
+              </div>
+            )}
+            
+            <div className='flex gap-3 pt-4'>
+              <button
+                type='submit'
+                disabled={submitting}
+                className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Update Mobile Combustion
+                  </>
+                )}
+              </button>
+              <button
+                type='button'
+                onClick={resetForm}
+                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
@@ -817,15 +1074,15 @@ export default function MobileCombustionSection() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600 font-medium">Month</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.month}</span>
+                        <span className="text-gray-900 font-semibold">{getMonthName(reviewData.month)}</span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-600 font-medium">Year</span>
                         <span className="text-gray-900 font-semibold">{reviewData.year}</span>
                       </div>
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600 font-medium">Facility ID</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.facilityId}</span>
+                        <span className="text-gray-600 font-medium">Facility</span>
+                        <span className="text-gray-900 font-semibold">{getFacilityName(reviewData.facility)}</span>
                       </div>
                     </div>
                   </div>
@@ -834,12 +1091,12 @@ export default function MobileCombustionSection() {
                     <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Equipment Details</h4>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600 font-medium">Equipment Type</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.equipmentType}</span>
+                        <span className="text-gray-600 font-medium">Vehicle</span>
+                        <span className="text-gray-900 font-semibold">{getVehicleName(reviewData.equipmentType)}</span>
                       </div>
                       <div className="flex items-center justify-between py-2">
                         <span className="text-gray-600 font-medium">Fuel Type</span>
-                        <span className="text-gray-900 font-semibold">{reviewData.fuelType}</span>
+                        <span className="text-gray-900 font-semibold">{getFuelTypeName(reviewData.fuelType)}</span>
                       </div>
                     </div>
                   </div>
@@ -860,11 +1117,11 @@ export default function MobileCombustionSection() {
                         <div className="flex items-center justify-between py-2">
                           <span className="text-gray-600 font-medium">Fuel Consumed</span>
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            reviewData.fuelConsumed 
+                            reviewData.fuelConsumed > 0
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {reviewData.fuelConsumed ? 'Yes' : 'No'}
+                            {reviewData.fuelConsumed > 0 ? 'Yes' : 'No'}
                           </span>
                         </div>
                       )}
@@ -888,12 +1145,12 @@ export default function MobileCombustionSection() {
                           {reviewData.useCustomEmissionFactor ? 'Yes' : 'No'}
                         </span>
                       </div>
-                      {reviewData.total && (
+                      {/* {reviewData.total && (
                         <div className="flex items-center justify-between py-2 border-t border-gray-200 pt-3">
                           <span className="text-gray-600 font-medium">Total</span>
                           <span className="text-green-600 font-bold text-lg">{reviewData.total}</span>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 </div>
