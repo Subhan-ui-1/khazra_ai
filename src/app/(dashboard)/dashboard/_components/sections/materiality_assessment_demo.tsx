@@ -625,7 +625,7 @@ const MaterialityAssessmentEngine = () => {
                   <div className="flex justify-between items-center">
                     <label className="block text-sm font-medium">{criteria.name}</label>
                     <span className="text-sm font-bold text-blue-600">
-                      {topic.impactAssessment?.[criteria.key as keyof typeof topic.impactAssessment] || 0}/10
+                      {topic.impactAssessment?.[criteria.key as keyof typeof topic.impactAssessment] || 1}/10
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">{criteria.description}</p>
@@ -633,7 +633,7 @@ const MaterialityAssessmentEngine = () => {
                     type="range"
                     min="1"
                     max="10"
-                    value={topic.impactAssessment?.[criteria.key as keyof typeof topic.impactAssessment] || 0}
+                    value={topic.impactAssessment?.[criteria.key as keyof typeof topic.impactAssessment] || 1}
                     onChange={(e) => updateTopicAssessment(
                       selectedTopic, 
                       'impactAssessment', 
@@ -671,7 +671,7 @@ const MaterialityAssessmentEngine = () => {
                   <div className="flex justify-between items-center">
                     <label className="block text-sm font-medium">{criteria.name}</label>
                     <span className="text-sm font-bold text-green-600">
-                      {topic.financialAssessment?.[criteria.key as keyof typeof topic.financialAssessment] || 0}/10
+                      {topic.financialAssessment?.[criteria.key as keyof typeof topic.financialAssessment] || 1}/10
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">{criteria.description}</p>
@@ -679,7 +679,7 @@ const MaterialityAssessmentEngine = () => {
                     type="range"
                     min="1"
                     max="10"
-                    value={topic.financialAssessment?.[criteria.key as keyof typeof topic.financialAssessment] || 0}
+                    value={topic.financialAssessment?.[criteria.key as keyof typeof topic.financialAssessment] || 1}
                     onChange={(e) => updateTopicAssessment(
                       selectedTopic, 
                       'financialAssessment', 

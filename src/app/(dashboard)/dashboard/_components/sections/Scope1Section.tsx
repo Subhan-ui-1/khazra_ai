@@ -142,10 +142,10 @@ export default function Scope1Section() {
     <div className="space-y-10">
       {/* Page Header */}
       <div className="border-b border-green-100 pb-6">
-        <h1 className="text-3xl font-bold text-green-800 mb-4">
+        <h1 className="text-3xl font-bold text-black mb-4">
           Scope 1 Emissions Analysis
         </h1>
-        <p className="text-green-800 opacity-70 max-w-4xl leading-relaxed">
+        <p className="text-black opacity-70 max-w-4xl leading-relaxed">
           Direct greenhouse gas emissions from sources owned or controlled by your organization, 
           including detailed analysis of stationary combustion, mobile combustion, process emissions, and fugitive emissions.
         </p>
@@ -156,12 +156,12 @@ export default function Scope1Section() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Total Scope 1
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">3,247.8</div>
+              <div className="text-3xl font-bold text-black mb-2">3,247.8</div>
               <div className="text-sm text-green-800 mb-2">▼ 12.4% vs baseline</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 tonnes CO₂e • 36.3% of total emissions
               </div>
             </div>
@@ -177,12 +177,12 @@ export default function Scope1Section() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Stationary Combustion
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">1,746.2</div>
+              <div className="text-3xl font-bold text-black mb-2">1,746.2</div>
               <div className="text-sm text-green-800 mb-2">▼ 8.5% vs last year</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 Largest source • 53.8% of Scope 1
               </div>
             </div>
@@ -198,12 +198,12 @@ export default function Scope1Section() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Mobile Combustion
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">985.4</div>
+              <div className="text-3xl font-bold text-black mb-2">985.4</div>
               <div className="text-sm text-green-800 mb-2">▼ 15.2% vs last year</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 Fleet optimization • 30.3% of Scope 1
               </div>
             </div>
@@ -219,12 +219,12 @@ export default function Scope1Section() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Process Emissions
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">516.2</div>
+              <div className="text-3xl font-bold text-black mb-2">516.2</div>
               <div className="text-sm text-green-800 mb-2">▼ 5.8% vs last year</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 Industrial processes • 15.9% of Scope 1
               </div>
             </div>
@@ -242,7 +242,7 @@ export default function Scope1Section() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
-            <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-black flex items-center gap-2">
               📊 Scope 1 Breakdown by Source
             </h3>
             <div className="flex gap-1 border border-gray-200 rounded overflow-hidden">

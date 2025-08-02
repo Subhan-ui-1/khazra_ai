@@ -90,12 +90,6 @@ const vehicleTypes = [
   "Forklift",
   "Hybrid",
   "EV",
-  "Passenger Car",
-  "Light-Duty Truck",
-  "Heavy-Duty Truck",
-  "Forklift",
-  "Hybrid",
-  "EV",
 ];
 
 const EMISSION_STANDARDS_OPTIONS = [
@@ -146,34 +140,9 @@ const fuelTypes = [
   "Hydrogen",
   "E85",
   "Battery Electric",
-  "Gasoline",
-  "Diesel",
-  "Electric",
-  "Hybrid",
-  "CNG",
-  "LPG",
-  "Biodiesel",
-  "Hydrogen",
-  "E85",
-  "Battery Electric",
 ];
 
 const regions = [
-  "North America",
-  "Europe",
-  "Asia Pacific",
-  "Latin America",
-  "Middle East",
-  "Africa",
-  "United States",
-  "Canada",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Japan",
-  "China",
-  "India",
-  "Australia",
   "North America",
   "Europe",
   "Asia Pacific",
@@ -244,7 +213,7 @@ const AddVehicleSection = () => {
       const response = await getRequest(
         `vehicles/getVehicles?${queryParams}`,
         tokenData.accessToken
-      );bg-gre
+      );
       if (response.success) {
         setVehicleData(response.data.vehicles || []);
       } else {
@@ -376,20 +345,6 @@ const AddVehicleSection = () => {
         return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
-      case "EV":
-        return "bg-blue-100 text-blue-800";
-      case "Hybrid":
-        return "bg-green-100 text-green-800";
-      case "Passenger Car":
-        return "bg-purple-100 text-purple-800";
-      case "Light-Duty Truck":
-        return "bg-orange-100 text-orange-800";
-      case "Heavy-Duty Truck":
-        return "bg-red-100 text-red-800";
-      case "Forklift":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -412,9 +367,6 @@ const AddVehicleSection = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Car className="w-6 h-6 text-green-600" />
-          <h3 className="text-xl font-semibold text-gray-900">
-            Vehicle Management
-          </h3>
           <h3 className="text-xl font-semibold text-gray-900">
             Vehicle Management
           </h3>
@@ -475,7 +427,6 @@ const AddVehicleSection = () => {
           <div className="flex items-center justify-between mb-6">
             <h4 className="text-lg font-medium text-green-900">
               {editingItem ? "Edit" : "Add"} Vehicle
-              {editingItem ? "Edit" : "Add"} Vehicle
             </h4>
             <button
               onClick={() => {
@@ -503,20 +454,10 @@ const AddVehicleSection = () => {
                       vehicleType: e.target.value,
                     }))
                   }
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      vehicleType: e.target.value,
-                    }))
-                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Vehicle Type</option>
-                  {vehicleTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
                   {vehicleTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -545,10 +486,6 @@ const AddVehicleSection = () => {
                     <option key={year} value={year}>
                       {year}
                     </option>
-                  {modelYears.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
                   ))}
                 </select>
               </div>
@@ -569,12 +506,6 @@ const AddVehicleSection = () => {
                       make: e.target.value,
                     }))
                   }
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      make: e.target.value,
-                    }))
-                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   placeholder="e.g., Toyota, Ford, Tesla"
                   required
@@ -588,12 +519,6 @@ const AddVehicleSection = () => {
                 <input
                   type="text"
                   value={formData.model}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      model: e.target.value,
-                    }))
-                  }
                   onChange={(e) =>
                     setFormData((prev: VehicleFormData) => ({
                       ...prev,
@@ -628,10 +553,6 @@ const AddVehicleSection = () => {
                     <option key={year} value={year}>
                       {year}
                     </option>
-                  {purchaseYears.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
                   ))}
                 </select>
               </div>
@@ -648,20 +569,10 @@ const AddVehicleSection = () => {
                       fuelType: e.target.value,
                     }))
                   }
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      fuelType: e.target.value,
-                    }))
-                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Fuel Type</option>
-                  {fuelTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
                   {fuelTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -685,19 +596,9 @@ const AddVehicleSection = () => {
                       secondaryFuelType: e.target.value,
                     }))
                   }
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      secondaryFuelType: e.target.value,
-                    }))
-                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Secondary Fuel Type</option>
-                  {fuelTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
                   {fuelTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -718,19 +619,9 @@ const AddVehicleSection = () => {
                       region: e.target.value,
                     }))
                   }
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      region: e.target.value,
-                    }))
-                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select Region</option>
-                  {regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
                   {regions.map((region) => (
                     <option key={region} value={region}>
                       {region}
@@ -746,16 +637,7 @@ const AddVehicleSection = () => {
                 isEV ? "opacity-50" : ""
               }`}
             >
-            <div
-              className={`bg-gray-50 p-4 rounded-lg ${
-                isEV ? "opacity-50" : ""
-              }`}
-            >
               <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Fuel Combustion Rate{" "}
-                {isEV && (
-                  <span className="text-gray-500">(Not applicable for EV)</span>
-                )}
                 Fuel Combustion Rate{" "}
                 {isEV && (
                   <span className="text-gray-500">(Not applicable for EV)</span>
@@ -763,9 +645,6 @@ const AddVehicleSection = () => {
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Value
-                  </label>
                   <label className="block text-xs text-gray-600 mb-1">
                     Value
                   </label>
@@ -791,9 +670,6 @@ const AddVehicleSection = () => {
                   <label className="block text-xs text-gray-600 mb-1">
                     Unit
                   </label>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Unit
-                  </label>
                   <select
                     value={formData.fuelConsumptionRate.unit}
                     onChange={(e) =>
@@ -816,10 +692,6 @@ const AddVehicleSection = () => {
                       <option key={unit} value={unit}>
                         {unit}
                       </option>
-                    {fuelCombustionUnits.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
                     ))}
                   </select>
                 </div>
@@ -832,18 +704,7 @@ const AddVehicleSection = () => {
                 !isEV ? "opacity-50" : ""
               }`}
             >
-            <div
-              className={`bg-gray-50 p-4 rounded-lg ${
-                !isEV ? "opacity-50" : ""
-              }`}
-            >
               <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Electricity Consumption Rate{" "}
-                {!isEV && (
-                  <span className="text-gray-500">
-                    (Only applicable for EV)
-                  </span>
-                )}
                 Electricity Consumption Rate{" "}
                 {!isEV && (
                   <span className="text-gray-500">
@@ -853,9 +714,6 @@ const AddVehicleSection = () => {
               </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Value
-                  </label>
                   <label className="block text-xs text-gray-600 mb-1">
                     Value
                   </label>
@@ -881,9 +739,6 @@ const AddVehicleSection = () => {
                   <label className="block text-xs text-gray-600 mb-1">
                     Unit
                   </label>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Unit
-                  </label>
                   <select
                     value={formData.electricityConsumptionRate.unit}
                     onChange={(e) =>
@@ -903,10 +758,6 @@ const AddVehicleSection = () => {
                       <option key={unit} value={unit}>
                         {unit}
                       </option>
-                    {electricityConsumptionUnits.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
                     ))}
                   </select>
                 </div>
@@ -918,14 +769,8 @@ const AddVehicleSection = () => {
               <h5 className="text-sm font-medium text-gray-700 mb-3">
                 Annual Mileage
               </h5>
-              <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Annual Mileage
-              </h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Value
-                  </label>
                   <label className="block text-xs text-gray-600 mb-1">
                     Value
                   </label>
@@ -950,9 +795,6 @@ const AddVehicleSection = () => {
                   <label className="block text-xs text-gray-600 mb-1">
                     Unit
                   </label>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Unit
-                  </label>
                   <select
                     value={formData.annualMileage.unit}
                     onChange={(e) =>
@@ -971,10 +813,6 @@ const AddVehicleSection = () => {
                       <option key={unit} value={unit}>
                         {unit}
                       </option>
-                    {annualMileageUnits.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
                     ))}
                   </select>
                 </div>
@@ -986,14 +824,8 @@ const AddVehicleSection = () => {
               <h5 className="text-sm font-medium text-gray-700 mb-3">
                 Emission Factors (g/km)
               </h5>
-              <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Emission Factors (g/km)
-              </h5>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    CO₂
-                  </label>
                   <label className="block text-xs text-gray-600 mb-1">
                     CO₂
                   </label>
@@ -1018,9 +850,6 @@ const AddVehicleSection = () => {
                   <label className="block text-xs text-gray-600 mb-1">
                     CH₄
                   </label>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    CH₄
-                  </label>
                   <input
                     type="number"
                     value={formData.emissionFactors.CH4}
@@ -1039,9 +868,6 @@ const AddVehicleSection = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    N₂O
-                  </label>
                   <label className="block text-xs text-gray-600 mb-1">
                     N₂O
                   </label>
@@ -1137,10 +963,6 @@ const AddVehicleSection = () => {
                     <option key={source} value={source}>
                       {source}
                     </option>
-                  {dataSources.map((source) => (
-                    <option key={source} value={source}>
-                      {source}
-                    </option>
                   ))}
                 </select>
               </div>
@@ -1153,12 +975,6 @@ const AddVehicleSection = () => {
               </label>
               <textarea
                 value={formData.notes}
-                onChange={(e) =>
-                  setFormData((prev: VehicleFormData) => ({
-                    ...prev,
-                    notes: e.target.value,
-                  }))
-                }
                 onChange={(e) =>
                   setFormData((prev: VehicleFormData) => ({
                     ...prev,
@@ -1189,7 +1005,6 @@ const AddVehicleSection = () => {
               >
                 <Save className="w-4 h-4" />
                 <span>{editingItem ? "Update" : "Save"} Vehicle</span>
-                <span>{editingItem ? "Update" : "Save"} Vehicle</span>
               </button>
             </div>
           </div>
@@ -1205,27 +1020,6 @@ const AddVehicleSection = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Vehicle
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Fuel Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Model Year
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Annual Mileage
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  CO₂ Emissions
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Vehicle
                 </th>
@@ -1342,4 +1136,3 @@ const AddVehicleSection = () => {
 };
 
 export default AddVehicleSection;
-
