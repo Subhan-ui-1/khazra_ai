@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { getRequest, postRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 interface UserFormData {
   firstName: string;
@@ -63,7 +64,7 @@ const AddUserSection = () => {
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   
-  const tokenData = JSON.parse(localStorage.getItem('tokens') || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
   
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
@@ -107,13 +108,13 @@ const AddUserSection = () => {
   }, [filters]);
 
   const getOrganizationId = () => {
-    const user = localStorage.getItem('user');
+    const user = safeLocalStorage.getItem('user');
     const userData = JSON.parse(user || "");
     return userData.organization;
   }
   const fetchUsers = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user')|| '')
+      const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
       setLoading(true);
       
 
@@ -155,7 +156,7 @@ const AddUserSection = () => {
       );
       
       if (response.success) {
-        const user = JSON.parse(localStorage.getItem('user')|| '')
+        const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
         if(user.role.name === 'superadmin'){
           setDepartments(response.data.departments || []);
         }else{
@@ -180,7 +181,7 @@ const AddUserSection = () => {
       );
       
       if (response.success) {
-        const user = JSON.parse(localStorage.getItem('user')|| '')
+        const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
         if(user.role.name === 'superadmin'){
           setRoles(response.data.roles || []);
         }else{
@@ -197,7 +198,7 @@ const AddUserSection = () => {
   };
 
   const getBoundaryId = () => {
-    const user = localStorage.getItem('user');
+    const user = safeLocalStorage.getItem('user');
     const userData = JSON.parse(user || "");
     return userData.boundary;
   }

@@ -9,6 +9,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
+import { safeLocalStorage } from "@/utils/localStorage";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function LoginPage() {
   const [passwordError, setPasswordError] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   useEffect(() => {
-    const userString = localStorage.getItem("user");
+    const userString = safeLocalStorage.getItem("user");
 
     if (userString) {
       const user = JSON.parse(userString);
@@ -140,13 +141,13 @@ export default function LoginPage() {
       if (response.success === true) {
         toast.success(response.message);
         if(response.resetToken){
-          localStorage.setItem('resetToken', response.resetToken)
+          safeLocalStorage.setItem('resetToken', response.resetToken)
           router.replace("/resetPassword")
           return;
         }
-        localStorage.setItem("tokens", JSON.stringify(response.tokens));
-        localStorage.setItem("user", JSON.stringify(response.user));
-        localStorage.setItem('permissions', JSON.stringify(response.user.role.permissions))
+        safeLocalStorage.setItem("tokens", JSON.stringify(response.tokens));
+        safeLocalStorage.setItem("user", JSON.stringify(response.user));
+        safeLocalStorage.setItem('permissions', JSON.stringify(response.user.role.permissions))
         // if (response.user.boundary) {
           router.replace("/dashboard");
         // } else {

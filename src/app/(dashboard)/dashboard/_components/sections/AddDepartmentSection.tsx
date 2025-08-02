@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { getRequest, postRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 interface DepartmentFormData {
   name: string;
@@ -36,7 +37,7 @@ const AddDepartmentSection = () => {
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   
-  const tokenData = JSON.parse(localStorage.getItem('tokens') || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
     router.push('/login');
@@ -86,7 +87,7 @@ const AddDepartmentSection = () => {
       );
       console.log(response, 'response')
       if (response.success) {
-        const user = JSON.parse(localStorage.getItem('user')|| '')
+        const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
         if(user.role.name === 'superadmin'){
           setDepartmentData(response.data.departments || []);
         }else{
@@ -103,7 +104,7 @@ const AddDepartmentSection = () => {
   };
 
   const getOrganizationId = async () => {
-    const user = localStorage.getItem('user');
+    const user = safeLocalStorage.getItem('user');
     const userData = JSON.parse(user || "{}");
     console.log(userData.organization, 'organisation id')
     return userData.organization;

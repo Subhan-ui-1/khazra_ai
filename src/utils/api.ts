@@ -1,5 +1,8 @@
+'use client'
+
 import axios from "axios";
 import toast from "react-hot-toast";
+import { safeLocalStorage } from "./localStorage";
 
 const BASE_URLs =
   "https://dev-kai-backend-production.up.railway.app/api/";
@@ -51,7 +54,7 @@ export const getRequest = async (
   }
 };
 
-const organization = JSON.parse(localStorage.getItem("user") || "{}");
+const organization = JSON.parse(safeLocalStorage.getItem("user") || "{}");
 const organizationId = organization.organization;
 
 export const postRequest = async (
@@ -84,12 +87,6 @@ export const postRequest = async (
     console.log(response.data);
     if (response.status >= 200 && response.status < 300) {
       console.log("post request whole response.", response);
-      console.log(
-        "something ehre ",
-        response.data.mobile
-          ? response.data.mobile.totalEmissions
-          : response.data.stationary.totalEmissions
-      );
       if (dashboard) {
         await axios.put(
           `${BASE_URLs}dashboard/updateDashboardData/${organizationId}`,

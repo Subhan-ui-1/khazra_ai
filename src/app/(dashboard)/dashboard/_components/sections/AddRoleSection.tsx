@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { getRequest, postRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
+import { safeLocalStorage } from "@/utils/localStorage";
 
 interface RoleFormData {
   name: string;
@@ -46,7 +47,7 @@ const AddRoleSection = () => {
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
 
-  const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
     router.push("/login");
@@ -98,7 +99,7 @@ const AddRoleSection = () => {
       );
 
       if (response.success) {
-        const user = JSON.parse(localStorage.getItem("user") || "");
+        const user = JSON.parse(safeLocalStorage.getItem("user") || "");
         if (user.role.name === "superadmin") {
           setRoleData(response.data.roles || []);
         } else {
@@ -121,7 +122,7 @@ const AddRoleSection = () => {
     try {
       setLoadingPermissions(true);
       const permissionsss = JSON.parse(
-        localStorage.getItem("permissions") || ""
+        safeLocalStorage.getItem("permissions") || ""
       );
       setPermissions(permissionsss);
       // const response = await getRequest(

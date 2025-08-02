@@ -1,6 +1,7 @@
 "use client";
 
 import { postRequest } from "@/utils/api";
+import { safeLocalStorage } from "@/utils/localStorage";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ export default function DashboardHeader() {
   const router = useRouter();
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const getTokens = () => {
-    const token = localStorage.getItem("tokens");
+    const token = safeLocalStorage.getItem("tokens");
     const tokenData = JSON.parse(token || "");
     return tokenData.accessToken;
   };
@@ -67,7 +68,7 @@ export default function DashboardHeader() {
               getTokens(),
               "post"
             );
-            localStorage.clear();
+            safeLocalStorage.clear();
             router.replace("login");
           }}
           className="text-green-800 hover:bg-green-50 p-2 rounded transition-all duration-300 hover:scale-110"

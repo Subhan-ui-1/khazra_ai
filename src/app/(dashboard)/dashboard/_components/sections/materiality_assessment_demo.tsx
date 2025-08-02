@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, Cell, PieChart, Pie } from 'recharts';
 import { Users, Target, TrendingUp, AlertCircle, CheckCircle, FileText, Settings, ChevronRight, ChevronDown, Edit3, Save, Eye, Filter, Loader2 } from 'lucide-react';
 import { getRequest, postRequest } from '../../../../../utils/api';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 // TypeScript interfaces
 interface Report {
@@ -116,7 +117,7 @@ const MaterialityAssessmentEngine = () => {
   const getToken = (): string | undefined => {
     // Implement based on your authentication system
     // For now, returning undefined - adjust as needed
-    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
     return tokenData.accessToken;
   };
 

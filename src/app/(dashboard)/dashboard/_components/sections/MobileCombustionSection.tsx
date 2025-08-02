@@ -5,6 +5,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import { Edit3, Trash2, Eye, Plus } from "lucide-react";
 import Table from "@/components/Table";
 import toast from "react-hot-toast";
+import { safeLocalStorage } from '@/utils/localStorage';
 
 interface Facility {
   _id: string;
@@ -78,7 +79,7 @@ export default function MobileCombustionSection() {
   const [mobileCombustionData, setMobileCombustionData] = useState<any[]>([]);
 
   const getToken = () => {
-    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
     return tokenData.accessToken;
   };
 

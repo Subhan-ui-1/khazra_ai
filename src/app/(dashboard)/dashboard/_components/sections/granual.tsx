@@ -9,6 +9,7 @@ import {
 import { postRequest, getRequest } from '@/utils/api';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 // TypeScript interfaces
 interface AssetData {
@@ -96,7 +97,7 @@ const AssetLevelTargetPlatform = () => {
   const [granularTargets, setGranularTargets] = useState<GranularTarget[]>([]);
 
   // Token data
-  const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
 
   // Fetch data on component mount
   useEffect(() => {

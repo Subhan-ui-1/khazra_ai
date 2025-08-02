@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, X, Edit3, Trash2, Thermometer } from 'lucide-react';
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
+import { safeLocalStorage } from '@/utils/localStorage';
 
 interface Facility {
   _id: string;
@@ -54,7 +55,7 @@ const Scope2SteamEntry: React.FC = () => {
   });
 
   const getToken = () => {
-    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
     return tokenData.accessToken;
   };
 

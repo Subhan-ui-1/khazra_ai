@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar/Navbar";
 import AuthLayout from "@/components/authLayout/AuthLayout";
 import FormInput from "@/components/formInput/FormInput";
@@ -8,23 +8,31 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { postRequest } from "@/utils/api";
+import { safeLocalStorage } from "@/utils/localStorage";
 
 export default function ResetPasswordPage() {
   const [step, setStep] = useState<"form" | "success">("form");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState({
-    old: false,
     new: false,
     confirm: false,
   });
   const [error, setError] = useState("");
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const resetToken = localStorage.getItem("resetToken");
-  // Simulate password reset
-  if (!resetToken) {
-    router.push("/login");
-  }
+
+  useEffect(() => {
+    // Client-side only: Access localStorage after component mounts
+    const token = safeLocalStorage.getItem("resetToken");
+    if (!token) {
+      router.push("/login");
+    } else {
+      setResetToken(token);
+    }
+    setIsLoading(false);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +48,12 @@ export default function ResetPasswordPage() {
     }
 
     setError("");
+
+    if (!resetToken) {
+      setError("Invalid reset token. Please try again.");
+      return;
+    }
+
     const response = await postRequest(
       "auth/change-password",
       { newPassword, resetToken },
@@ -47,13 +61,22 @@ export default function ResetPasswordPage() {
       undefined,
       "post"
     );
+    
     if (response.success) {
-      localStorage.removeItem("resetToken");
-      router.push("/login");
+      safeLocalStorage.removeItem("resetToken");
+      setStep("success");
     } else {
       setError(response.message);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -123,7 +146,6 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              {/* Error message */}
               {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
 
               <button

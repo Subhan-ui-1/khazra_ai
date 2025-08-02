@@ -1,4 +1,5 @@
 import React from 'react';
+import { safeLocalStorage } from './localStorage';
 
 export interface Permission {
   _id: string;
@@ -23,7 +24,7 @@ export class PermissionManager {
 
   private loadPermissions(): void {
     try {
-      const permissionsData = localStorage.getItem('permissions');
+      const permissionsData = safeLocalStorage.getItem('permissions');
       if (permissionsData) {
         this.permissions = JSON.parse(permissionsData);
       }

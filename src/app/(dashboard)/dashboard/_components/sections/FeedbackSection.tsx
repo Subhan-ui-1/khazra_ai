@@ -4,6 +4,7 @@ import { postRequest, getRequest } from '@/utils/api';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 // Define TypeScript interfaces
 interface FeedbackFormData {
@@ -63,7 +64,7 @@ const FeedbackSection = () => {
   const router = useRouter();
   const { canView } = usePermissions();
   
-  const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
 
   const [formData, setFormData] = useState<FeedbackFormData>({
     rating: 0,
@@ -116,7 +117,7 @@ const FeedbackSection = () => {
 
   // Check if current user has already submitted feedback
   const checkIfUserHasSubmitted = (feedbacks: FeedbackItem[]) => {
-    const user = JSON.parse(localStorage.getItem('user')||"")
+    const user = JSON.parse(safeLocalStorage.getItem('user')||"")
     const currentUserEmail = user.email
     const userHasSubmitted = feedbacks.some(feedback => 
       feedback.userId.email === currentUserEmail

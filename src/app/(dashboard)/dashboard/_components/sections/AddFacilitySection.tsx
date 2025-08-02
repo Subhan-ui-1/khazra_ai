@@ -15,6 +15,7 @@ import { postRequest, getRequest } from "@/utils/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import { safeLocalStorage } from "@/utils/localStorage";
 
 // Define TypeScript interfaces
 interface FacilityFormData {
@@ -89,7 +90,7 @@ const AddFacilitySection = () => {
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
 
-  const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
     router.push("/login");
@@ -177,7 +178,7 @@ const AddFacilitySection = () => {
 
   const getOrganizationId = (): string => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(safeLocalStorage.getItem("user") || "{}");
       return user.organization || "";
     } catch (error) {
       console.error("Error parsing user data from localStorage:", error);

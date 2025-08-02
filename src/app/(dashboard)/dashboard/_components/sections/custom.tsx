@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
+import { safeLocalStorage } from '@/utils/localStorage';
 
 const FlexibleTargetPlatform = () => {
   const [activeTab, setActiveTab] = useState('setup');
@@ -122,7 +123,7 @@ const FlexibleTargetPlatform = () => {
 
   // API Functions
   const getToken = () => {
-    const tokenData = JSON.parse(localStorage.getItem("tokens") || "{}");
+    const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
     return tokenData.accessToken;
   };
 

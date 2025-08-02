@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { postRequest, getRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 // Constants
 const INDUSTRY_OPTIONS = [
@@ -123,7 +124,7 @@ const AddBoundarySection = () => {
   const router = useRouter();
   const { canView, canCreate } = usePermissions();
   
-  const tokenData = JSON.parse(localStorage.getItem('tokens') || "{}");
+  const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
     router.push('/login');
@@ -173,7 +174,7 @@ const AddBoundarySection = () => {
 
   // Get organization ID from localStorage with error handling
   function getOrganizationId(): string {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = JSON.parse(safeLocalStorage.getItem("user") || "{}");
     try {
       return user.organization || "";
     } catch (error) {
@@ -190,7 +191,7 @@ const AddBoundarySection = () => {
   const checkExistingBoundary = async () => {
     try {
       setLoading(true);
-      const userData = JSON.parse(localStorage.getItem('user') || "{}");
+      const userData = JSON.parse(safeLocalStorage.getItem('user') || "{}");
       
       if (userData.boundary) {
         // Fetch boundary details
@@ -277,10 +278,10 @@ const AddBoundarySection = () => {
 
         if (response?.success) {
           toast.success(response.message || "Boundary created successfully");
-          const userData = localStorage.getItem('user');
+          const userData = safeLocalStorage.getItem('user');
           const userDataParsed = JSON.parse(userData || "{}");
           userDataParsed.boundary = response.boundaries._id;
-          localStorage.setItem('user', JSON.stringify(userDataParsed));
+          safeLocalStorage.setItem('user', JSON.stringify(userDataParsed));
           
           // Save the queue to sessionStorage
           if (formQueue.length > 0) {

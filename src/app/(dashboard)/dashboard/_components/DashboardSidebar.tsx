@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { usePermissions } from '@/utils/permissions';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 interface DashboardSidebarProps {
   activeSection: string;
@@ -28,7 +29,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
   const { hasPermission, canManage } = usePermissions();
   
   useEffect(() => {
-    const permission = localStorage.getItem('permissions');
+    const permission = safeLocalStorage.getItem('permissions');
     if (!permission) {
       router.replace('/login');
     }
