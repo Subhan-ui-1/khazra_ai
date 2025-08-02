@@ -1,4 +1,5 @@
 'use client';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 interface DashboardSidebarProps {
   activeSection: string;
@@ -95,13 +96,21 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       ]
     },
     {
-      section: 'Prototype',
+      section: 'Measurements',
       items: [
-        { id: 'process-emissions', icon: '💬', label: 'Process Emissions', href: '/tool/process_emissions.html' },
-        { id: 'fugitive-emissions', icon: '💬', label: 'Fugitive Emissions', href: '/tool/fugitive_emissions.html' },
-        { id: 'refrigerant-emissions', icon: '💬', label: 'Refrigerant Emissions', href: '/tool/refrigerant_emissions.html' },
-        { id: 'stationary-emissions', icon: '💬', label: 'Stationary Emissions', href: '/tool/stationary_combustion.html' },
-        { id: 'mobile-emissions', icon: '💬', label: 'Mobile Emissions', href: '/tool/mobile_combustion.html' }
+        { id: 'measurements-assessments', icon: '💬', label: 'Measurements Assessments', },
+      ]
+    },
+    {
+      section: 'Custom',
+      items: [
+        { id: 'custom', icon: '💬', label: 'Custom', },
+      ]
+    },
+    {
+      section: 'Granual',
+      items: [
+        { id: 'granual', icon: '💬', label: 'Granual', },
       ]
     }
   ];
@@ -109,10 +118,10 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
     setOpenDropdown(openDropdown === id ? null : id);
   };
   return (
-    <aside className="w-72 bg-white border-r border-green-100 py-6 px-2.5 overflow-y-auto h-screen">
+    <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 px-2.5 overflow-y-auto h-screen">
       {sidebarItems.map((group) => (
-        <div key={group.section} className="mb-6">
-          <div className="px-6 py-2 text-xs font-semibold text-green-800 opacity-60 uppercase tracking-wider">
+        <div key={group.section} className="mb-12">
+          <div className="px-6 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider">
             {group.section}
           </div>
           {group.items.map((item) => {
@@ -128,22 +137,22 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                       setOpenDropdown(openDropdown === item.id ? null : item.id);
                       onSectionChange(item.id); // navigate to scope1/scope2 section page
                     }}
-                    className={`w-full flex items-center gap-2 pe-2 py-3 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
-                      openDropdown === item.id || isChildActive || activeSection === item.id ? 'bg-green-50 font-semibold' : ''
+                    className={`w-full flex items-center gap-2 pe-2 py-3 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#0D5942] ${
+                      openDropdown === item.id || isChildActive || activeSection === item.id ? ' bg-[#10694e] font-semibold' : ''
                     }`}
                   >
                     <span className="text-base">{item.icon}</span>
                     {item.label}
-                    <span className="ml-auto">{openDropdown === item.id ? '▲' : '▼'}</span>
+                    <span className="ml-auto">{openDropdown === item.id ? <ChevronDown /> : <ChevronRight />}</span>
                   </button>
                   {openDropdown === item.id && (
-                    <div className="ml-6 border-l border-green-100">
+                    <div className="ml-4">
                       {item.children.map((child) => (
                         <button
                           key={child.id}
                           onClick={() => onSectionChange(child.id)}
-                          className={`w-full flex items-center gap-3 py-2 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 ${
-                            activeSection === child.id ? 'bg-green-100 font-semibold' : ''
+                          className={`w-full flex items-center gap-3 py-2 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065]  ${
+                            activeSection === child.id ? 'bg-[#10694e] font-semibold' : ''
                           }`}
                         >
                           <span className="text-base">{child.icon}</span>
@@ -162,8 +171,8 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                 key={item.id}
                 href={item.href}
                 onClick={!item.href ? () => onSectionChange(item.id) : undefined}
-                className={`w-full flex items-center gap-2 py-2.5 text-green-800 text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-green-50 hover:translate-x-1 ${
-                  isActive ? 'bg-green-50 font-semibold' : ''
+                className={`w-full flex items-center gap-2 py-2.5 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                  isActive ? 'bg-[#10694e] font-semibold' : ''
                 }`}
               >
                 <span className="text-base">{item.icon}</span>

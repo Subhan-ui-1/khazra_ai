@@ -38,8 +38,12 @@ const rawData: Record<DurationType, { labels: string[]; scope1: number[]; scope2
     },
 };
 
-export default function HorizontalGroupedBarChart() {
-    const [duration, setDuration] = useState<DurationType>('Monthly');
+interface HorizontalGroupedBarChartProps {
+    title: string;
+}
+
+export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBarChartProps) {
+    const [duration, setDuration] = useState<DurationType>('Yearly');
     const { labels, scope1, scope2, scope3 } = rawData[duration];
 
     const data = {
@@ -49,19 +53,19 @@ export default function HorizontalGroupedBarChart() {
                 label: 'Scope 1',
                 data: scope1,
                 backgroundColor: '#0a1c10',
-                barThickness: 10,
+                barThickness: 5,
             },
             {
                 label: 'Scope 2',
                 data: scope2,
                 backgroundColor: '#34d399',
-                barThickness: 10,
+                barThickness: 5,
             },
             {
                 label: 'Scope 3',
                 data: scope3,
                 backgroundColor: '#35896d',
-                barThickness: 10,
+                barThickness: 5,
             },
         ],
     };
@@ -69,16 +73,12 @@ export default function HorizontalGroupedBarChart() {
     const options = {
         indexAxis: 'y' as const, 
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'top' as const,
                 display: false
             },
-        },
-        elements: {
-            bar: {
-                borderWidth: 1,
-            }
         },
         scales: {
             x: {
@@ -98,25 +98,29 @@ export default function HorizontalGroupedBarChart() {
     };
 
     return (
-        <div className="space-y-6 h-[600px] mb-10">
-            {/* Duration Filter Buttons */}
-            <div className="flex space-x-2 w-full justify-end">
-                {durations.map((type) => (
-                <button
-                    key={type}
-                    onClick={() => setDuration(type)}
-                    className={`px-4 py-2 text-sm rounded ${
-                    duration === type ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-700'
-                    }`}
-                >
-                    {type}
-                </button>
-                ))}
+        <div className="space-y-6 border-t border-gray-200 shadow-xl p-2 h-full rounded-xl w-full">
+            {/* Title */}
+            <div className="w-full flex justify-between items-center">
+                <p className="w-full text-xl font-bold text-green-800">{title}</p>
+                {/* Duration Filter Buttons */}
+                <div className="flex space-x-2 justify-end w-full">
+                    {durations.map((type) => (
+                        <button
+                            key={type}
+                            onClick={() => setDuration(type)}
+                            className={`px-4 py-2 text-sm rounded ${
+                                duration === type ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-700'
+                            }`}
+                        >
+                            {type}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Chart */}
-            <div className="bg-white p-4 rounded-xl shadow border border-green-100 max-h-[750px]">
-                <Chart type="bar" data={data} options={options} className='max-h-[650px] w-full'/>
+            <div className="bg-white p-2 rounded-xl shadow border border-green-100 h-full">
+                <Chart type="bar" data={data} options={options} className='w-[80%] h-[90%]' />
             </div>
         </div>
     );

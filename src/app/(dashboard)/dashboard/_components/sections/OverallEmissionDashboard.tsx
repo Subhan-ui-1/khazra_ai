@@ -1,4 +1,6 @@
 'use client';
+import { useRouter } from 'next/navigation';
+import { Router } from 'next/router';
 import { useState } from 'react';
 
 const BarChartData = {
@@ -75,6 +77,7 @@ export default function OverallEmissionDashboard() {
 
   const [duration, setDuration] = useState<'Monthly' | 'Quarterly' | 'Annual'>('Monthly');
   const TOTAL_CIRCUMFERENCE = 2 * Math.PI * 80;
+  // const router = useRouter()
   let offset = 0;
 
   return (

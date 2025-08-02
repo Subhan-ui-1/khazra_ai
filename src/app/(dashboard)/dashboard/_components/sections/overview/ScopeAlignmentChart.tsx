@@ -24,7 +24,7 @@ const data = {
             backgroundColor: '#35896d',
             stack: 'Stack 0',
             barPercentage: 1.0,
-            barThickness : 20
+            barThickness: 20,
         },
         {
             label: 'Partially aligned',
@@ -32,7 +32,7 @@ const data = {
             backgroundColor: '#3b82f6',
             stack: 'Stack 0',
             barPercentage: 1.0,
-            barThickness : 20
+            barThickness: 20,
         },
         {
             label: 'Not aligned',
@@ -40,7 +40,7 @@ const data = {
             backgroundColor: '#d1d5db',
             stack: 'Stack 0',
             barPercentage: 1.0,
-            barThickness : 20
+            barThickness: 20,
         },
     ],
 };
@@ -48,12 +48,13 @@ const data = {
 const options: ChartOptions<'bar'> = {
     indexAxis: 'y',
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
         legend: {
-        position: 'bottom',
-        display: false
+            position: 'bottom',
+            display: false,
         },
-            tooltip: {
+        tooltip: {
             callbacks: {
                 label: (context) => `${context.dataset.label}: ${context.raw}%`,
             },
@@ -79,11 +80,15 @@ const options: ChartOptions<'bar'> = {
     },
 };
 
-export default function ScopeAlignmentChart() {
+interface ScopeAlignmentChartProps {
+    title: string;
+}
+
+export default function ScopeAlignmentChart({ title }: ScopeAlignmentChartProps) {
     return (
-        <div className="bg-white p-4 rounded-xl shadow border border-green-100 max-h-[400px] mt-40">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Scope Alignment Overview</h2>
-            <Chart type="bar" data={data} options={options} className='max-h-[300px]' />
+        <div className="bg-white p-4 rounded-xl shadow border border-green-100 w-full">
+            <h2 className="text-xl font-bold text-green-800 mb-4">{title}</h2>
+            <Chart type="bar" data={data} options={options} className="max-h-[300px]" />
         </div>
     );
 }

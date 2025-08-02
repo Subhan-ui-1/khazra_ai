@@ -61,14 +61,14 @@ const MetricsCard = memo(({ metric, onCardClick }: MetricsCardProps) => {
       <div className="absolute top-0 left-0 right-0 h-1 bg-green-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+          <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
             {metric.title}
           </div>
-          <div className="text-3xl font-bold text-green-800 mb-2">{metric.value}</div>
+          <div className="text-3xl font-bold text-black mb-2">{metric.value}</div>
           <div className={`text-sm mb-2 ${changeTypeStyle}`}>
             {metric.change}
           </div>
-          <div className="text-xs text-green-800 opacity-60">{metric.subtitle}</div>
+          <div className="text-xs text-black opacity-60">{metric.subtitle}</div>
         </div>
         <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
           {metric.icon}

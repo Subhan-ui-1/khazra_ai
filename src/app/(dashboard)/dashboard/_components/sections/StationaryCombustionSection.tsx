@@ -255,14 +255,6 @@ export default function StationaryCombustionSection() {
         </div>
       </div>
 
-      <div className='w-full'>
-        <HorizontalStackedChart />
-      </div>
-
-      <div className='mt-30'>
-        <ScopeAlignmentChart />
-      </div>
-
       {/* Stationary Combustion Table */}
       <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm mt-10">
         <div className="flex justify-between items-center p-6 border-b border-green-100">

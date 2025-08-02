@@ -10,16 +10,16 @@ export default function ProgressChart({ overallProgressValue }: ProgressChartPro
   const progress = (overallProgressValue / 100) * circumference;
 
   return (
-    <div className="bg-white border border-green-100 rounded-2xl p-6 shadow-sm w-full max-w-sm mx-auto h-full">
+    <div className="bg-white border border-green-100 rounded-2xl p-6 shadow-sm w-full mx-auto xl:h-[600px] h-[400px]">
       <div className="mb-4 flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-black flex items-center gap-2">
           🎯 Overall Progress
         </h3>
         <span className="text-sm text-green-700 font-medium">{overallProgressValue}%</span>
       </div>
 
       <div className="relative w-full h-[90%]">
-        <svg className="w-full h-[50%]" viewBox="0 0 120 60">
+        <svg className="w-full h-[70%]" viewBox="0 0 120 60">
           {/* Background semi-circle */}
           <path
             d="M10,60 A50,50 0 0,1 110,60"
@@ -46,9 +46,9 @@ export default function ProgressChart({ overallProgressValue }: ProgressChartPro
         </svg>
 
         {/* Centered label */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bottom-20 pb-4">
-          <div className="text-2xl font-bold text-green-800">{overallProgressValue}%</div>
-          <div className="text-xs text-green-700 opacity-70">Completed</div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pb-4">
+          <div className="text-4xl font-bold text-green-800">{overallProgressValue}%</div>
+          <div className="text-xl text-green-700 opacity-70">Completed</div>
         </div>
 
         <div className="text-center text-sm text-green-800 opacity-70 mt-4">

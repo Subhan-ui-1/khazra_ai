@@ -29,6 +29,9 @@ import Scope2ElectricityEntry from './_components/sections/Scope2ElectricityEntr
 import Scope2SteamEntry from './_components/sections/Scope2SteamEntry';
 import Scope2HeatingEntry from './_components/sections/Scope2HeatingEntry';
 import Scope2CoolingEntry from './_components/sections/Scope2CoolingEntry';
+import Measurements_assessments from './_components/sections/measurements_assessments'
+import Custom from './_components/sections/custom'
+import Granual from './_components/sections/granual'
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview');
@@ -62,7 +65,10 @@ export default function DashboardPage() {
     'add-facility': <AddFacilitySection />,
     'add-boundary': <AddBoundarySection />,
     'add-vehicle': <AddVehicleSection />,
-    'add-equipment': <AddEquipmentSection />
+    'add-equipment': <AddEquipmentSection />,
+    'measurements-assessments':<Measurements_assessments/>,
+    'custom':<Custom />,
+    'granual':<Granual/>
   };
 
   return (
@@ -75,7 +81,7 @@ export default function DashboardPage() {
             onSectionChange={setActiveSection} 
           />
         </div>
-        <main className="flex-1 ml-64 border-l border-green-100 xl:p-10 lg:p-8 p-4 bg-white max-md:mt-6 overflow-y-auto">
+        <main className="flex-1 ml-64 border-l border-green-100 xl:py-10 xl:ps-10 pe-2 lg:py-8 lg:ps-8 p-4 bg-white max-md:mt-6 overflow-y-auto">
           {sections[activeSection as keyof typeof sections]}
         </main>
       </div>
