@@ -720,6 +720,9 @@ const AddFacilitySection = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Facility
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -762,11 +765,11 @@ const AddFacilitySection = () => {
                   </td>
                 </tr>
               ) : (
-                facilityData.map((facility) => (
-                  <tr
-                    key={facility.id || facility._id}
-                    className="hover:bg-gray-50"
-                  >
+                facilityData.map((facility,i) => (
+                  <tr key={facility.id || facility._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">FC-{i+1}</div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
                         {facility.facilityName}

@@ -1022,6 +1022,9 @@ const AddVehicleSection = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Vehicle
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -1064,11 +1067,11 @@ const AddVehicleSection = () => {
                   </td>
                 </tr>
               ) : (
-                vehicleData.map((vehicle) => (
-                  <tr
-                    key={vehicle.id || vehicle._id}
-                    className="hover:bg-gray-50"
-                  >
+                vehicleData.map((vehicle,i) => (
+                  <tr key={vehicle.id || vehicle._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">VH-{i+1}</div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
                         {vehicle.make} {vehicle.model}
