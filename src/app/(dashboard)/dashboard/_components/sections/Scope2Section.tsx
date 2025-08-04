@@ -2,14 +2,9 @@
 
 import { useState } from 'react';
 import { Pie } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import { Chart as ChartJS, LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TooltipItem } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+ChartJS.register(LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 
 type Scope2Source = {
@@ -99,6 +94,20 @@ const scope2DataByDuration: Scope2Data = {
   ],
 };
 
+const energyEfficiencyData = [
+  { month: 'Jan', efficiency: 0.145, target: 0.15 },
+  { month: 'Feb', efficiency: 0.122, target: 0.15 },
+  { month: 'Mar', efficiency: 0.189, target: 0.15 },
+  { month: 'Apr', efficiency: 0.086, target: 0.15 },
+  { month: 'May', efficiency: 0.103, target: 0.15 },
+  { month: 'Jun', efficiency: 0.190, target: 0.15 },
+  { month: 'Jul', efficiency: 0.167, target: 0.15 },
+  { month: 'Aug', efficiency: 0.164, target: 0.15 },
+  { month: 'Sep', efficiency: 0.184, target: 0.15 },
+  { month: 'Oct', efficiency: 0.168, target: 0.15 },
+  { month: 'Nov', efficiency: 0.165, target: 0.15 },
+  { month: 'Dec', efficiency: 0.162, target: 0.15 }
+];
 
 
 export default function Scope2Section() {
@@ -123,7 +132,7 @@ export default function Scope2Section() {
     emissions: ''
   });
 
-    const pieData = {
+  const pieData = {
     labels: [
       scope2Sources.map((item) => item.label)
     ],
@@ -132,7 +141,7 @@ export default function Scope2Section() {
         data: scope2Sources.map((item) => item.value),
         backgroundColor: scope2Sources.map((item) => item.rawColor),
         borderColor: '#ffffff',
-        borderWidth: 2,
+        borderWidth: 0,
       },
     ],
   };
@@ -146,6 +155,75 @@ export default function Scope2Section() {
         display: false,
       },
     },
+  };
+
+  const lineData = {
+    labels: energyEfficiencyData.map(item => item.month),
+    datasets: [
+      {
+        label: 'Efficiency',
+        data: energyEfficiencyData.map(item => item.efficiency),
+        borderColor: '#0f5744',
+        backgroundColor: '#0f5744',
+        tension: 0,
+        pointRadius: 3,
+        pointHoverRadius: 4,
+        fill: false,
+      },
+      {
+        label: 'Target (0.15 kWh/unit)',
+        data: energyEfficiencyData.map(() => 0.15),
+        borderColor: '#0f5744',
+        borderDash: [5, 5],
+        backgroundColor: 'transparent',
+        tension: 0,
+        pointRadius: 0,
+        pointHoverRadius: 0,
+      }
+    ]
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: TooltipItem<'line'>) => {
+            const label = tooltipItem.dataset.label || '';
+            const value = tooltipItem.raw;
+            return `${label}: ${value} kWh/unit`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        suggestedMin: 0.14,
+        suggestedMax: 0.40,
+        title: {
+          display: false,
+        },
+        ticks: {
+          stepSize: 0.01
+        },
+        grid: {
+          color: '#e4e4e438'
+        }
+      },
+      x: {
+        title: {
+          display: false,
+        },
+        grid: {
+          color: '#e4e4e438'
+        }
+      }
+    }
   };
 
   // State for table data array
@@ -359,21 +437,6 @@ export default function Scope2Section() {
     }
   ];
 
-  const energyEfficiencyData = [
-    { month: 'Jan', efficiency: 0.195, target: 0.15 },
-    { month: 'Feb', efficiency: 0.192, target: 0.15 },
-    { month: 'Mar', efficiency: 0.189, target: 0.15 },
-    { month: 'Apr', efficiency: 0.186, target: 0.15 },
-    { month: 'May', efficiency: 0.183, target: 0.15 },
-    { month: 'Jun', efficiency: 0.180, target: 0.15 },
-    { month: 'Jul', efficiency: 0.177, target: 0.15 },
-    { month: 'Aug', efficiency: 0.174, target: 0.15 },
-    { month: 'Sep', efficiency: 0.171, target: 0.15 },
-    { month: 'Oct', efficiency: 0.168, target: 0.15 },
-    { month: 'Nov', efficiency: 0.165, target: 0.15 },
-    { month: 'Dec', efficiency: 0.162, target: 0.15 }
-  ];
-
   const renewableEnergyData = [
     { source: 'Solar Power', percentage: 45.2, icon: '☀️' },
     { source: 'Wind Power', percentage: 28.7, icon: '💨' },
@@ -381,44 +444,44 @@ export default function Scope2Section() {
     { source: 'Biomass', percentage: 10.3, icon: '🔥' }
   ];
 
-  const energySourcesData = [
-    {
-      id: 'E-001',
-      type: 'Electricity Meter',
-      location: 'Main Campus',
-      source: 'Grid + Solar',
-      consumption: '2,847 MWh',
-      emissions: 567.3,
-      status: 'Monitored'
-    },
-    {
-      id: 'S-023',
-      type: 'Steam Line',
-      location: 'Production Plant',
-      source: 'Natural Gas',
-      consumption: '45.7 GJ',
-      emissions: 234.1,
-      status: 'Monitored'
-    },
-    {
-      id: 'H-005',
-      type: 'HVAC System',
-      location: 'Office Building',
-      source: 'District Heating',
-      consumption: '23.4 GJ',
-      emissions: 89.3,
-      status: 'Monitored'
-    },
-    {
-      id: 'R-012',
-      type: 'Renewable Certificates',
-      location: 'Virtual',
-      source: 'Solar/Wind',
-      consumption: '1,200 MWh',
-      emissions: 0,
-      status: 'Verified'
-    }
-  ];
+  // const energySourcesData = [
+  //   {
+  //     id: 'E-001',
+  //     type: 'Electricity Meter',
+  //     location: 'Main Campus',
+  //     source: 'Grid + Solar',
+  //     consumption: '2,847 MWh',
+  //     emissions: 567.3,
+  //     status: 'Monitored'
+  //   },
+  //   {
+  //     id: 'S-023',
+  //     type: 'Steam Line',
+  //     location: 'Production Plant',
+  //     source: 'Natural Gas',
+  //     consumption: '45.7 GJ',
+  //     emissions: 234.1,
+  //     status: 'Monitored'
+  //   },
+  //   {
+  //     id: 'H-005',
+  //     type: 'HVAC System',
+  //     location: 'Office Building',
+  //     source: 'District Heating',
+  //     consumption: '23.4 GJ',
+  //     emissions: 89.3,
+  //     status: 'Monitored'
+  //   },
+  //   {
+  //     id: 'R-012',
+  //     type: 'Renewable Certificates',
+  //     location: 'Virtual',
+  //     source: 'Solar/Wind',
+  //     consumption: '1,200 MWh',
+  //     emissions: 0,
+  //     status: 'Verified'
+  //   }
+  // ];
 
   const metricsData = [
     {
@@ -465,46 +528,7 @@ export default function Scope2Section() {
     }
   ];
 
-  // Helper function to generate SVG points from data
-  const generateChartPoints = (data: any[], key: string, maxValue: number, height: number, width: number) => {
-    const points = data.map((item, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - (item[key] / maxValue) * height;
-      return `${x},${y}`;
-    }).join(' ');
-    return points;
-  };
 
-  // Calculate pie chart segments
-  const calculatePieSegments = (data: any[]) => {
-    const total = data.reduce((sum, item) => sum + item.percentage, 0);
-    let currentAngle = 0;
-    
-    return data.map((item) => {
-      const angle = (item.percentage / total) * 360;
-      const startAngle = currentAngle;
-      currentAngle += angle;
-      
-      const x1 = 60 + 50 * Math.cos((startAngle - 90) * Math.PI / 180);
-      const y1 = 60 + 50 * Math.sin((startAngle - 90) * Math.PI / 180);
-      const x2 = 60 + 50 * Math.cos((currentAngle - 90) * Math.PI / 180);
-      const y2 = 60 + 50 * Math.sin((currentAngle - 90) * Math.PI / 180);
-      
-      const largeArcFlag = angle > 180 ? 1 : 0;
-      
-      return {
-        ...item,
-        path: `M 60,60 L ${x1},${y1} A 50,50 0 ${largeArcFlag},1 ${x2},${y2} Z`,
-        labelX: 60 + 35 * Math.cos(((startAngle + currentAngle) / 2 - 90) * Math.PI / 180),
-        labelY: 60 + 35 * Math.sin(((startAngle + currentAngle) / 2 - 90) * Math.PI / 180)
-      };
-    });
-  };
-
-  // const pieSegments = calculatePieSegments(scope2BreakdownData);
-  const maxEfficiency = Math.max(...energyEfficiencyData.map(d => d.efficiency));
-  const chartWidth = 300;
-  const chartHeight = 150;
 
   return (
     <div className="space-y-10">
@@ -548,8 +572,8 @@ export default function Scope2Section() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+      <div className="w-full flex flex-wrap justify-between gap-4">
+        <div className="w-[55%] bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📊 Scope 2 Breakdown by Source
@@ -590,61 +614,19 @@ export default function Scope2Section() {
           </div>
         </div>
 
-        <div className="bg-white border border-green-100 rounded-xl p-4 shadow-sm">
+        <div className="w-[40%] bg-white border border-green-100 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📈 Energy Efficiency Trend
             </h3>
           </div>
-          <div className="h-90 relative">
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full">
-              <defs>
-                <pattern id="efficiencyGrid" width="30" height="15" patternUnits="userSpaceOnUse">
-                  <path d="M 30 0 L 0 0 0 15" fill="none" stroke="#e4f5d5" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#efficiencyGrid)" />
-
-              {/* Efficiency line */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="3"
-                points={generateChartPoints(energyEfficiencyData, 'efficiency', maxEfficiency, chartHeight, chartWidth)}
-              />
-
-              {/* Target line */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-                opacity="0.5"
-                points={`0,${chartHeight - (0.15 / maxEfficiency) * chartHeight} ${chartWidth},${chartHeight - (0.15 / maxEfficiency) * chartHeight}`}
-              />
-
-              {/* Data points */}
-              {energyEfficiencyData.map((item, index) => {
-                const x = (index / (energyEfficiencyData.length - 1)) * chartWidth;
-                const y = chartHeight - (item.efficiency / maxEfficiency) * chartHeight;
-                return (
-                  <circle key={index} cx={x} cy={y} r="3" fill="#0f5744" />
-                );
-              })}
-
-              {/* Labels */}
-              {energyEfficiencyData.map((item, index) => {
-                const x = (index / (energyEfficiencyData.length - 1)) * chartWidth;
-                return (
-                  <text key={index} x={x} y={chartHeight + 15} fontSize="8" fill="#0f5744" textAnchor="middle">
-                    {item.month}
-                  </text>
-                );
-              })}
-            </svg>
-          </div>
-          <div className="text-center text-xs text-green-800 opacity-70 mt-4">
-            Improving efficiency trend • Target: 0.15 kWh per unit by 2025
+          <div className='flex flex-col items-center justify-center h-[80%] w-full'>
+            <div className="h-70 relative w-full">
+              <Line data={lineData} options={lineOptions} />
+            </div>
+            <div className="text-center text-xs text-green-800 opacity-70 mt-4">
+              Improving efficiency trend • Target: 0.15 kWh per unit by 2025
+            </div>
           </div>
         </div>
       </div>

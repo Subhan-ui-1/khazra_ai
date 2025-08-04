@@ -87,11 +87,17 @@ export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBa
                 grid: {
                     display: false,
                 },
+                ticks: {
+                    color: '#000000',
+                },
             },
             y: {
                 stacked: false,
                 grid: {
                     display: false,
+                },
+                ticks: {
+                    color: '#000000',
                 },
             },
         },
