@@ -327,6 +327,7 @@ const MaterialityAssessmentEngine = () => {
       let success = false;
       if (topic.assessmentComplete && topic.reportId) {
         // Update existing reporting
+        console.log('Updating existing reporting', topic);
         success = await updateReporting(topic.reportId, reportingData);
       } else {
         // Add new reporting

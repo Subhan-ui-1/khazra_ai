@@ -360,7 +360,7 @@ const FlexibleTargetPlatform = () => {
           <div key={step} className="flex items-center">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold border-2 ${
               currentStep >= step ? 'bg-green-600 text-white border-green-600' : 
-              currentStep === step ? 'bg-white text-green-600 border-green-600' :
+              currentStep === step ? 'bg-white text-black border-black' :
               'bg-gray-100 text-gray-400 border-gray-300'
             }`}>
               {currentStep > step ? <CheckCircle className="w-6 h-6" /> : step}
@@ -954,7 +954,7 @@ console.log(customTargets, 'custom target...........................')
                   <div className="mt-3 pt-3 border-t border-green-100">
                     <div className="flex items-center justify-between text-xs text-green-600">
                       <span>Created: {new Date(target.createdAt).toLocaleDateString()}</span>
-                      <span className={`px-2 py-1 rounded-full ${
+                      <span className={`px-2 py-1 rounded-lg ${
                         target.targetAnalysis.leadingEdge === 'Transformational' ? 'bg-purple-100 text-purple-700' :
                         target.targetAnalysis.leadingEdge === 'Ambitious' ? 'bg-green-100 text-green-700' :
                         target.targetAnalysis.leadingEdge === 'Moderate' ? 'bg-blue-100 text-blue-700' :
@@ -1297,10 +1297,10 @@ console.log(customTargets, 'custom target...........................')
     <div className="space-y-10">
       {/* Page Header */}
       <div className="border-b border-green-100 pb-6">
-        <h1 className="text-3xl font-bold text-green-800 mb-4">
+        <h1 className="text-3xl font-bold text-black mb-4">
           Carbon Target Setting
         </h1>
-        <p className="text-green-800 opacity-70 max-w-4xl leading-relaxed">
+        <p className="text-black opacity-70 max-w-4xl leading-relaxed">
           Set and manage your organization's carbon reduction targets with flexible methodologies, 
           track progress, and implement reduction initiatives to achieve your sustainability goals.
         </p>
