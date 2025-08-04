@@ -66,7 +66,7 @@ const Table: React.FC<TableProps> = ({
 
   React.useEffect(() => {
     setSelectedRowIds(selectedRows.map(row => row[rowKey]));
-  }, [selectedRows, rowKey]);
+  }, [rowKey]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

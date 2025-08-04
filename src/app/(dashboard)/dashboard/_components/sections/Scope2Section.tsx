@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TooltipItem } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+ChartJS.register(LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
 
 type Scope2Source = {
   label: string;
   value: number;
-  percentage: number;
   color: string;
-  opacity: string;
-  arcLabelPos: { x: number; y: number };
+  percentage: number;
+  rawColor: string; 
 };
 
 
@@ -25,24 +29,21 @@ const scope2DataByDuration: Scope2Data = {
       value: 1746.2,
       percentage: 73.8,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-100',
-      arcLabelPos: { x: 50, y: -5 },
+      rawColor: 'rgba(15, 87, 68, 1)',
     },
     {
       label: 'steam',
       value: 985.4,
       percentage: 17.3,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-80',
-      arcLabelPos: { x: -10, y: 25 },
+      rawColor: 'rgba(15, 87, 68, 0.8)',
     },
     {
       label: 'Heating & Cooling',
       value: 516.2,
       percentage: 19.9,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-60',
-      arcLabelPos: { x: -25, y: -25 },
+      rawColor: 'rgba(15, 87, 68, 0.6)',
     },
   ],
   'Last Year': [
@@ -51,24 +52,21 @@ const scope2DataByDuration: Scope2Data = {
       value: 1900,
       percentage: 60,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-100',
-      arcLabelPos: { x: 50, y: -5 },
+      rawColor: 'rgba(15, 87, 68, 1)',
     },
     {
       label: 'steam',
       value: 800,
       percentage: 25,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-80',
-      arcLabelPos: { x: -10, y: 25 },
+      rawColor: 'rgba(15, 87, 68, 0.8)',
     },
     {
       label: 'Heating & Cooling',
       value: 470,
       percentage: 15,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-60',
-      arcLabelPos: { x: -25, y: -25 },
+      rawColor: 'rgba(15, 87, 68, 0.6)',
     },
   ],
   'Comparison': [
@@ -77,33 +75,44 @@ const scope2DataByDuration: Scope2Data = {
       value: 1800,
       percentage: 74.4,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-100',
-      arcLabelPos: { x: 50, y: -5 },
+      rawColor: 'rgba(15, 87, 68, 1)',
     },
     {
       label: 'steam',
       value: 1100,
       percentage: 18.2,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-80',
-      arcLabelPos: { x: -10, y: 25 },
+      rawColor: 'rgba(15, 87, 68, 0.8)',
     },
     {
       label: 'Heating & Cooling',
       value: 700,
       percentage: 7.4,
       color: 'fill-[#0f5744]',
-      opacity: 'opacity-60',
-      arcLabelPos: { x: -25, y: -25 },
+      rawColor: 'rgba(15, 87, 68, 0.6)',
     },
   ],
 };
 
+const energyEfficiencyData = [
+  { month: 'Jan', efficiency: 0.145, target: 0.15 },
+  { month: 'Feb', efficiency: 0.122, target: 0.15 },
+  { month: 'Mar', efficiency: 0.189, target: 0.15 },
+  { month: 'Apr', efficiency: 0.086, target: 0.15 },
+  { month: 'May', efficiency: 0.103, target: 0.15 },
+  { month: 'Jun', efficiency: 0.190, target: 0.15 },
+  { month: 'Jul', efficiency: 0.167, target: 0.15 },
+  { month: 'Aug', efficiency: 0.164, target: 0.15 },
+  { month: 'Sep', efficiency: 0.184, target: 0.15 },
+  { month: 'Oct', efficiency: 0.168, target: 0.15 },
+  { month: 'Nov', efficiency: 0.165, target: 0.15 },
+  { month: 'Dec', efficiency: 0.162, target: 0.15 }
+];
 
 
 export default function Scope2Section() {
-    const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
-    const scope2Sources = scope2DataByDuration[duration];
+  const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
+  const scope2Sources = scope2DataByDuration[duration];
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingData, setEditingData] = useState<any>(null);
@@ -122,6 +131,100 @@ export default function Scope2Section() {
     customEmissionFactor: '',
     emissions: ''
   });
+
+  const pieData = {
+    labels: [
+      scope2Sources.map((item) => item.label)
+    ],
+    datasets: [
+      {
+        data: scope2Sources.map((item) => item.value),
+        backgroundColor: scope2Sources.map((item) => item.rawColor),
+        borderColor: '#ffffff',
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        display: false,
+      },
+    },
+  };
+
+  const lineData = {
+    labels: energyEfficiencyData.map(item => item.month),
+    datasets: [
+      {
+        label: 'Efficiency',
+        data: energyEfficiencyData.map(item => item.efficiency),
+        borderColor: '#0f5744',
+        backgroundColor: '#0f5744',
+        tension: 0,
+        pointRadius: 3,
+        pointHoverRadius: 4,
+        fill: false,
+      },
+      {
+        label: 'Target (0.15 kWh/unit)',
+        data: energyEfficiencyData.map(() => 0.15),
+        borderColor: '#0f5744',
+        borderDash: [5, 5],
+        backgroundColor: 'transparent',
+        tension: 0,
+        pointRadius: 0,
+        pointHoverRadius: 0,
+      }
+    ]
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: TooltipItem<'line'>) => {
+            const label = tooltipItem.dataset.label || '';
+            const value = tooltipItem.raw;
+            return `${label}: ${value} kWh/unit`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        suggestedMin: 0.14,
+        suggestedMax: 0.40,
+        title: {
+          display: false,
+        },
+        ticks: {
+          stepSize: 0.01
+        },
+        grid: {
+          color: '#e4e4e438'
+        }
+      },
+      x: {
+        title: {
+          display: false,
+        },
+        grid: {
+          color: '#e4e4e438'
+        }
+      }
+    }
+  };
 
   // State for table data array
   const [purchasedElectricityData, setPurchasedElectricityData] = useState([
@@ -334,21 +437,6 @@ export default function Scope2Section() {
     }
   ];
 
-  const energyEfficiencyData = [
-    { month: 'Jan', efficiency: 0.195, target: 0.15 },
-    { month: 'Feb', efficiency: 0.192, target: 0.15 },
-    { month: 'Mar', efficiency: 0.189, target: 0.15 },
-    { month: 'Apr', efficiency: 0.186, target: 0.15 },
-    { month: 'May', efficiency: 0.183, target: 0.15 },
-    { month: 'Jun', efficiency: 0.180, target: 0.15 },
-    { month: 'Jul', efficiency: 0.177, target: 0.15 },
-    { month: 'Aug', efficiency: 0.174, target: 0.15 },
-    { month: 'Sep', efficiency: 0.171, target: 0.15 },
-    { month: 'Oct', efficiency: 0.168, target: 0.15 },
-    { month: 'Nov', efficiency: 0.165, target: 0.15 },
-    { month: 'Dec', efficiency: 0.162, target: 0.15 }
-  ];
-
   const renewableEnergyData = [
     { source: 'Solar Power', percentage: 45.2, icon: '☀️' },
     { source: 'Wind Power', percentage: 28.7, icon: '💨' },
@@ -356,44 +444,44 @@ export default function Scope2Section() {
     { source: 'Biomass', percentage: 10.3, icon: '🔥' }
   ];
 
-  const energySourcesData = [
-    {
-      id: 'E-001',
-      type: 'Electricity Meter',
-      location: 'Main Campus',
-      source: 'Grid + Solar',
-      consumption: '2,847 MWh',
-      emissions: 567.3,
-      status: 'Monitored'
-    },
-    {
-      id: 'S-023',
-      type: 'Steam Line',
-      location: 'Production Plant',
-      source: 'Natural Gas',
-      consumption: '45.7 GJ',
-      emissions: 234.1,
-      status: 'Monitored'
-    },
-    {
-      id: 'H-005',
-      type: 'HVAC System',
-      location: 'Office Building',
-      source: 'District Heating',
-      consumption: '23.4 GJ',
-      emissions: 89.3,
-      status: 'Monitored'
-    },
-    {
-      id: 'R-012',
-      type: 'Renewable Certificates',
-      location: 'Virtual',
-      source: 'Solar/Wind',
-      consumption: '1,200 MWh',
-      emissions: 0,
-      status: 'Verified'
-    }
-  ];
+  // const energySourcesData = [
+  //   {
+  //     id: 'E-001',
+  //     type: 'Electricity Meter',
+  //     location: 'Main Campus',
+  //     source: 'Grid + Solar',
+  //     consumption: '2,847 MWh',
+  //     emissions: 567.3,
+  //     status: 'Monitored'
+  //   },
+  //   {
+  //     id: 'S-023',
+  //     type: 'Steam Line',
+  //     location: 'Production Plant',
+  //     source: 'Natural Gas',
+  //     consumption: '45.7 GJ',
+  //     emissions: 234.1,
+  //     status: 'Monitored'
+  //   },
+  //   {
+  //     id: 'H-005',
+  //     type: 'HVAC System',
+  //     location: 'Office Building',
+  //     source: 'District Heating',
+  //     consumption: '23.4 GJ',
+  //     emissions: 89.3,
+  //     status: 'Monitored'
+  //   },
+  //   {
+  //     id: 'R-012',
+  //     type: 'Renewable Certificates',
+  //     location: 'Virtual',
+  //     source: 'Solar/Wind',
+  //     consumption: '1,200 MWh',
+  //     emissions: 0,
+  //     status: 'Verified'
+  //   }
+  // ];
 
   const metricsData = [
     {
@@ -404,7 +492,8 @@ export default function Scope2Section() {
       changeType: 'decrease',
       subtitle: 'tonnes CO₂e • 31.9% of total emissions',
       icon: '⚡',
-      trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258]
+      // trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258]
+      progress: 34.4
     },
     {
       id: 'purchased-electricity',
@@ -434,59 +523,21 @@ export default function Scope2Section() {
       changeType: 'decrease',
       subtitle: 'kWh per unit • Efficiency metric',
       icon: '📊',
-      trend: [0.195, 0.192, 0.189, 0.186, 0.183, 0.180, 0.177, 0.174, 0.171, 0.168, 0.165, 0.162]
+      // trend: [0.195, 0.192, 0.189, 0.186, 0.183, 0.180, 0.177, 0.174, 0.171, 0.168, 0.165, 0.162],
+      progress: 94.4
     }
   ];
 
-  // Helper function to generate SVG points from data
-  const generateChartPoints = (data: any[], key: string, maxValue: number, height: number, width: number) => {
-    const points = data.map((item, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - (item[key] / maxValue) * height;
-      return `${x},${y}`;
-    }).join(' ');
-    return points;
-  };
 
-  // Calculate pie chart segments
-  const calculatePieSegments = (data: any[]) => {
-    const total = data.reduce((sum, item) => sum + item.percentage, 0);
-    let currentAngle = 0;
-    
-    return data.map((item) => {
-      const angle = (item.percentage / total) * 360;
-      const startAngle = currentAngle;
-      currentAngle += angle;
-      
-      const x1 = 60 + 50 * Math.cos((startAngle - 90) * Math.PI / 180);
-      const y1 = 60 + 50 * Math.sin((startAngle - 90) * Math.PI / 180);
-      const x2 = 60 + 50 * Math.cos((currentAngle - 90) * Math.PI / 180);
-      const y2 = 60 + 50 * Math.sin((currentAngle - 90) * Math.PI / 180);
-      
-      const largeArcFlag = angle > 180 ? 1 : 0;
-      
-      return {
-        ...item,
-        path: `M 60,60 L ${x1},${y1} A 50,50 0 ${largeArcFlag},1 ${x2},${y2} Z`,
-        labelX: 60 + 35 * Math.cos(((startAngle + currentAngle) / 2 - 90) * Math.PI / 180),
-        labelY: 60 + 35 * Math.sin(((startAngle + currentAngle) / 2 - 90) * Math.PI / 180)
-      };
-    });
-  };
-
-  // const pieSegments = calculatePieSegments(scope2BreakdownData);
-  const maxEfficiency = Math.max(...energyEfficiencyData.map(d => d.efficiency));
-  const chartWidth = 300;
-  const chartHeight = 150;
 
   return (
     <div className="space-y-10">
       {/* Page Header */}
       <div className="border-b border-green-100 pb-6">
-        <h1 className="text-3xl font-bold text-green-800 mb-4">
+        <h1 className="text-3xl font-bold text-black mb-4">
           Scope 2 Emissions Analysis
         </h1>
-        <p className="text-green-800 opacity-70 max-w-4xl leading-relaxed">
+        <p className="text-black opacity-70 max-w-4xl leading-relaxed">
           Indirect greenhouse gas emissions from the generation of purchased electricity, steam, heating, and cooling 
           consumed by the organization, including detailed analysis of energy sources and efficiency metrics.
         </p>
@@ -495,17 +546,17 @@ export default function Scope2Section() {
       {/* Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metricsData.map((metric) => (
-          <div key={metric.id} className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+          <div key={metric.id} className="bg-white border border-green-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                   {metric.title}
                 </div>
-                <div className="text-3xl font-bold text-green-800 mb-2">{metric.value}</div>
+                <div className="text-3xl font-bold text-black mb-2">{metric.value}</div>
                 <div className={`text-sm text-green-800 mb-2 ${metric.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
                   {metric.change} vs baseline
                 </div>
-                <div className="text-xs text-green-800 opacity-60">
+                <div className="text-xs text-black opacity-60">
                   {metric.subtitle}
                 </div>
               </div>
@@ -513,30 +564,16 @@ export default function Scope2Section() {
                 {metric.icon}
               </div>
             </div>
-            {metric.trend ? (
-              <div className="h-10 relative">
-                <svg width="100%" height="40" viewBox="0 0 200 40" className="absolute inset-0">
-                  <polyline
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-green-800"
-                    points={generateChartPoints(metric.trend.map((v, i) => ({ value: v })), 'value', Math.max(...metric.trend), 30, 180)}
-                  />
-                </svg>
-              </div>
-            ) : (
-              <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
-                <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: `${metric.progress}%` }}></div>
-              </div>
-            )}
+            <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
+              <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: `${metric.progress}%` }}></div>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+      <div className="w-full flex flex-wrap justify-between gap-4">
+        <div className="w-[55%] bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📊 Scope 2 Breakdown by Source
@@ -558,44 +595,17 @@ export default function Scope2Section() {
             </div>
           </div>
 
-          <div className="h-80 flex items-center justify-center">
-            <svg viewBox="0 0 300 200" className="w-full h-full">
-              <g transform="translate(150,100)">
-                {/* Hardcoded arc paths reused as-is */}
-                <path
-                  d="M 0,-60 A 60,60 0 1,1 32.3,49.7 L 0,0 Z"
-                  className={`${scope2Sources[0].color} ${scope2Sources[0].opacity}`}
-                />
-                <path
-                  d="M 32.3,49.7 A 60,60 0 0,1 -58.5,-10.8 L 0,0 Z"
-                  className={`${scope2Sources[1].color} ${scope2Sources[1].opacity}`}
-                />
-                <path
-                  d="M -58.5,-10.8 A 60,60 0 0,1 0,-60 L 0,0 Z"
-                  className={`${scope2Sources[2].color} ${scope2Sources[2].opacity}`}
-                />
-
-                {/* Dynamic labels */}
-                {scope2Sources.map((item, i) => (
-                  <text
-                    key={i}
-                    x={item.arcLabelPos.x}
-                    y={item.arcLabelPos.y}
-                    textAnchor="middle"
-                    fontSize="10"
-                    fill="white"
-                  >
-                    {item.percentage.toFixed(1)}%
-                  </text>
-                ))}
-              </g>
-            </svg>
+          <div className="h-80 py-2 w-full justify-center items-center">
+            <Pie data={pieData} options={pieOptions}/>
           </div>
 
-          <div className="flex gap-5 mt-4 flex-wrap">
+          <div className="flex gap-5 mt-4 flex-wrap ">
             {scope2Sources.map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-sm bg-green-800 ${item.opacity}`}></div>
+                <div
+                  className={`w-3 h-3 rounded-sm`}
+                  style={{ backgroundColor: item.rawColor }}
+                ></div>
                 <span className="text-sm text-green-800">
                   {item.label} ({item.value.toLocaleString()} tCO₂e)
                 </span>
@@ -604,61 +614,19 @@ export default function Scope2Section() {
           </div>
         </div>
 
-        <div className="bg-white border border-green-100 rounded-xl p-4 shadow-sm">
+        <div className="w-[40%] bg-white border border-green-100 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📈 Energy Efficiency Trend
             </h3>
           </div>
-          <div className="h-90 relative">
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full">
-              <defs>
-                <pattern id="efficiencyGrid" width="30" height="15" patternUnits="userSpaceOnUse">
-                  <path d="M 30 0 L 0 0 0 15" fill="none" stroke="#e4f5d5" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#efficiencyGrid)" />
-
-              {/* Efficiency line */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="3"
-                points={generateChartPoints(energyEfficiencyData, 'efficiency', maxEfficiency, chartHeight, chartWidth)}
-              />
-
-              {/* Target line */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-                opacity="0.5"
-                points={`0,${chartHeight - (0.15 / maxEfficiency) * chartHeight} ${chartWidth},${chartHeight - (0.15 / maxEfficiency) * chartHeight}`}
-              />
-
-              {/* Data points */}
-              {energyEfficiencyData.map((item, index) => {
-                const x = (index / (energyEfficiencyData.length - 1)) * chartWidth;
-                const y = chartHeight - (item.efficiency / maxEfficiency) * chartHeight;
-                return (
-                  <circle key={index} cx={x} cy={y} r="3" fill="#0f5744" />
-                );
-              })}
-
-              {/* Labels */}
-              {energyEfficiencyData.map((item, index) => {
-                const x = (index / (energyEfficiencyData.length - 1)) * chartWidth;
-                return (
-                  <text key={index} x={x} y={chartHeight + 15} fontSize="8" fill="#0f5744" textAnchor="middle">
-                    {item.month}
-                  </text>
-                );
-              })}
-            </svg>
-          </div>
-          <div className="text-center text-xs text-green-800 opacity-70 mt-4">
-            Improving efficiency trend • Target: 0.15 kWh per unit by 2025
+          <div className='flex flex-col items-center justify-center h-[80%] w-full'>
+            <div className="h-70 relative w-full">
+              <Line data={lineData} options={lineOptions} />
+            </div>
+            <div className="text-center text-xs text-green-800 opacity-70 mt-4">
+              Improving efficiency trend • Target: 0.15 kWh per unit by 2025
+            </div>
           </div>
         </div>
       </div>
@@ -672,12 +640,12 @@ export default function Scope2Section() {
                 {source.id === 'purchased-electricity' ? '🔌' : source.id === 'steam' ? '💨' : '❄️'}
               </div>
               <div>
-                <h4 className="font-semibold text-green-800">{source.name}</h4>
-                <div className="text-xs text-green-800 opacity-60">{source.description}</div>
+                <h4 className="font-semibold text-black">{source.name}</h4>
+                <div className="text-xs text-black opacity-60">{source.description}</div>
               </div>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <div className="text-2xl font-bold text-green-800">{source.value}</div>
+              <div className="text-2xl font-bold text-black">{source.value}</div>
               <div className="text-sm text-green-800 opacity-60">{source.percentage}%</div>
             </div>
             <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden mb-3">
@@ -686,7 +654,7 @@ export default function Scope2Section() {
                 style={{ width: `${source.percentage}%` }}
               ></div>
             </div>
-            <div className="text-xs text-green-800 opacity-70">
+            <div className="text-xs text-black opacity-70">
               {source.id === 'purchased-electricity' ? '12 meters • Grid mix, renewable certificates' :
                 source.id === 'steam' ? '8 steam lines • Natural gas, biomass' :
                 '15 HVAC systems • District heating'}
@@ -698,7 +666,7 @@ export default function Scope2Section() {
       {/* Renewable Energy Section */}
       <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
-          <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-black flex items-center gap-2">
             🌞 Renewable Energy Portfolio
           </h3>
           <div className="text-sm text-green-800 opacity-70">89.7% renewable energy usage</div>
@@ -710,7 +678,7 @@ export default function Scope2Section() {
                 {energy.icon}
               </div>
               <div className="text-2xl font-bold text-green-800 mb-1">{energy.percentage}%</div>
-              <div className="text-sm text-green-800 opacity-70">{energy.source}</div>
+              <div className="text-sm text-black opacity-70">{energy.source}</div>
             </div>
           ))}
         </div>

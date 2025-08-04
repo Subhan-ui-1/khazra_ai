@@ -55,7 +55,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
       section: 'Overview',
       items: [
         { id: 'overview', icon: '📊', label: 'Dashboard Overview' },
-        { id: 'data-collection', icon: '📥', label: 'Data Collection' }
+        // { id: 'data-collection', icon: '📥', label: 'Data Collection' }
       ]
     },
     {
@@ -94,15 +94,15 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
     {
       section: 'Reporting',
       items: [
-        { id: 'sustainability-reporting', icon: '📋', label: 'Sustainability Reporting' },
-        { id: 'analytics', icon: '📊', label: 'Analytics & Insights' },
+        // { id: 'sustainability-reporting', icon: '📋', label: 'Sustainability Reporting' },
+        // { id: 'analytics', icon: '📊', label: 'Analytics & Insights' },
         { id: 'reporting', icon: '📊', label: 'Reporting' }
       ]
     },
     {
       section: 'Support',
       items: [
-        { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' },
+        // { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' },
         { id: 'feedback', icon: '📝', label: 'Feedback', permission: 'feedback.view' }
       ]
     },
@@ -156,7 +156,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                 <div key={item.id}>
                   <button
                     onClick={() => handleDropdown(item.id)}
-                    className={`w-full flex items-center gap-2 pe-2 py-3 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                    className={`w-full flex items-center gap-2 px-1 py-3 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
                       openDropdown === item.id || isChildActive || isActive ? 'bg-[#10694e] font-semibold' : ''
                     }`}
                   >
@@ -170,7 +170,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
                         <button
                           key={child.id}
                           onClick={() => onSectionChange(child.id)}
-                          className={`w-full flex items-center gap-3 py-2 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                          className={`w-full flex items-center gap-3 py-2 ps-1 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
                             activeSection === child.id ? 'bg-[#10694e] font-semibold' : ''
                           }`}
                         >
@@ -188,7 +188,7 @@ export default function DashboardSidebar({ activeSection, onSectionChange }: Das
               <button
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
-                className={`w-full flex items-center gap-2 py-2.5 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                className={`w-full flex items-center gap-2 py-2.5 ps-1 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
                   isActive ? 'bg-[#10694e] font-semibold' : ''
                 }`}
               >
