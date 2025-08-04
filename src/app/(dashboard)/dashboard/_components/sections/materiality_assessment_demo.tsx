@@ -76,14 +76,14 @@ interface Topic {
     irremediableCharacter: number;
     likelihood: number;
     overallScore: number;
-  } | null;
+  };
   financialAssessment: {
     cashFlowImpact: number;
     accessToFinance: number;
     costOfCapital: number;
     timeHorizon: number;
     overallScore: number;
-  } | null;
+  };
   stakeholderConcern: number;
   assessmentComplete: boolean;
   lastAssessed: string | null;
@@ -156,14 +156,26 @@ const MaterialityAssessmentEngine = () => {
               irremediableCharacter: 5,
               likelihood: 7,
               overallScore: 6.25
-            } : null,
+            } : {
+              scale: 1,
+              scope: 1,
+              irremediableCharacter: 1,
+              likelihood: 1,
+              overallScore: 1
+            },
             financialAssessment: isAssessed ? {
               cashFlowImpact: 6,
               accessToFinance: 5,
               costOfCapital: 5,
               timeHorizon: 6,
               overallScore: 5.5
-            } : null,
+            } : {
+              cashFlowImpact: 1,
+              accessToFinance: 1,
+              costOfCapital: 1,
+              timeHorizon: 1,
+              overallScore: 1
+            },
             stakeholderConcern: isAssessed ? 6 : 0,
             assessmentComplete: isAssessed,
             lastAssessed: isAssessed ? new Date(report.updatedAt).toISOString().split('T')[0] : null,
@@ -202,7 +214,9 @@ const MaterialityAssessmentEngine = () => {
   // Add new reporting data
   const addReporting = async (reportingData: ReportingData): Promise<boolean> => {
     try {
+      console.log('Adding reporting data:', reportingData);
       const response: ReportingResponse = await postRequest('reporting/addReporting', reportingData, undefined, getToken(), 'post');
+      console.log('Add reporting response:', response);
       return response.success;
     } catch (err) {
       console.error('Error adding reporting data:', err);
@@ -213,7 +227,11 @@ const MaterialityAssessmentEngine = () => {
   // Update existing reporting data
   const updateReporting = async (reportId: string, reportingData: ReportingData): Promise<boolean> => {
     try {
-      const response: ReportingResponse = await postRequest(`reporting/updateReporting/${reportId}`, reportingData, undefined, getToken(), 'put');
+      console.log('Updating reporting data for reportId:', reportId, reportingData);
+     let some = reportingData 
+     some.reportId = undefined
+      const response: ReportingResponse = await postRequest(`reporting/updateReporting/${reportId}`, some, undefined, getToken(), 'put');
+      console.log('Update reporting response:', response);
       return response.success;
     } catch (err) {
       console.error('Error updating reporting data:', err);
@@ -227,11 +245,12 @@ const MaterialityAssessmentEngine = () => {
   }, []);
 
   const calculateMaterialityLevel = (topic: Topic): MaterialityLevel => {
-    if (!topic.assessmentComplete) return { level: "Not Assessed", color: "bg-gray-400", priority: 0 };
-    
-    const impactScore = topic.impactAssessment?.overallScore || 0;
-    const financialScore = topic.financialAssessment?.overallScore || 0;
+    const impactScore = topic.impactAssessment.overallScore || 0;
+    const financialScore = topic.financialAssessment.overallScore || 0;
     const maxScore = Math.max(impactScore, financialScore);
+    
+    // Only return "Not Assessed" if both scores are 0 or very low
+    if (maxScore <= 1) return { level: "Not Assessed", color: "bg-gray-400", priority: 0 };
     
     if (maxScore >= 7) return { level: "High Material", color: "bg-red-500", priority: 3 };
     if (maxScore >= 5) return { level: "Medium Material", color: "bg-yellow-500", priority: 2 };
@@ -242,14 +261,19 @@ const MaterialityAssessmentEngine = () => {
   const updateTopicAssessment = (topicId: number, assessmentType: 'impactAssessment' | 'financialAssessment', criteria: string, value: number) => {
     setTopics(prev => prev.map(topic => {
       if (topic.id === topicId) {
+        const currentAssessment = topic[assessmentType] || {};
         const updatedAssessment = {
-          ...topic[assessmentType],
+          ...currentAssessment,
           [criteria]: value
         } as any;
         
-        // Calculate overall score
-        const scores = Object.values(updatedAssessment).filter(v => typeof v === 'number');
-        updatedAssessment.overallScore = scores.reduce((sum: number, score: any) => sum + score, 0) / scores.length;
+        // Calculate overall score (exclude overallScore from calculation)
+        const scoreKeys = assessmentType === 'impactAssessment' 
+          ? ['scale', 'scope', 'irremediableCharacter', 'likelihood']
+          : ['cashFlowImpact', 'accessToFinance', 'costOfCapital', 'timeHorizon'];
+        
+        const scores = scoreKeys.map(key => updatedAssessment[key] || 0);
+        updatedAssessment.overallScore = scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length;
         
         return {
           ...topic,
@@ -260,65 +284,80 @@ const MaterialityAssessmentEngine = () => {
     }));
   };
 
-  const completeTopicAssessment = async (topicId: number, rationale: string) => {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    // Prepare reporting data for API
-    const materiality = calculateMaterialityLevel(topic);
-    const reportingData: ReportingData = {
-      reportId: topic.reportId || '',
-      topicName: topic.category,
-      impactMateriality: {
-        scale: topic.impactAssessment?.scale || 0,
-        scope: topic.impactAssessment?.scope || 0,
-        irremediableCharacter: topic.impactAssessment?.irremediableCharacter || 0,
-        likelihood: topic.impactAssessment?.likelihood || 0,
-        overallImpactScore: topic.impactAssessment?.overallScore || 0
-      },
-      financialMateriality: {
-        cashFlowImpact: topic.financialAssessment?.cashFlowImpact || 0,
-        accessToFinance: topic.financialAssessment?.accessToFinance || 0,
-        costOfCapital: topic.financialAssessment?.costOfCapital || 0,
-        timeHorizon: topic.financialAssessment?.timeHorizon || 0,
-        overallFinancialScore: topic.financialAssessment?.overallScore || 0
-      },
-      assessmentRationale: rationale,
-      materialityDetermination: {
-        impactScore: topic.impactAssessment?.overallScore || 0,
-        financialScore: topic.financialAssessment?.overallScore || 0,
-        overallResult: materiality.level
+  const completeTopicAssessment = async (topicId: number, rationale: string): Promise<boolean> => {
+    try {
+      const topic = topics.find(t => t.id === topicId);
+      if (!topic) {
+        console.error('Topic not found');
+        return false;
       }
-    };
 
-    // Check if this is a new assessment or updating existing one
-    let success = false;
-    if (topic.assessmentComplete && topic.reportId) {
-      // Update existing reporting
-      success = await updateReporting(topic.reportId, reportingData);
-    } else {
-      // Add new reporting
-      success = await addReporting(reportingData);
-    }
 
-    if (success) {
-      // Update local state
-      setTopics(prev => prev.map(t => 
-        t.id === topicId 
-          ? { 
-              ...t, 
-              assessmentComplete: true,
-              lastAssessed: new Date().toISOString().split('T')[0],
-              assessedBy: "Current User",
-              rationale
-            }
-          : t
-      ));
-    } else {
-      console.error('Failed to save assessment to API');
-      // You might want to show a toast notification here
+
+      // Prepare reporting data for API
+      const materiality = calculateMaterialityLevel(topic);
+      const reportingData: ReportingData = {
+        reportId: topic.reportId || '',
+        topicName: topic.name, // Use topic name instead of category
+        impactMateriality: {
+          scale: topic.impactAssessment.scale,
+          scope: topic.impactAssessment.scope,
+          irremediableCharacter: topic.impactAssessment.irremediableCharacter,
+          likelihood: topic.impactAssessment.likelihood,
+          overallImpactScore: topic.impactAssessment.overallScore
+        },
+        financialMateriality: {
+          cashFlowImpact: topic.financialAssessment.cashFlowImpact,
+          accessToFinance: topic.financialAssessment.accessToFinance,
+          costOfCapital: topic.financialAssessment.costOfCapital,
+          timeHorizon: topic.financialAssessment.timeHorizon,
+          overallFinancialScore: topic.financialAssessment.overallScore
+        },
+        assessmentRationale: rationale,
+        materialityDetermination: {
+          impactScore: topic.impactAssessment.overallScore,
+          financialScore: topic.financialAssessment.overallScore,
+          overallResult: materiality.level
+        }
+      };
+
+      console.log('Sending reporting data:', reportingData);
+
+      // Check if this is a new assessment or updating existing one
+      let success = false;
+      if (topic.assessmentComplete && topic.reportId) {
+        // Update existing reporting
+        success = await updateReporting(topic.reportId, reportingData);
+      } else {
+        // Add new reporting
+        success = await addReporting(reportingData);
+      }
+
+      if (success) {
+        // Update local state
+        setTopics(prev => prev.map(t => 
+          t.id === topicId 
+            ? { 
+                ...t, 
+                assessmentComplete: true,
+                lastAssessed: new Date().toISOString().split('T')[0],
+                assessedBy: "Current User",
+                rationale
+              }
+            : t
+        ));
+        console.log('Assessment saved successfully');
+        return true;
+      } else {
+        console.error('Failed to save assessment to API');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error in completeTopicAssessment:', error);
+      return false;
     }
   };
+  console.log(topics)
 
   const filteredTopics = topics.filter(topic => {
     // Filter by status
@@ -568,6 +607,22 @@ const MaterialityAssessmentEngine = () => {
     if (!topic || selectedTopic === null) return null;
 
     const [localRationale, setLocalRationale] = useState(topic.rationale || '');
+    const [localImpactAssessment, setLocalImpactAssessment] = useState(topic.impactAssessment);
+    const [localFinancialAssessment, setLocalFinancialAssessment] = useState(topic.financialAssessment);
+
+    // Update local states when topic changes
+    useEffect(() => {
+      setLocalRationale(topic.rationale || '');
+      setLocalImpactAssessment(topic.impactAssessment);
+      setLocalFinancialAssessment(topic.financialAssessment);
+    }, [topic.rationale, topic.impactAssessment, topic.financialAssessment]);
+
+    // Calculate current materiality level based on local state
+    const currentMateriality = calculateMaterialityLevel({
+      ...topic,
+      impactAssessment: localImpactAssessment,
+      financialAssessment: localFinancialAssessment
+    });
 
     const impactCriteria = [
       { key: 'scale', name: 'Scale', description: 'How significant is the impact?' },
@@ -581,7 +636,7 @@ const MaterialityAssessmentEngine = () => {
       { key: 'accessToFinance', name: 'Access to Finance', description: 'Impact on financing availability' },
       { key: 'costOfCapital', name: 'Cost of Capital', description: 'Effect on capital costs' },
       { key: 'timeHorizon', name: 'Time Horizon', description: 'Short, medium, long-term effects' }
-    ];
+          ];
 
     return (
       <div className="space-y-6">
@@ -626,7 +681,7 @@ const MaterialityAssessmentEngine = () => {
                   <div className="flex justify-between items-center">
                     <label className="block text-sm font-medium">{criteria.name}</label>
                     <span className="text-sm font-bold text-blue-600">
-                      {topic.impactAssessment?.[criteria.key as keyof typeof topic.impactAssessment] || 1}/10
+                      {localImpactAssessment[criteria.key as keyof typeof localImpactAssessment]}/10
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">{criteria.description}</p>
@@ -634,13 +689,22 @@ const MaterialityAssessmentEngine = () => {
                     type="range"
                     min="1"
                     max="10"
-                    value={topic.impactAssessment?.[criteria.key as keyof typeof topic.impactAssessment] || 1}
-                    onChange={(e) => updateTopicAssessment(
-                      selectedTopic, 
-                      'impactAssessment', 
-                      criteria.key, 
-                      parseInt(e.target.value)
-                    )}
+                    value={localImpactAssessment[criteria.key as keyof typeof localImpactAssessment]}
+                    onChange={(e) => {
+                      const newValue = parseInt(e.target.value);
+                      const updatedAssessment = {
+                        ...localImpactAssessment,
+                        [criteria.key]: newValue
+                      };
+                      
+                      // Calculate new overall score
+                      const scoreKeys = ['scale', 'scope', 'irremediableCharacter', 'likelihood'];
+                      const scores = scoreKeys.map(key => updatedAssessment[key as keyof typeof updatedAssessment] as number);
+                      updatedAssessment.overallScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+                      
+                      setLocalImpactAssessment(updatedAssessment);
+                      updateTopicAssessment(selectedTopic, 'impactAssessment', criteria.key, newValue);
+                    }}
                     className="w-full"
                   />
                 </div>
@@ -650,7 +714,7 @@ const MaterialityAssessmentEngine = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Overall Impact Score:</span>
                   <span className="text-lg font-bold text-blue-600">
-                    {topic.impactAssessment?.overallScore?.toFixed(1) || '0.0'}/10
+                    {localImpactAssessment.overallScore.toFixed(1)}/10
                   </span>
                 </div>
               </div>
@@ -672,7 +736,7 @@ const MaterialityAssessmentEngine = () => {
                   <div className="flex justify-between items-center">
                     <label className="block text-sm font-medium">{criteria.name}</label>
                     <span className="text-sm font-bold text-green-600">
-                      {topic.financialAssessment?.[criteria.key as keyof typeof topic.financialAssessment] || 1}/10
+                      {localFinancialAssessment[criteria.key as keyof typeof localFinancialAssessment]}/10
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">{criteria.description}</p>
@@ -680,13 +744,22 @@ const MaterialityAssessmentEngine = () => {
                     type="range"
                     min="1"
                     max="10"
-                    value={topic.financialAssessment?.[criteria.key as keyof typeof topic.financialAssessment] || 1}
-                    onChange={(e) => updateTopicAssessment(
-                      selectedTopic, 
-                      'financialAssessment', 
-                      criteria.key, 
-                      parseInt(e.target.value)
-                    )}
+                    value={localFinancialAssessment[criteria.key as keyof typeof localFinancialAssessment]}
+                    onChange={(e) => {
+                      const newValue = parseInt(e.target.value);
+                      const updatedAssessment = {
+                        ...localFinancialAssessment,
+                        [criteria.key]: newValue
+                      };
+                      
+                      // Calculate new overall score
+                      const scoreKeys = ['cashFlowImpact', 'accessToFinance', 'costOfCapital', 'timeHorizon'];
+                      const scores = scoreKeys.map(key => updatedAssessment[key as keyof typeof updatedAssessment] as number);
+                      updatedAssessment.overallScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+                      
+                      setLocalFinancialAssessment(updatedAssessment);
+                      updateTopicAssessment(selectedTopic, 'financialAssessment', criteria.key, newValue);
+                    }}
                     className="w-full"
                   />
                 </div>
@@ -696,7 +769,7 @@ const MaterialityAssessmentEngine = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Overall Financial Score:</span>
                   <span className="text-lg font-bold text-green-600">
-                    {topic.financialAssessment?.overallScore?.toFixed(1) || '0.0'}/10
+                    {localFinancialAssessment.overallScore.toFixed(1)}/10
                   </span>
                 </div>
               </div>
@@ -721,23 +794,32 @@ const MaterialityAssessmentEngine = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {topic.impactAssessment?.overallScore?.toFixed(1) || '0.0'}
+                {localImpactAssessment.overallScore.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600">Impact Score (GRI)</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {topic.financialAssessment?.overallScore?.toFixed(1) || '0.0'}
+                {localFinancialAssessment.overallScore.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600">Financial Score (IFRS)</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className={`text-2xl font-bold ${calculateMaterialityLevel(topic).color.replace('bg-', 'text-').replace('-500', '-600')}`}>
-                {calculateMaterialityLevel(topic).level}
+              <div className={`text-2xl font-bold ${currentMateriality.color.replace('bg-', 'text-').replace('-500', '-600')}`}>
+                {currentMateriality.level}
               </div>
-              <div className="text-sm text-gray-600">Overall Result</div>
+              <div className="text-sm text-gray-600">
+                {currentMateriality.level === "Not Assessed" ? "Adjust scores above" : "Overall Result"}
+              </div>
             </div>
           </div>
+          {currentMateriality.level !== "Not Assessed" && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm text-green-800">
+                <strong>Real-time Assessment:</strong> Materiality level updates automatically as you adjust the scores above.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Save Assessment */}
@@ -750,8 +832,33 @@ const MaterialityAssessmentEngine = () => {
           </button>
           <button
             onClick={async () => {
-              await completeTopicAssessment(selectedTopic, localRationale);
-              setAssessmentMode('results');
+              try {
+                // Update the topic with local assessment data before saving
+                const updatedTopic = {
+                  ...topic,
+                  impactAssessment: localImpactAssessment,
+                  financialAssessment: localFinancialAssessment
+                };
+                
+                // Temporarily update the topics state with local data
+                setTopics(prev => prev.map(t => 
+                  t.id === selectedTopic ? updatedTopic : t
+                ));
+                
+                // Calculate materiality level based on local assessment data
+                const materialityLevel = calculateMaterialityLevel(updatedTopic);
+                
+                const success = await completeTopicAssessment(selectedTopic, localRationale);
+                if (success) {
+                  setAssessmentMode('results');
+                } else {
+                  // Show error message to user
+                  alert('Failed to save assessment. Please try again.');
+                }
+              } catch (error) {
+                console.error('Error saving assessment:', error);
+                alert('An error occurred while saving the assessment. Please try again.');
+              }
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
@@ -804,23 +911,23 @@ const MaterialityAssessmentEngine = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Scale:</span>
-                <span className="font-medium">{topic.impactAssessment?.scale}/10</span>
+                <span className="font-medium">{topic.impactAssessment.scale}/10</span>
               </div>
               <div className="flex justify-between">
                 <span>Scope:</span>
-                <span className="font-medium">{topic.impactAssessment?.scope}/10</span>
+                <span className="font-medium">{topic.impactAssessment.scope}/10</span>
               </div>
               <div className="flex justify-between">
                 <span>Irremediable Character:</span>
-                <span className="font-medium">{topic.impactAssessment?.irremediableCharacter}/10</span>
+                <span className="font-medium">{topic.impactAssessment.irremediableCharacter}/10</span>
               </div>
               <div className="flex justify-between">
                 <span>Likelihood:</span>
-                <span className="font-medium">{topic.impactAssessment?.likelihood}/10</span>
+                <span className="font-medium">{topic.impactAssessment.likelihood}/10</span>
               </div>
               <div className="border-t pt-2 flex justify-between font-bold">
                 <span>Overall Score:</span>
-                <span className="text-blue-600">{topic.impactAssessment?.overallScore.toFixed(1)}/10</span>
+                <span className="text-blue-600">{topic.impactAssessment.overallScore.toFixed(1)}/10</span>
               </div>
             </div>
           </div>
@@ -830,23 +937,23 @@ const MaterialityAssessmentEngine = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Cash Flow Impact:</span>
-                <span className="font-medium">{topic.financialAssessment?.cashFlowImpact}/10</span>
+                <span className="font-medium">{topic.financialAssessment.cashFlowImpact}/10</span>
               </div>
               <div className="flex justify-between">
                 <span>Access to Finance:</span>
-                <span className="font-medium">{topic.financialAssessment?.accessToFinance}/10</span>
+                <span className="font-medium">{topic.financialAssessment.accessToFinance}/10</span>
               </div>
               <div className="flex justify-between">
                 <span>Cost of Capital:</span>
-                <span className="font-medium">{topic.financialAssessment?.costOfCapital}/10</span>
+                <span className="font-medium">{topic.financialAssessment.costOfCapital}/10</span>
               </div>
               <div className="flex justify-between">
                 <span>Time Horizon:</span>
-                <span className="font-medium">{topic.financialAssessment?.timeHorizon}/10</span>
+                <span className="font-medium">{topic.financialAssessment.timeHorizon}/10</span>
               </div>
               <div className="border-t pt-2 flex justify-between font-bold">
                 <span>Overall Score:</span>
-                <span className="text-green-600">{topic.financialAssessment?.overallScore.toFixed(1)}/10</span>
+                <span className="text-green-600">{topic.financialAssessment.overallScore.toFixed(1)}/10</span>
               </div>
             </div>
           </div>

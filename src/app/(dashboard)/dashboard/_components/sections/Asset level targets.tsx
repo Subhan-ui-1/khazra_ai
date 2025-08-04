@@ -251,81 +251,126 @@ const AssetLevelTargetPlatform = () => {
       : 0;
     
     return (
-      <div className="space-y-8">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-4 gap-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
+      <div className="space-y-10">
+        {/* Summary Cards - Updated to match dashboard design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-sm text-gray-600">Total Current Emissions</p>
-                <p className="text-3xl font-bold text-blue-600">{totals.overall.current.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">tCO₂e/year</p>
+                <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                  Total Current Emissions
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">
+                  {totals.overall.current.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-700 mb-2">tCO₂e/year</div>
+                <div className="text-xs text-gray-500">
+                  Current year emissions
+                </div>
               </div>
-              <BarChart3 className="w-10 h-10 text-blue-600" />
+              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-blue-600" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-sm text-gray-600">Target Emissions</p>
-                <p className="text-3xl font-bold text-green-600">{totals.overall.target.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">tCO₂e/year by 2030</p>
+                <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                  Target Emissions
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">
+                  {totals.overall.target.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-700 mb-2">tCO₂e/year by 2030</div>
+                <div className="text-xs text-gray-500">
+                  Target year emissions
+                </div>
               </div>
-              <Target className="w-10 h-10 text-green-600" />
+              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                <Target className="w-6 h-6 text-green-600" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-sm text-gray-600">Total Reduction</p>
-                <p className="text-3xl font-bold text-purple-600">{overallReduction.toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">from baseline</p>
+                <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                  Total Reduction
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">
+                  {overallReduction.toFixed(1)}%
+                </div>
+                <div className="text-sm text-gray-700 mb-2">from baseline</div>
+                <div className="text-xs text-gray-500">
+                  Reduction target
+                </div>
               </div>
-              <TrendingDown className="w-10 h-10 text-purple-600" />
+              <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+                <TrendingDown className="w-6 h-6 text-purple-600" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-sm text-gray-600">Asset Categories</p>
-                <p className="text-3xl font-bold text-orange-600">3</p>
-                <p className="text-xs text-gray-500 mt-1">with targets set</p>
+                <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                  Asset Categories
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">3</div>
+                <div className="text-sm text-gray-700 mb-2">with targets set</div>
+                <div className="text-xs text-gray-500">
+                  Active categories
+                </div>
               </div>
-              <Layers className="w-10 h-10 text-orange-600" />
+              <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+                <Layers className="w-6 h-6 text-orange-600" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Category Breakdown */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        {/* Category Breakdown - Updated styling */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Emissions by Category</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {Object.entries(totals).filter(([key]) => key !== 'overall').map(([category, data]) => {
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Object.entries(totals).filter(([key]) => key !== 'overall').map(([category, data], index) => {
               const reduction = data.baseline > 0 ? ((data.baseline - data.target) / data.baseline * 100) : 0;
               const icons: { [key: string]: any } = {
                 facilities: Building,
                 equipment: Wrench,
                 fleet: Car
               };
+              const colors = ['blue', 'purple', 'orange'];
+              const color = colors[index];
               const Icon = icons[category];
               
               return (
-                <div key={category} className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Icon className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-gray-900 capitalize">{category}</span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Current:</span>
-                      <span className="font-medium">{data.current.toLocaleString()}</span>
+                <div key={category} className={`bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className={`text-xs font-semibold text-${color}-800 opacity-70 uppercase tracking-wider mb-1.5`}>
+                        {category} Emissions
+                      </div>
+                      <div className={`text-3xl font-bold text-${color}-800 mb-1.5`}>
+                        {data.current.toLocaleString()}
+                      </div>
+                      <div className={`text-sm text-${color}-800 mb-1.5`}>tCO₂e/year</div>
+                      <div className={`text-xs text-${color}-800 opacity-60`}>
+                        Current emissions
+                      </div>
                     </div>
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                      <Icon className={`w-6 h-6 text-${color}-600`} />
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm border-t border-gray-100 pt-4">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Target:</span>
-                      <span className="font-medium">{data.target.toLocaleString()}</span>
+                      <span className="font-medium text-gray-900">{data.target.toLocaleString()} tCO₂e</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Reduction:</span>
@@ -338,8 +383,8 @@ const AssetLevelTargetPlatform = () => {
           </div>
         </div>
 
-        {/* Asset Summary Table */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        {/* Asset Summary Table - Updated styling */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Asset Portfolio Summary</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -354,46 +399,46 @@ const AssetLevelTargetPlatform = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="px-4 py-3 font-medium">Facilities</td>
-                  <td className="px-4 py-3">{assetData.facilities.length} locations</td>
-                  <td className="px-4 py-3">{totals.facilities.current.toLocaleString()} tCO₂e</td>
-                  <td className="px-4 py-3">{totals.facilities.target.toLocaleString()} tCO₂e</td>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900">Facilities</td>
+                  <td className="px-4 py-3 text-gray-700">{assetData.facilities.length} locations</td>
+                  <td className="px-4 py-3 text-gray-700">{totals.facilities.current.toLocaleString()} tCO₂e</td>
+                  <td className="px-4 py-3 text-gray-700">{totals.facilities.target.toLocaleString()} tCO₂e</td>
                   <td className="px-4 py-3 text-green-600">
                     {totals.facilities.baseline > 0 
                       ? ((totals.facilities.baseline - totals.facilities.target) / totals.facilities.baseline * 100).toFixed(1)
                       : '0'}%
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">On Track</span>
+                    <span className="px-2 py-1 bg-green-100 text-green-800 border border-green-800 rounded-lg text-xs font-semibold">On Track</span>
                   </td>
                 </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Equipment</td>
-                  <td className="px-4 py-3">{assetData.equipment.length} units</td>
-                  <td className="px-4 py-3">{totals.equipment.current.toLocaleString()} tCO₂e</td>
-                  <td className="px-4 py-3">{totals.equipment.target.toLocaleString()} tCO₂e</td>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900">Equipment</td>
+                  <td className="px-4 py-3 text-gray-700">{assetData.equipment.length} units</td>
+                  <td className="px-4 py-3 text-gray-700">{totals.equipment.current.toLocaleString()} tCO₂e</td>
+                  <td className="px-4 py-3 text-gray-700">{totals.equipment.target.toLocaleString()} tCO₂e</td>
                   <td className="px-4 py-3 text-green-600">
                     {totals.equipment.baseline > 0 
                       ? ((totals.equipment.baseline - totals.equipment.target) / totals.equipment.baseline * 100).toFixed(1)
                       : '0'}%
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">On Track</span>
+                    <span className="px-2 py-1 bg-green-100 text-green-800 border border-green-800 rounded-lg text-xs font-semibold">On Track</span>
                   </td>
                 </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Fleet</td>
-                  <td className="px-4 py-3">{assetData.fleet.length} vehicles</td>
-                  <td className="px-4 py-3">{totals.fleet.current.toLocaleString()} tCO₂e</td>
-                  <td className="px-4 py-3">{totals.fleet.target.toLocaleString()} tCO₂e</td>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900">Fleet</td>
+                  <td className="px-4 py-3 text-gray-700">{assetData.fleet.length} vehicles</td>
+                  <td className="px-4 py-3 text-gray-700">{totals.fleet.current.toLocaleString()} tCO₂e</td>
+                  <td className="px-4 py-3 text-gray-700">{totals.fleet.target.toLocaleString()} tCO₂e</td>
                   <td className="px-4 py-3 text-green-600">
                     {totals.fleet.baseline > 0 
                       ? ((totals.fleet.baseline - totals.fleet.target) / totals.fleet.baseline * 100).toFixed(1)
                       : '0'}%
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">At Risk</span>
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 border border-yellow-800 rounded-lg text-xs font-semibold">At Risk</span>
                   </td>
                 </tr>
               </tbody>
@@ -416,13 +461,13 @@ const AssetLevelTargetPlatform = () => {
       equipment: {
         title: 'Equipment',
         icon: Wrench,
-        color: 'green',
+        color: 'purple',
         targetCategory: 'Equipment'
       },
       fleet: {
         title: 'Fleet',
         icon: Car,
-        color: 'purple',
+        color: 'orange',
         targetCategory: 'Fleet'
       }
     };
@@ -440,7 +485,7 @@ const AssetLevelTargetPlatform = () => {
     };
     return (
       <div className="space-y-6">
-        {/* Category Header */}
+        {/* Category Header - Updated styling */}
         <div className={`bg-${config.color}-50 border border-${config.color}-200 rounded-lg p-6`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -457,7 +502,7 @@ const AssetLevelTargetPlatform = () => {
           </div>
         </div>
 
-        {/* Asset Cards */}
+        {/* Asset Cards - Updated styling */}
         <div className="grid grid-cols-1 gap-6">
           {data.map((item) => {
             const targetData = getTargetData(item._id);
@@ -505,7 +550,7 @@ const AssetLevelTargetPlatform = () => {
             };
             
             return (
-              <div key={item._id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+              <div key={item._id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
@@ -523,7 +568,7 @@ const AssetLevelTargetPlatform = () => {
                       {!isEditing ? (
                         <button
                           onClick={() => setEditingItem(item._id)}
-                          className="flex items-center space-x-2 px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md"
+                          className="flex items-center space-x-2 px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200"
                         >
                           <Edit3 className="w-4 h-4" />
                           <span>Edit Targets</span>
@@ -532,14 +577,14 @@ const AssetLevelTargetPlatform = () => {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={handleSave}
-                            className="flex items-center space-x-2 px-3 py-1 text-green-600 hover:bg-green-50 rounded-md"
+                            className="flex items-center space-x-2 px-3 py-1 text-green-600 hover:bg-green-50 rounded-md border border-green-200"
                           >
                             <Save className="w-4 h-4" />
                             <span>Save</span>
                           </button>
                           <button
                             onClick={() => setEditingItem(null)}
-                            className="flex items-center space-x-2 px-3 py-1 text-gray-600 hover:bg-gray-50 rounded-md"
+                            className="flex items-center space-x-2 px-3 py-1 text-gray-600 hover:bg-gray-50 rounded-md border border-gray-200"
                           >
                             <X className="w-4 h-4" />
                             <span>Cancel</span>
@@ -558,19 +603,19 @@ const AssetLevelTargetPlatform = () => {
                           <>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Type:</span>
-                              <span className="font-medium capitalize">{item.facilityType}</span>
+                              <span className="font-medium text-gray-900 capitalize">{item.facilityType}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Size:</span>
-                              <span className="font-medium">{item.floorArea?.toLocaleString()} sq ft</span>
+                              <span className="font-medium text-gray-900">{item.floorArea?.toLocaleString()} sq ft</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Employees:</span>
-                              <span className="font-medium">{item.numberOfEmployees}</span>
+                              <span className="font-medium text-gray-900">{item.numberOfEmployees}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Address:</span>
-                              <span className="font-medium">{item.fullAddress}</span>
+                              <span className="font-medium text-gray-900">{item.fullAddress}</span>
                             </div>
                           </>
                         )}
@@ -578,23 +623,23 @@ const AssetLevelTargetPlatform = () => {
                           <>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Facility:</span>
-                              <span className="font-medium">{item.facilityId?.facilityName || 'N/A'}</span>
+                              <span className="font-medium text-gray-900">{item.facilityId?.facilityName || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Type:</span>
-                              <span className="font-medium">{item.equipmentTypeId?.equipmentName || 'N/A'}</span>
+                              <span className="font-medium text-gray-900">{item.equipmentTypeId?.equipmentName || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Capacity:</span>
-                              <span className="font-medium">{item.capacityValue} {item.capacityUnit}</span>
+                              <span className="font-medium text-gray-900">{item.capacityValue} {item.capacityUnit}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Efficiency:</span>
-                              <span className="font-medium">{item.efficiency}%</span>
+                              <span className="font-medium text-gray-900">{item.efficiency}%</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Manufacturer:</span>
-                              <span className="font-medium">{item.manufacturer}</span>
+                              <span className="font-medium text-gray-900">{item.manufacturer}</span>
                             </div>
                           </>
                         )}
@@ -602,26 +647,26 @@ const AssetLevelTargetPlatform = () => {
                           <>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Type:</span>
-                              <span className="font-medium">{item.vehicleType}</span>
+                              <span className="font-medium text-gray-900">{item.vehicleType}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Fuel:</span>
-                              <span className="font-medium capitalize">{item.fuelType}</span>
+                              <span className="font-medium text-gray-900 capitalize">{item.fuelType}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Annual Mileage:</span>
-                              <span className="font-medium">{item.annualMileage?.value?.toLocaleString()} {item.annualMileage?.unit}</span>
+                              <span className="font-medium text-gray-900">{item.annualMileage?.value?.toLocaleString()} {item.annualMileage?.unit}</span>
                             </div>
                           </>
                         )}
                       </div>
                     </div>
 
-                    {/* Emissions & Targets */}
+                    {/* Emissions & Targets - Updated styling */}
                     <div className="space-y-3">
                       <h5 className="font-medium text-gray-900">Emissions & Targets</h5>
                       <div className="space-y-3">
-                        <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-gray-600">Baseline Emissions</span>
                             {isEditing ? (
@@ -640,7 +685,7 @@ const AssetLevelTargetPlatform = () => {
                           </div>
                         </div>
 
-                        <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-blue-700">Current Emissions</span>
                             {isEditing ? (
@@ -659,7 +704,7 @@ const AssetLevelTargetPlatform = () => {
                           </div>
                         </div>
 
-                        <div className="bg-green-50 rounded-lg p-3">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-green-700">Target Emissions ({targetYear})</span>
                             {isEditing ? (
@@ -678,7 +723,7 @@ const AssetLevelTargetPlatform = () => {
                           </div>
                         </div>
 
-                        <div className="bg-purple-50 rounded-lg p-3">
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-purple-700">Target Year</span>
                             {isEditing ? (
@@ -700,7 +745,7 @@ const AssetLevelTargetPlatform = () => {
                           </div>
                         </div>
 
-                        <div className="bg-orange-50 rounded-lg p-3">
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-orange-700">Reduction Target</span>
                             <span className="font-bold text-orange-900">{reduction.toFixed(1)}%</span>
@@ -720,65 +765,66 @@ const AssetLevelTargetPlatform = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading asset data...</p>
+      <div className="space-y-10">
+        <div className="border-b border-green-100 pb-6">
+          <h1 className="text-3xl font-bold text-black mb-4">
+            Asset-Level Target Management
+          </h1>
+          <p className="text-black opacity-70 max-w-4xl leading-relaxed">
+            Set and manage granular carbon reduction targets for individual assets across facilities, equipment, and fleet.
+          </p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading asset data...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-blue-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">K</span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Khazra.ai</h1>
-              <h2 className="text-lg text-gray-600">Asset-Level Target Management Platform</h2>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg">
-              <Target className="w-5 h-5" />
-              <span className="font-medium">Granular Targets</span>
-            </div>
-          </div>
+    <div className="space-y-10">
+      {/* Header - Updated to match dashboard design */}
+      <div className="border-b border-green-100 pb-6">
+        <h1 className="text-3xl font-bold text-black mb-4">
+          Asset-Level Target Management
+        </h1>
+        <p className="text-black opacity-70 max-w-4xl leading-relaxed">
+          Set and manage granular carbon reduction targets for individual assets across facilities, equipment, and fleet.
+        </p>
+      </div>
+
+      {/* Navigation - Updated styling */}
+      <div className="flex justify-between items-center">
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'overview' 
+                ? 'bg-green-600 text-white shadow-md' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Overview</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('assets')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'assets' 
+                ? 'bg-green-600 text-white shadow-md' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>Asset Details</span>
+          </button>
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="flex space-x-1 mb-8 bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'overview' 
-              ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>Overview</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('assets')}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'assets' 
-              ? 'bg-blue-600 text-white shadow-md' 
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>Asset Details</span>
-        </button>
-      </div>
-
-      {/* Category Selection for Asset Details */}
+      {/* Category Selection for Asset Details - Updated styling */}
       {activeTab === 'assets' && (
         <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
           {[
@@ -805,18 +851,12 @@ const AssetLevelTargetPlatform = () => {
         </div>
       )}
 
-      {/* Content */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm min-h-[800px]">
-        <div className="p-8">
+      {/* Content - Updated styling */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6">
           {activeTab === 'overview' && <OverviewDashboard />}
           {activeTab === 'assets' && <AssetDetailView />}
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Asset-Level Carbon Target Management Platform</p>
-        <p className="mt-1">Powered by Khazra.ai Sustainability Intelligence</p>
       </div>
     </div>
   );

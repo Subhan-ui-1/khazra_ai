@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Table from "../../../../../components/Table";
+import { Edit3, Trash2, Eye } from 'lucide-react';
 
 type Scope2Source = {
   label: string;
@@ -301,6 +303,63 @@ export default function Scope2Section() {
     
     setReviewMode(null);
     setReviewData(null);
+  };
+
+  // Table configuration for Scope 2
+  const tableColumns = [
+    { key: 'month', label: 'Month', type: 'text' as const },
+    { key: 'year', label: 'Year', type: 'text' as const },
+    { key: 'facilityId', label: 'Facility ID', type: 'text' as const },
+    { key: 'energyType', label: 'Energy Type', type: 'text' as const },
+    { key: 'gridLocation', label: 'Grid Location', type: 'text' as const },
+    { key: 'consumedUnits', label: 'Consumed Units', type: 'text' as const },
+    { key: 'amountOfConsumption', label: 'Amount of Consumption', type: 'text' as const },
+    { key: 'customEmissionFactor', label: 'Custom Emission Factor', type: 'text' as const },
+    { key: 'emissions', label: 'Emissions (tCO₂e)', type: 'text' as const }
+  ];
+
+  const tableActions = [
+    {
+      label: 'View',
+      icon: <Eye className="w-4 h-4" />,
+      onClick: (row: any) => {
+        console.log('View purchased electricity:', row);
+        // Add view functionality here
+      },
+      variant: 'primary' as const
+    },
+    {
+      label: 'Edit',
+      icon: <Edit3 className="w-4 h-4" />,
+      onClick: (row: any) => {
+        console.log('Edit purchased electricity:', row);
+        handleEdit(row, purchasedElectricityData.findIndex(item => item.id === row.id));
+      },
+      variant: 'secondary' as const
+    },
+    {
+      label: 'Delete',
+      icon: <Trash2 className="w-4 h-4" />,
+      onClick: (row: any) => {
+        console.log('Delete purchased electricity:', row);
+        // Add delete functionality here
+      },
+      variant: 'danger' as const
+    }
+  ];
+
+  const handleAddPurchasedElectricity = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleSearch = (query: string) => {
+    console.log('Search query:', query);
+    // Add search functionality here
+  };
+
+  const handleFilter = () => {
+    console.log('Filter purchased electricity');
+    // Add filter functionality here
   };
 
   // Dynamic data arrays for Scope 2 charts
@@ -717,68 +776,21 @@ export default function Scope2Section() {
       </div>
 
       {/* Purchased Electricity Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
-        <div className="flex justify-between items-center p-6 border-b border-green-100">
-          <div className="text-lg font-semibold text-green-800">Purchased Electricity</div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
-              Filter
-            </button>
-            <button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-            >
-              Add Purchased Electricity
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-center">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Month</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Year</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Facility ID</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Energy Type</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Grid Location</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Consumed Units</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Amount of Consumption</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Custom Emission Factor</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Emissions</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-green-800">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {purchasedElectricityData.map((row, index) => (
-                <tr key={row.id} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-green-800">{row.month}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.year}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.facilityId}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.energyType}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.gridLocation}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.consumedUnits}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.amountOfConsumption}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.customEmissionFactor}</td>
-                  <td className="px-6 py-4 text-sm text-green-800">{row.emissions}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2 justify-center">
-                      <button 
-                        onClick={() => handleEdit(row, index)}
-                        className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-blue-200 hover:bg-blue-200 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded border border-orange-200 hover:bg-orange-200 transition-colors">
-                        Revert
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Table
+        title="Purchased Electricity"
+        columns={tableColumns}
+        data={purchasedElectricityData}
+        // actions={tableActions}
+        showSearch={false}
+        showFilter={false}
+        showAddButton={false}
+        // addButtonLabel="Add Purchased Electricity"
+        onAddClick={handleAddPurchasedElectricity}
+        onSearch={handleSearch}
+        onFilter={handleFilter}
+        emptyMessage="No purchased electricity data found"
+        rowKey="id"
+      />
 
       {/* Add Purchased Electricity Modal */}
       {isAddModalOpen && (

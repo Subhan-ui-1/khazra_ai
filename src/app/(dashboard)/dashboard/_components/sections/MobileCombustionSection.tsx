@@ -55,6 +55,7 @@ export default function MobileCombustionSection() {
   const [reviewData, setReviewData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -146,10 +147,24 @@ export default function MobileCombustionSection() {
 
   // Load dropdown data on component mount
   useEffect(() => {
-    fetchFacilities();
-    fetchVehicles();
-    fetchMobileFuelTypes();
-    getMobileTotal();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchFacilities(),
+          fetchVehicles(),
+          fetchMobileFuelTypes(),
+          getMobileTotal()
+        ]);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   const handleMobileSubmit = async (e: React.FormEvent) => {
@@ -312,18 +327,21 @@ export default function MobileCombustionSection() {
 
   // Helper functions to get names from IDs
   const getFacilityName = (facilityId: string) => {
+    if (!facilityId) return "N/A";
     const facility = facilities.find(f => f._id === facilityId);
-    return facility ? facility.facilityName : facilityId;
+    return facility ? facility.facilityName : "Loading...";
   };
 
   const getVehicleName = (vehicleId: string) => {
+    if (!vehicleId) return "N/A";
     const vehicle = vehicles.find(v => v._id === vehicleId);
-    return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.vehicleType})` : vehicleId;
+    return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.vehicleType})` : "Loading...";
   };
 
   const getFuelTypeName = (fuelTypeId: string) => {
+    if (!fuelTypeId) return "N/A";
     const fuelType = mobileFuelTypes.find(f => f._id === fuelTypeId);
-    return fuelType ? fuelType.fuelType : fuelTypeId;
+    return fuelType ? fuelType.fuelType : "Loading...";
   };
 
   const generateYearOptions = () => {
@@ -544,6 +562,8 @@ export default function MobileCombustionSection() {
         showSearch={true}
         // showFilter={true}
         rowKey="_id"
+        loading={loading}
+        emptyMessage={dataLoaded ? "No mobile combustion data found" : "Loading data..."}
       />
 
       {/* Mobile Combustion Form */}
