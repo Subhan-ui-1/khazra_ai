@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
   const sections = {
     overview: <OverviewSection />, // decarbonization
-    'data-collection': <DataCollectionSection />,
+    // 'data-collection': <DataCollectionSection />,
     overallEmissionDashboard: <OverallEmissionDashboard />,
     scope1: <Scope1Section />,
     'stationary-combustion': <StationaryCombustionSection />,
@@ -108,7 +108,7 @@ export default function DashboardPage() {
             onSectionChange={setActiveSection} 
           />
         </div>
-        <main className="flex-1 ml-64 border-l border-green-100 xl:py-10 xl:ps-10 pe-2 lg:py-8 lg:ps-8 p-4 bg-white max-md:mt-6 overflow-y-auto">
+        <main className="flex-1 ml-64 border-l border-green-100 xl:ps-10 pe-2 lg:py-6 lg:ps-8 p-4 bg-white max-md:mt-6 overflow-y-auto">
           {sections[activeSection as keyof typeof sections]}
         </main>
       </div>

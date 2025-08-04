@@ -420,15 +420,14 @@ export default function MobileCombustionSection() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-5">
       {/* Page Header */}
-      <div className="border-b border-green-100 pb-6">
-        <h1 className="text-3xl font-bold text-green-800 mb-4">
+      <div className="border-b border-green-100 pb-4">
+        <h1 className="text-3xl font-bold text-black mb-1">
           Mobile Combustion Emissions
         </h1>
-        <p className="text-green-800 opacity-70 max-w-4xl leading-relaxed">
-          Direct greenhouse gas emissions from mobile combustion sources owned or controlled by your organization, 
-          including fleet vehicles, delivery trucks, forklifts, and other mobile equipment.
+        <p className="text-black opacity-70 max-w-4xl leading-relaxed">
+          Direct greenhouse gas emissions from mobile combustion sources owned or controlled by your organization.
         </p>
       </div>
 
@@ -437,12 +436,12 @@ export default function MobileCombustionSection() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Total Mobile
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">985.4</div>
+              <div className="text-3xl font-bold text-black mb-2">985.4</div>
               <div className="text-sm text-green-800 mb-2">▼ 15.2% vs last year</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 tonnes CO₂e • 30.3% of Scope 1
               </div>
             </div>
@@ -458,12 +457,12 @@ export default function MobileCombustionSection() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Fleet Size
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">45</div>
+              <div className="text-3xl font-bold text-black mb-2">45</div>
               <div className="text-sm text-green-800 mb-2">Active vehicles</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 Delivery trucks, forklifts, cars
               </div>
             </div>
@@ -476,12 +475,12 @@ export default function MobileCombustionSection() {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+              <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Primary Fuel
               </div>
-              <div className="text-3xl font-bold text-green-800 mb-2">Diesel</div>
+              <div className="text-3xl font-bold text-black mb-2">Diesel</div>
               <div className="text-sm text-green-800 mb-2">55% of consumption</div>
-              <div className="text-xs text-green-800 opacity-60">
+              <div className="text-xs text-black opacity-60">
                 Followed by gasoline, hybrid
               </div>
             </div>

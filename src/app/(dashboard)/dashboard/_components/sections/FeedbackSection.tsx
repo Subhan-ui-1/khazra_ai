@@ -478,11 +478,12 @@ const FeedbackSection = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">You can't view feedback, because you don't have permissions!</h3>
-          <p className="text-gray-500">Please contact the administrator to get access to the feedback section.</p>
-        </div>
+        // <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
+        //   {/* <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        //   <h3 className="text-lg font-medium text-gray-900 mb-2">You can't view feedback, because you don't have permissions!</h3>
+        //   <p className="text-gray-500">Please contact the administrator to get access to the feedback section.</p> */}
+        // </div>
+        <></>
       )}
     </div>
   );

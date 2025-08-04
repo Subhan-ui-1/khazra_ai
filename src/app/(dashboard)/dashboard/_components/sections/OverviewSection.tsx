@@ -15,8 +15,15 @@ import StackedBarWithLineChart from "./overview/StackedBarWithLineChart";
 import Table from "@/components/Table";
 import { Edit3, Trash2 } from "lucide-react";
 import { getRequest } from "@/utils/api";
+import { safeLocalStorage } from "@/utils/localStorage";
 
 type ChartType = "monthly" | "quarterly" | "annual";
+
+const getTokens = () => {
+    const token = safeLocalStorage.getItem("tokens");
+    const tokenData = JSON.parse(token || "");
+    return tokenData.accessToken;
+  };
 
 export default function OverviewSection() {
   const [activeChart, setActiveChart] = useState<ChartType>("monthly");
@@ -27,7 +34,7 @@ export default function OverviewSection() {
   const [data, setData] = useState<any>({});
   const getDashboard = async () => {
     const response = await getRequest(
-      "dashboard/getDashboardData/688c75d2b9785be4aeabb4ab", 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODhjNzVmYmI5Nzg1YmU0YWVhYmI1MTgiLCJqdGkiOiJhYzAxNWVjMDkyNzlhM2IyYmRlZDU2ZWI5OTJkNzg3NTM1NjcyY2JiYzg4ZjM0NzExNDU3ZGRlMTFjMzBlNGRmIiwiaWF0IjoxNzU0MTQyMTgxLCJleHAiOjE3NTQ3NDY5ODEsImF1ZCI6ImFwcC1hdWRpZW5jZSIsImlzcyI6ImFwcC1iYWNrZW5kIn0.d4s14u_vC-TtJWaJkGCx43QqDqiR5kgqJdjEvVQXY4g'
+      "dashboard/getDashboardData/688c75d2b9785be4aeabb4ab", getTokens()
     );
     console.log('dashboard', response)
     if (response.success) {
@@ -372,11 +379,8 @@ export default function OverviewSection() {
       </div>
       <div>
         {/* Emissions by Facility Section */}
-        <div className="h-[600px] flex w-full gap-10">
+        <div className="h-[600px] flex w-full gap-5">
           <ScopeChartData title="📊 Emissions by Facility" />
-          <div className="xl:w-1/3 h-full">
-            <ProgressChart overallProgressValue={overallProgressValue} />
-          </div>
         </div>
       </div>
 
