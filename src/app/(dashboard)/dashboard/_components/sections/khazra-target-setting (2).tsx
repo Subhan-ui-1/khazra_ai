@@ -822,14 +822,14 @@ console.log(customTargets, 'custom target...........................')
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                   Current Emissions
                 </div>
-                <div className="text-3xl font-bold text-green-800 mb-2">
+                <div className="text-3xl font-bold text-black mb-2">
                   {customTargets.length > 0 ? customTargets[0].totalEmissions : '0'}
                 </div>
-                <div className="text-sm text-green-800 mb-2">tCO₂e (2024)</div>
-                <div className="text-xs text-green-800 opacity-60">
+                <div className="text-sm text-black mb-2">tCO₂e (2024)</div>
+                <div className="text-xs text-black opacity-60">
                   Baseline year emissions
                 </div>
               </div>

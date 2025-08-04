@@ -12,11 +12,24 @@ import ScopeChartData from "./overview/ScopeChartData";
 import StackedBarChart from "./overview/StackedBarWithLineChart";
 import HorizontalStackedChart from "./overview/HorizontalStackedChart";
 import StackedBarWithLineChart from "./overview/StackedBarWithLineChart";
+import HistoryModal from "./overview/HistoryModal";
 import Table from "@/components/Table";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, Trash2, History } from "lucide-react";
 import { getRequest } from "@/utils/api";
+import { safeLocalStorage } from "@/utils/localStorage";
 
 type ChartType = "monthly" | "quarterly" | "annual";
+
+const getTokens = () => {
+  const token = safeLocalStorage.getItem("tokens");
+  const tokenData = JSON.parse(token || "");
+  return tokenData.accessToken;
+};
+const getOrgId = () => {
+  const id = safeLocalStorage.getItem("user");
+  const userData = JSON.parse(id || "");
+  return userData.organization;
+};
 
 export default function OverviewSection() {
   const [activeChart, setActiveChart] = useState<ChartType>("monthly");
@@ -24,50 +37,146 @@ export default function OverviewSection() {
   const [selectedScope, setSelectedScope] = useState(null);
   const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
   const [isScopeModalOpen, setIsScopeModalOpen] = useState(false);
-  const [data, setData] = useState<any>({});
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [data, setData] = useState<{
+    dataQuality: number;
+    emissionByEquipment: number;
+    emissionByFacility: number;
+    emissionByGHGGases: number;
+    emissionByVehicle: number;
+    overallTargetProgress: number;
+    scope1Emissions: number;
+    scope2Emissions: number;
+    targetProgress: number;
+    totalEmissions: number;
+    totalEquipment: number;
+    totalFacilities: number;
+    totalVehicles: number;
+    recentActivities: any[];
+  }>({
+    dataQuality: 0,
+    emissionByEquipment: 0,
+    emissionByFacility: 0,
+    emissionByGHGGases: 0,
+    emissionByVehicle: 0,
+    overallTargetProgress: 0,
+    scope1Emissions: 0,
+    scope2Emissions: 0,
+    targetProgress: 0,
+    totalEmissions: 0,
+    totalEquipment: 0,
+    totalFacilities: 0,
+    totalVehicles: 0,
+    recentActivities: [],
+  });
+
   const getDashboard = async () => {
-    const response = await getRequest(
-      "dashboard/getDashboardData/688c75d2b9785be4aeabb4ab", 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODhjNzVmYmI5Nzg1YmU0YWVhYmI1MTgiLCJqdGkiOiJhYzAxNWVjMDkyNzlhM2IyYmRlZDU2ZWI5OTJkNzg3NTM1NjcyY2JiYzg4ZjM0NzExNDU3ZGRlMTFjMzBlNGRmIiwiaWF0IjoxNzU0MTQyMTgxLCJleHAiOjE3NTQ3NDY5ODEsImF1ZCI6ImFwcC1hdWRpZW5jZSIsImlzcyI6ImFwcC1iYWNrZW5kIn0.d4s14u_vC-TtJWaJkGCx43QqDqiR5kgqJdjEvVQXY4g'
-    );
-    console.log('dashboard', response)
-    if (response.success) {
-      setData(response.dashboardData);
-      return;
+    try {
+      const response = await getRequest(
+        `dashboard/getDashboardData/${getOrgId()}`,
+        getTokens()
+      );
+
+      if (response.success) {
+        setData(response.dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
     }
   };
+
   useEffect(() => {
-    getDashboard()
-  
+    getDashboard();
+  }, []);
+
+  // Transform recent activities data for display
+  const transformActivitiesData = () => {
+    if (!data.recentActivities) return [];
     
-  }, [])
-  
-  const activityData = [
+    return data.recentActivities.map((activity, index) => ({
+      _id: activity.stationary?._id || `activity-${index}`,
+      date: new Date(activity.stationary?.updatedAt || activity.stationary?.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }),
+      activity: `${activity.stationary?.scopeType} ${activity.message}`,
+      scope: activity.stationary?.scope || 'Scope 1',
+      impact: activity.stationary?.totalEmissions > 100 ? 'High' : activity.stationary?.totalEmissions > 50 ? 'Medium' : 'Low',
+      status: activity.success ? 'Completed' : 'Failed',
+      statusType: activity.success ? 'success' : 'error',
+      originalData: activity
+    }));
+  };
+
+  const handleActivityClick = (activity: any) => {
+    setSelectedActivity(activity.originalData);
+    setIsHistoryModalOpen(true);
+  };
+
+  const closeHistoryModal = () => {
+    setIsHistoryModalOpen(false);
+    setSelectedActivity(null);
+  };
+
+  // Table columns configuration
+  const tableColumns = [
     {
-      _id: "1",
-      date: "2025-08-01",
-      activity: "Reduced diesel usage in forklifts",
-      scope: "Scope 1",
-      impact: "Low",
-      status: "Completed",
-      statusType: "success",
+      key: "date",
+      label: "Date",
+      type: "text" as const,
     },
     {
-      _id: "2",
-      date: "2025-07-24",
-      activity: "Switched to LED lighting",
-      scope: "Scope 2",
-      impact: "Medium",
-      status: "Ongoing",
-      statusType: "pending",
+      key: "activity",
+      label: "Activity",
+      type: "text" as const,
     },
     {
-      _id: "3",
-      date: "2025-07-15",
-      activity: "Employee awareness program",
-      scope: "Scope 3",
-      impact: "High",
-      status: "Planned",
-      statusType: "info",
+      key: "scope",
+      label: "Scope",
+      type: "text" as const,
+    },
+    {
+      key: "impact",
+      label: "Impact",
+      type: "text" as const,
+    },
+    {
+      key: "status",
+      label: "Status",
+      type: "status" as const,
+      render: (value: string, row: any) => (
+        <span className={`px-2 py-1 text-xs font-semibold rounded-lg border ${
+          row.statusType === "success"
+            ? "bg-green-100 text-green-800 border-green-800"
+            : "bg-red-100 text-red-800 border-red-800"
+        }`}>
+          {value}
+        </span>
+      ),
+    },
+  ];
+
+  // Table actions configuration
+  const tableActions = [
+    {
+      label: "History",
+      icon: <History className="w-4 h-4" />,
+      onClick: (row: any) => handleActivityClick(row),
+      variant: "success" as const,
+    },
+    {
+      label: "Edit",
+      icon: <Edit3 className="w-4 h-4" />,
+      onClick: (row: any) => console.log("Edit", row),
+      variant: "primary" as const,
+    },
+    {
+      label: "Delete",
+      icon: <Trash2 className="w-4 h-4" />,
+      onClick: (row: any) => console.log("Delete", row),
+      variant: "danger" as const,
     },
   ];
 
@@ -75,7 +184,7 @@ export default function OverviewSection() {
     {
       id: "total-emissions",
       title: "Total Emissions",
-      value: "8,947.3",
+      value: data.totalEmissions.toFixed(1),
       change: "▼ 8.2%",
       changeType: "decrease",
       subtitle: "Tonnes CO₂e • All scopes",
@@ -85,52 +194,43 @@ export default function OverviewSection() {
         {
           category: "Scope 1 (Direct)",
           sources: [
-            { name: "Stationary Combustion", amount: "1,200.0 t CO₂e" },
-            { name: "Mobile Combustion", amount: "1,500.5 t CO₂e" },
-            { name: "Fugitive Emissions", amount: "850.0 t CO₂e" },
-            { name: "Process Emissions", amount: "573.2 t CO₂e" },
+            { name: "Stationary Combustion", amount: `${data.scope1Emissions.toFixed(1)} t CO₂e` },
+            { name: "Mobile Combustion", amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e` },
+            // { name: "Fugitive Emissions", amount: "0.0 t CO₂e" },
+            // { name: "Process Emissions", amount: "0.0 t CO₂e" },
           ],
         },
         {
           category: "Scope 2 (Energy Indirect)",
           sources: [
-            {
-              name: "Purchased Electricity – Market-based",
-              amount: "1,200.3 t CO₂e",
-            },
-            {
-              name: "Purchased Electricity – Location-based",
-              amount: "928.6 t CO₂e",
-            },
-            { name: "Purchased Steam", amount: "359.0 t CO₂e" },
+            { name: "Scope 2 Emissions", amount: `${data.scope2Emissions.toFixed(1)} t CO₂e` },
+            // { name: "Purchased Steam", amount: "0.0 t CO₂e" },
           ],
         },
-        {
-          category: "Scope 3 (Other Indirect)",
-          sources: [
-            { name: "Business Travel", amount: "530.4 t CO₂e" },
-            { name: "Employee Commuting", amount: "423.8 t CO₂e" },
-            { name: "Waste Disposal", amount: "392.5 t CO₂e" },
-            { name: "Purchased Goods and Services", amount: "480.0 t CO₂e" },
-            { name: "Transportation and Distribution", amount: "509.0 t CO₂e" },
-          ],
-        },
+        // {
+        //   category: "Scope 3 (Other Indirect)",
+        //   sources: [
+        //     { name: "Business Travel", amount: "0.0 t CO₂e" },
+        //     { name: "Employee Commuting", amount: "0.0 t CO₂e" },
+        //     { name: "Waste Disposal", amount: "0.0 t CO₂e" },
+        //   ],
+        // },
       ],
     },
     {
       id: "baseline-targets",
       title: "Base Line Targets",
-      value: "64.2%",
+      value: `${data.dataQuality}%`,
       change: "▲ 5.1% improvement",
       changeType: "increase",
       subtitle: "Audited & Verified",
       icon: "📊",
-      progress: 94.2,
+      progress: data.dataQuality,
       details: [
         {
           category: "Data Quality",
           sources: [
-            { name: "Completeness", amount: "97%" },
+            { name: "Completeness", amount: `${data.dataQuality}%` },
             { name: "Accuracy", amount: "93%" },
             { name: "Timeliness", amount: "96%" },
             { name: "Consistency", amount: "92%" },
@@ -144,20 +244,20 @@ export default function OverviewSection() {
     {
       id: "target-progress",
       title: "Target Progress",
-      value: "82.4%",
+      value: `${data.targetProgress}%`,
       change: "▲ On track for 2025",
       changeType: "increase",
       subtitle: "SBTi Targets • 2 months ahead",
       icon: "🎯",
-      progress: 82.4,
+      progress: data.targetProgress,
       details: [
         {
           category: "Target Progress",
           sources: [
             { name: "Target Year", amount: "2025" },
             { name: "Reduction Goal", amount: "90%" },
-            { name: "Achieved", amount: "82.4%" },
-            { name: "Remaining", amount: "7.6%" },
+            { name: "Achieved", amount: `${data.targetProgress}%` },
+            { name: "Remaining", amount: `${90 - data.targetProgress}%` },
             { name: "Current Rate of Reduction", amount: "1.5% per month" },
             { name: "Projected by Year-End", amount: "94.1%" },
             { name: "Goal Type", amount: "Science-Based (SBTi)" },
@@ -168,17 +268,17 @@ export default function OverviewSection() {
     {
       id: "data-quality",
       title: "Data Quality",
-      value: "94.2%",
+      value: `${data.dataQuality}%`,
       change: "▲ 3.1% improvement",
       changeType: "increase",
       subtitle: "Audited & Verified",
       icon: "📊",
-      progress: 94.2,
+      progress: data.dataQuality,
       details: [
         {
           category: "Data Quality",
           sources: [
-            { name: "Completeness", amount: "97%" },
+            { name: "Completeness", amount: `${data.dataQuality}%` },
             { name: "Accuracy", amount: "93%" },
             { name: "Timeliness", amount: "96%" },
             { name: "Consistency", amount: "92%" },
@@ -196,17 +296,17 @@ export default function OverviewSection() {
       id: "scope1",
       title: "Scope 1 Emissions",
       subtitle: "Direct emissions from owned sources",
-      value: "3,247.8",
-      percentage: 96.3,
+      value: data.scope1Emissions.toFixed(1),
+      percentage: data.scope1Emissions > 0 ? (data.scope1Emissions / data.totalEmissions) * 100 : 0,
       icon: "🔥",
       trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265],
       details: [
         {
           sources: [
-            { name: "Stationary Combustion", amount: "1,200.0 t CO₂e" },
-            { name: "Mobile Combustion", amount: "1,500.5 t CO₂e" },
-            { name: "Fugitive Emissions", amount: "850.0 t CO₂e" },
-            { name: "Process Emissions", amount: "573.2 t CO₂e" },
+            { name: "Stationary Combustion", amount: `${data.emissionByFacility.toFixed(1)} t CO₂e` },
+            { name: "Mobile Combustion", amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e` },
+            { name: "Fugitive Emissions", amount: "0.0 t CO₂e" },
+            { name: "Process Emissions", amount: "0.0 t CO₂e" },
           ],
         },
       ],
@@ -215,40 +315,37 @@ export default function OverviewSection() {
       id: "scope2",
       title: "Scope 2 Emissions",
       subtitle: "Energy indirect emissions",
-      value: "2,856.4",
-      percentage: 31.9,
+      value: data.scope2Emissions.toFixed(1),
+      percentage: data.scope2Emissions > 0 ? (data.scope2Emissions / data.totalEmissions) * 100 : 0,
       icon: "⚡",
       trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258],
       details: [
         {
           sources: [
-            { name: "Stationary Combustion", amount: "1,200.0 t CO₂e" },
-            { name: "Mobile Combustion", amount: "1,500.5 t CO₂e" },
-            { name: "Fugitive Emissions", amount: "850.0 t CO₂e" },
-            { name: "Process Emissions", amount: "573.2 t CO₂e" },
+            { name: "Purchased Electricity", amount: `${data.scope2Emissions.toFixed(1)} t CO₂e` },
+            { name: "Purchased Steam", amount: "0.0 t CO₂e" },
           ],
         },
       ],
     },
-    {
-      id: "scope3",
-      title: "Scope 3 Emissions",
-      subtitle: "Value chain emissions",
-      value: "2,843.1",
-      percentage: 31.8,
-      icon: "📦",
-      trend: [184, 181, 379, 177, 225, 250, 311, 169, 127, 195, 223, 291],
-      details: [
-        {
-          sources: [
-            { name: "Stationary Combustion", amount: "1,200.0 t CO₂e" },
-            { name: "Mobile Combustion", amount: "1,500.5 t CO₂e" },
-            { name: "Fugitive Emissions", amount: "850.0 t CO₂e" },
-            { name: "Process Emissions", amount: "573.2 t CO₂e" },
-          ],
-        },
-      ],
-    },
+    // {
+    //   id: "scope3",
+    //   title: "Scope 3 Emissions",
+    //   subtitle: "Value chain emissions",
+    //   value: "0.0",
+    //   percentage: 0,
+    //   icon: "📦",
+    //   trend: [184, 181, 379, 177, 225, 250, 311, 169, 127, 195, 223, 291],
+    //   details: [
+    //     {
+    //       sources: [
+    //         { name: "Business Travel", amount: "0.0 t CO₂e" },
+    //         { name: "Employee Commuting", amount: "0.0 t CO₂e" },
+    //         { name: "Waste Disposal", amount: "0.0 t CO₂e" },
+    //       ],
+    //     },
+    //   ],
+    // },
   ];
 
   useEffect(() => {
@@ -267,7 +364,7 @@ export default function OverviewSection() {
     animateProgressBars();
   }, []);
 
-  const overallProgressValue = 46;
+  const overallProgressValue = data.overallTargetProgress;
 
   const handleMetricCardClick = (metric: any) => {
     setSelectedMetric(metric);
@@ -289,35 +386,8 @@ export default function OverviewSection() {
     setSelectedScope(null);
   };
 
-  function setIsStationaryModalOpen(arg0: boolean): void {
-    throw new Error("Function not implemented.");
-  }
-
-  function getFacilityName(
-    facility: any,
-    facilityId: any
-  ): import("react").ReactNode {
-    throw new Error("Function not implemented.");
-  }
-
-  function getEquipmentTypeName(
-    equipment: any,
-    equipmentId: any
-  ): import("react").ReactNode {
-    throw new Error("Function not implemented.");
-  }
-
-  function getFuelTypeName(arg0: any): import("react").ReactNode {
-    throw new Error("Function not implemented.");
-  }
-
-  function handleEditStationary(row: any, arg1: any): void {
-    throw new Error("Function not implemented.");
-  }
-
   return (
     <div className="space-y-10">
-      {/* Page Header */}
       <div className="border-b border-green-100 pb-6">
         <h1 className="text-3xl font-bold text-black mb-4">
           Sustainability Dashboard Overview
@@ -329,7 +399,6 @@ export default function OverviewSection() {
         </p>
       </div>
 
-      {/* Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metricsData.map((metric) => (
           <MetricsCard
@@ -340,14 +409,7 @@ export default function OverviewSection() {
         ))}
       </div>
 
-      {/* Charts Section */}
       <div className="xl:flex gap-5 space-y-3 items-center w-full">
-        {/* <EmissionTrendsChart
-            activeChart={activeChart}
-            setActiveChart={setActiveChart}
-            emissionTrendsData={emissionTrendsData}
-            scopeBreakdownData={scopeBreakdownData}
-          /> */}
         <div className="xl:w-2/3 h-[600px]">
           <ScopeChartData title="📊 Emission Trends by Scope" />
         </div>
@@ -356,7 +418,6 @@ export default function OverviewSection() {
         </div>
       </div>
 
-      {/* Sources Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {scopeBreakdownData.map((scope) => (
           <ScopeCard
@@ -371,71 +432,29 @@ export default function OverviewSection() {
         <HorizontalStackedChart title="🔥 Emissions by Equipments" />
       </div>
       <div>
-        {/* Emissions by Facility Section */}
-        <div className="h-[600px] flex w-full gap-10">
+        <div className="h-[600px] flex w-full gap-5">
           <ScopeChartData title="📊 Emissions by Facility" />
-          <div className="xl:w-1/3 h-full">
-            <ProgressChart overallProgressValue={overallProgressValue} />
-          </div>
         </div>
       </div>
 
-      {/* <div className='flex flex-col w-full justify-between space-y-5'> */}
-      {/* <ScopeChartData title="Emissions by Vehicle" /> */}
-      {/* <StackedBarChart />
-      </div> */}
-
-      {/* overall Targets */}
       <div className="h-[500px]">
         <StackedBarWithLineChart title="📊overall Target" />
       </div>
 
-      {/* Data Table */}
-      {/* <RecentActivitiesTable recentActivitiesData={recentActivitiesData} /> */}
       <Table
         title="Recent Sustainability Activities"
-        columns={[
-          { key: "date", label: "Date" },
-          { key: "activity", label: "Activity" },
-          { key: "scope", label: "Scope" },
-          { key: "impact", label: "Impact" },
-          {
-            key: "status",
-            label: "Status",
-            render: (value, row) => (
-              <span
-                className={`px-2 py-1 text-xs font-semibold rounded-lg border ${
-                  row.statusType === "success"
-                    ? "bg-green-100 text-green-800 border-green-800"
-                    : "bg-white text-green-800 border-green-800"
-                }`}
-              >
-                {value}
-              </span>
-            ),
-          },
-        ]}
-        data={activityData}
-        // actions={[
-        //   {
-        //     icon: <Edit3 className="w-4 h-4" />,
-        //     onClick: (row) => console.log('Edit', row),
-        //     variant: 'primary'
-        //   },
-        //   {
-        //     icon: <Trash2 className="w-4 h-4" />,
-        //     onClick: (row) => console.log('Delete', row),
-        //     variant: 'danger'
-        //   }
-        // ]}
+        columns={tableColumns}
+        data={transformActivitiesData()}
+        // actions={tableActions}
+        showSearch={true}
         showAddButton={true}
         addButtonLabel="Add Sustainability Activity"
-        onAddClick={() => console.log("Add new")}
-        showSearch={true}
+        onAddClick={() => console.log("Add new activity")}
+        onSearch={(query) => console.log("Search:", query)}
         rowKey="_id"
+        emptyMessage="No recent activities found"
       />
 
-      {/* Modals */}
       <MetricsModal
         isOpen={isMetricsModalOpen}
         onClose={closeMetricsModal}
@@ -446,6 +465,13 @@ export default function OverviewSection() {
         isOpen={isScopeModalOpen}
         onClose={closeScopeModal}
         selectedScope={selectedScope}
+      />
+
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={closeHistoryModal}
+        history={selectedActivity?.stationary?.history || []}
+        activityData={selectedActivity}
       />
     </div>
   );

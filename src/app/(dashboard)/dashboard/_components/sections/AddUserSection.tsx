@@ -639,7 +639,7 @@ const AddUserSection = () => {
                   <tr key={user._id} className='hover:bg-gray-50'>
                     <td className='px-6 py-4 whitespace-nowrap'>
                       <div className='text-sm font-medium text-gray-900'>
-                        <span className='bg-gray-300 rounded-full text-gray-600 p-2 mr-1'>{createDP(`${user.firstName} ${user.lastName}`)}</span> {user.firstName} {user.lastName}
+                        <span className='bg-gray-300 rounded-full text-gray-600 p-2 mr-1 text-xs size-8'>{createDP(`${user.firstName} ${user.lastName}`)}</span> {user.firstName} {user.lastName}
                       </div>
                     </td>
                     <td className='px-6 py-4 whitespace-nowrap'>

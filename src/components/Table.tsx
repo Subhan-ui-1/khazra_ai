@@ -66,7 +66,7 @@ const Table: React.FC<TableProps> = ({
 
   React.useEffect(() => {
     setSelectedRowIds(selectedRows.map(row => row[rowKey]));
-  }, [selectedRows, rowKey]);
+  }, [rowKey]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -270,7 +270,7 @@ const Table: React.FC<TableProps> = ({
               </tr>
             ) : (
               data.map((row, index) => (
-                <tr key={row[rowKey] || index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-gray-50">
                   {selectable && (
                     <td className="px-6 py-4">
                       <input
