@@ -422,10 +422,10 @@ export default function OverviewSection() {
       </div>
 
       <div className="xl:flex gap-5 space-y-3 items-center w-full">
-        <div className="xl:w-2/3 h-[600px]">
+        <div className="xl:w-2/3 h-[580px]">
           <ScopeChartData title="📊 Emission Trends by Scope" />
         </div>
-        <div className="xl:w-1/3 h-full">
+        <div className="xl:w-1/3 h-[590px]">
           <ProgressChart overallProgressValue={overallProgressValue} />
         </div>
       </div>

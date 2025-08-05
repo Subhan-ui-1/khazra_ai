@@ -7,7 +7,7 @@ interface ProgressChartProps {
 export default function ProgressChart({ overallProgressValue }: ProgressChartProps) {
   const radius = 50;
   const circumference = Math.PI * radius;
-  const progress = (overallProgressValue / 100) * circumference;
+  const progress = (overallProgressValue / 90) * circumference;
 
   return (
     <div className="bg-white border border-green-100 rounded-2xl p-6 shadow-sm w-full mx-auto xl:h-[580px] h-[400px]">

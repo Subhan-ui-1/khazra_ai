@@ -490,7 +490,7 @@ export default function Scope1Section() {
 
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-green-100 pb-4">
-            <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gblack flex items-center gap-2">
               📈 Monthly Trends
             </h3>
           </div>
