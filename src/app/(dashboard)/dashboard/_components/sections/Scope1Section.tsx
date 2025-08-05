@@ -1,17 +1,19 @@
 'use client';
 
 import { useState } from "react";
-import { Pie } from 'react-chartjs-2';
+import { Line, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   ArcElement,
   Tooltip,
   Legend,
 } from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
 import Table from "../../../../../components/Table";
 import { Edit3, Trash2, Eye } from 'lucide-react';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 type Source = {
   icon: string;
@@ -26,8 +28,10 @@ type Scope1Source = {
   label: string;
   value: number;
   color: string; 
+   
   percentage: number;
   rawColor: string; 
+  
 };
 
 type DurationType = 'This Year' | 'Last Year' | 'Comparison';
@@ -118,6 +122,13 @@ const scope1DataByDuration: Scope1Data = {
     //   color: 'fill-[#0f5744]',
     //   rawColor: 'rgba(15, 87, 68, 0.6)',
     // },
+    // {
+    //   label: 'Process Emissions',
+    //   value: 516.2,
+    //   percentage: 15.9,
+    //   color: 'fill-[#0f5744]',
+    //   rawColor: 'rgba(15, 87, 68, 0.6)',
+    // },
   ],
   'Last Year': [
     {
@@ -141,6 +152,13 @@ const scope1DataByDuration: Scope1Data = {
     //   color: 'fill-[#0f5744]',
     //   rawColor: 'rgba(15, 87, 68, 0.6)',
     // },
+    // {
+    //   label: 'Process Emissions',
+    //   value: 470,
+    //   percentage: 15,
+    //   color: 'fill-[#0f5744]',
+    //   rawColor: 'rgba(15, 87, 68, 0.6)',
+    // },
   ],
   'Comparison': [
     {
@@ -157,6 +175,13 @@ const scope1DataByDuration: Scope1Data = {
       color: 'fill-[#0f5744]',
       rawColor: 'rgba(15, 87, 68, 0.8)',
     },
+    // {
+    //   label: 'Process Emissions',
+    //   value: 700,
+    //   percentage: 15,
+    //   color: 'fill-[#0f5744]',
+    //   rawColor: 'rgba(15, 87, 68, 0.6)',
+    // },
     // {
     //   label: 'Process Emissions',
     //   value: 700,
@@ -192,11 +217,89 @@ const sourceData: Source[] = [
   //   percentage: 15.9,
   //   description: 'Chemical processes • Manufacturing',
   // },
+  // {
+  //   icon: '🏭',
+  //   title: 'Process Emissions',
+  //   subtitle: 'Industrial manufacturing',
+  //   value: 516.2,
+  //   percentage: 15.9,
+  //   description: 'Chemical processes • Manufacturing',
+  // },
 ];
 
 export default function Scope1Section() {
   const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
   const scope1Sources = scope1DataByDuration[duration];
+
+  const pieData = {
+    labels: [
+      scope1Sources.map((item) => item.label)
+    ],
+    datasets: [
+      {
+        data: scope1Sources.map((item) => item.value),
+        backgroundColor: scope1Sources.map((item) => item.rawColor),
+        borderColor: '#ffffff',
+        borderWidth: 0,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        display: false,
+      },
+    },
+  };
+  
+  const lineData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+    datasets: [
+      {
+        label: 'Scope 1 Emissions',
+        data: [20, 45, 60, 78, 85, 100, 75, 85, 120],
+        borderColor: '#0f5744',
+        backgroundColor: '#0f5744',
+        pointBorderColor: '#0f5744',
+        pointBackgroundColor: '#0f5744',
+        tension: 0,
+      },
+    ],
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#000000',
+        },
+        grid: {
+          color: '#c1c1c127',
+        },
+      },
+      y: {
+        beginAtZero: true,
+        max: 200,
+        ticks: {
+          color: '#000000',
+        },
+        grid: {
+          color: '#c1c1c127',
+        },
+      },
+    },
+  };
 
   // Table configuration
   const tableColumns = [
@@ -270,31 +373,7 @@ export default function Scope1Section() {
     // Add filter functionality here
   };
 
-  const pieData = {
-    labels: [
-      scope1Sources.map((item) => item.label)
-    ],
-    datasets: [
-      {
-        data: scope1Sources.map((item) => item.value),
-        backgroundColor: scope1Sources.map((item) => item.rawColor),
-        borderColor: '#ffffff',
-        borderWidth: 2,
-      },
-    ],
-  };
 
-  const pieOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        display: false,
-      },
-    },
-  };
-  
   return (
     <div className="space-y-10">
       {/* Page Header */}
@@ -439,42 +518,18 @@ export default function Scope1Section() {
         </div>
 
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
+          <div className="flex items-center justify-between border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📈 Monthly Trends
             </h3>
           </div>
-          <div className="h-80 relative">
-            <svg viewBox="0 0 300 150" className="w-full h-full">
-              {/* Grid */}
-              <defs>
-                <pattern id="monthlyGrid" width="30" height="15" patternUnits="userSpaceOnUse">
-                  <path d="M 30 0 L 0 0 0 15" fill="none" stroke="#e4f5d5" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#monthlyGrid)" />
-
-              {/* Data line */}
-              <polyline
-                fill="none"
-                stroke="#0f5744"
-                strokeWidth="3"
-                points="15,120 45,115 75,110 105,108 135,105 165,100 195,98 225,95 255,90 285,85"
-              />
-
-              {/* Data points */}
-              <circle cx="285" cy="85" r="4" fill="#0f5744" />
-
-              {/* Labels */}
-              <text x="15" y="140" fontSize="8" fill="#0f5744">Jan</text>
-              <text x="75" y="140" fontSize="8" fill="#0f5744">Mar</text>
-              <text x="135" y="140" fontSize="8" fill="#0f5744">May</text>
-              <text x="195" y="140" fontSize="8" fill="#0f5744">Jul</text>
-              <text x="255" y="140" fontSize="8" fill="#0f5744">Sep</text>
-            </svg>
-          </div>
-          <div className="text-center text-xs text-green-800 opacity-70 mt-4">
-            Continuous reduction trend • Target: -15% by Dec 2025
+          <div className="flex flex-col justify-center h-[80%]">
+            <div className="h-45">
+              <Line data={lineData} options={lineOptions} />
+            </div>
+            <div className="text-center text-xs text-green-800 opacity-70 mt-4">
+              Continuous reduction trend • Target: -15% by Dec 2025
+            </div>
           </div>
         </div>
       </div>

@@ -15,8 +15,8 @@ import StackedBarWithLineChart from "./overview/StackedBarWithLineChart";
 import HistoryModal from "./overview/HistoryModal";
 import Table from "@/components/Table";
 import { Edit3, Trash2, History } from "lucide-react";
-import { getRequest } from "@/utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
+import { getRequest } from "@/utils/api";
 
 type ChartType = "monthly" | "quarterly" | "annual";
 
@@ -93,20 +93,27 @@ export default function OverviewSection() {
   // Transform recent activities data for display
   const transformActivitiesData = () => {
     if (!data.recentActivities) return [];
-    
+
     return data.recentActivities.map((activity, index) => ({
       _id: activity.stationary?._id || `activity-${index}`,
-      date: new Date(activity.stationary?.updatedAt || activity.stationary?.createdAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+      date: new Date(
+        activity.stationary?.updatedAt || activity.stationary?.createdAt
+      ).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       }),
       activity: `${activity.stationary?.scopeType} ${activity.message}`,
-      scope: activity.stationary?.scope || 'Scope 1',
-      impact: activity.stationary?.totalEmissions > 100 ? 'High' : activity.stationary?.totalEmissions > 50 ? 'Medium' : 'Low',
-      status: activity.success ? 'Completed' : 'Failed',
-      statusType: activity.success ? 'success' : 'error',
-      originalData: activity
+      scope: activity.stationary?.scope || "Scope 1",
+      impact:
+        activity.stationary?.totalEmissions > 100
+          ? "High"
+          : activity.stationary?.totalEmissions > 50
+          ? "Medium"
+          : "Low",
+      status: activity.success ? "Completed" : "Failed",
+      statusType: activity.success ? "success" : "error",
+      originalData: activity,
     }));
   };
 
@@ -147,11 +154,13 @@ export default function OverviewSection() {
       label: "Status",
       type: "status" as const,
       render: (value: string, row: any) => (
-        <span className={`px-2 py-1 text-xs font-semibold rounded-lg border ${
-          row.statusType === "success"
-            ? "bg-green-100 text-green-800 border-green-800"
-            : "bg-red-100 text-red-800 border-red-800"
-        }`}>
+        <span
+          className={`px-2 py-1 text-xs font-semibold rounded-lg border ${
+            row.statusType === "success"
+              ? "bg-green-100 text-green-800 border-green-800"
+              : "bg-red-100 text-red-800 border-red-800"
+          }`}
+        >
           {value}
         </span>
       ),
@@ -194,8 +203,14 @@ export default function OverviewSection() {
         {
           category: "Scope 1 (Direct)",
           sources: [
-            { name: "Stationary Combustion", amount: `${data.scope1Emissions.toFixed(1)} t CO₂e` },
-            { name: "Mobile Combustion", amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e` },
+            {
+              name: "Stationary Combustion",
+              amount: `${data.scope1Emissions.toFixed(1)} t CO₂e`,
+            },
+            {
+              name: "Mobile Combustion",
+              amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e`,
+            },
             // { name: "Fugitive Emissions", amount: "0.0 t CO₂e" },
             // { name: "Process Emissions", amount: "0.0 t CO₂e" },
           ],
@@ -203,7 +218,10 @@ export default function OverviewSection() {
         {
           category: "Scope 2 (Energy Indirect)",
           sources: [
-            { name: "Scope 2 Emissions", amount: `${data.scope2Emissions.toFixed(1)} t CO₂e` },
+            {
+              name: "Scope 2 Emissions",
+              amount: `${data.scope2Emissions.toFixed(1)} t CO₂e`,
+            },
             // { name: "Purchased Steam", amount: "0.0 t CO₂e" },
           ],
         },
@@ -297,14 +315,23 @@ export default function OverviewSection() {
       title: "Scope 1 Emissions",
       subtitle: "Direct emissions from owned sources",
       value: data.scope1Emissions.toFixed(1),
-      percentage: data.scope1Emissions > 0 ? (data.scope1Emissions / data.totalEmissions) * 100 : 0,
+      percentage:
+        data.scope1Emissions > 0
+          ? (data.scope1Emissions / data.totalEmissions) * 100
+          : 0,
       icon: "🔥",
       trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265],
       details: [
         {
           sources: [
-            { name: "Stationary Combustion", amount: `${data.emissionByFacility.toFixed(1)} t CO₂e` },
-            { name: "Mobile Combustion", amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e` },
+            {
+              name: "Stationary Combustion",
+              amount: `${data.emissionByFacility.toFixed(1)} t CO₂e`,
+            },
+            {
+              name: "Mobile Combustion",
+              amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e`,
+            },
             { name: "Fugitive Emissions", amount: "0.0 t CO₂e" },
             { name: "Process Emissions", amount: "0.0 t CO₂e" },
           ],
@@ -316,13 +343,19 @@ export default function OverviewSection() {
       title: "Scope 2 Emissions",
       subtitle: "Energy indirect emissions",
       value: data.scope2Emissions.toFixed(1),
-      percentage: data.scope2Emissions > 0 ? (data.scope2Emissions / data.totalEmissions) * 100 : 0,
+      percentage:
+        data.scope2Emissions > 0
+          ? (data.scope2Emissions / data.totalEmissions) * 100
+          : 0,
       icon: "⚡",
       trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258],
       details: [
         {
           sources: [
-            { name: "Purchased Electricity", amount: `${data.scope2Emissions.toFixed(1)} t CO₂e` },
+            {
+              name: "Purchased Electricity",
+              amount: `${data.scope2Emissions.toFixed(1)} t CO₂e`,
+            },
             { name: "Purchased Steam", amount: "0.0 t CO₂e" },
           ],
         },
@@ -418,7 +451,7 @@ export default function OverviewSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {scopeBreakdownData.map((scope) => (
           <ScopeCard
             key={scope.id}

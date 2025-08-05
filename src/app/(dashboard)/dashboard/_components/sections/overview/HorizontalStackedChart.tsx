@@ -87,11 +87,17 @@ export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBa
                 grid: {
                     display: false,
                 },
+                ticks: {
+                    color: '#000000',
+                },
             },
             y: {
                 stacked: false,
                 grid: {
                     display: false,
+                },
+                ticks: {
+                    color: '#000000',
                 },
             },
         },
@@ -109,7 +115,7 @@ export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBa
                             key={type}
                             onClick={() => setDuration(type)}
                             className={`px-4 py-2 text-sm rounded ${
-                                duration === type ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-700'
+                                duration === type ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'
                             }`}
                         >
                             {type}
