@@ -154,11 +154,11 @@ const Table: React.FC<TableProps> = ({
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm overflow-x-auto ${className}`}>
       {/* Header */}
       {(title || showSearch || showFilter || showAddButton) && (
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-gray-200 w-full min-w-[830px]">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               {title && (
                 <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
@@ -204,7 +204,7 @@ const Table: React.FC<TableProps> = ({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className=" min-w-[800px] w-full">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>

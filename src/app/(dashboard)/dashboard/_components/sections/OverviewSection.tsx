@@ -17,6 +17,7 @@ import Table from "@/components/Table";
 import { Edit3, Trash2, History } from "lucide-react";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { getRequest } from "@/utils/api";
+import LineChart from "./overview/lineChart";
 
 type ChartType = "monthly" | "quarterly" | "annual";
 
@@ -164,28 +165,6 @@ export default function OverviewSection() {
           {value}
         </span>
       ),
-    },
-  ];
-
-  // Table actions configuration
-  const tableActions = [
-    {
-      label: "History",
-      icon: <History className="w-4 h-4" />,
-      onClick: (row: any) => handleActivityClick(row),
-      variant: "success" as const,
-    },
-    {
-      label: "Edit",
-      icon: <Edit3 className="w-4 h-4" />,
-      onClick: (row: any) => console.log("Edit", row),
-      variant: "primary" as const,
-    },
-    {
-      label: "Delete",
-      icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row: any) => console.log("Delete", row),
-      variant: "danger" as const,
     },
   ];
 
@@ -460,18 +439,22 @@ export default function OverviewSection() {
           />
         ))}
       </div>
-      <div className="w-full flex justify-between gap-5">
+      <div className="w-full xl:flex space-y-5 justify-between gap-5">
         <HorizontalStackedChart title="🔥 Emissions by Vehicle" />
         <HorizontalStackedChart title="🔥 Emissions by Equipments" />
       </div>
-      <div>
-        <div className="h-[600px] flex w-full gap-5">
+      <div className="xl:flex gap-5 space-y-5 w-full">
+        <div className="xl:w-1/3 h-full">
+          <ProgressChart overallProgressValue={overallProgressValue} />
+        </div>
+        <div className="h-[580px] flex xl:w-2/3 w-full">
           <ScopeChartData title="📊 Emissions by Facility" />
         </div>
       </div>
 
       <div className="h-[500px]">
-        <StackedBarWithLineChart title="📊overall Target" />
+        {/* <StackedBarWithLineChart title="🥇overall Target" /> */}
+        <LineChart title="🥇 Compliance Status"/>
       </div>
 
       <Table

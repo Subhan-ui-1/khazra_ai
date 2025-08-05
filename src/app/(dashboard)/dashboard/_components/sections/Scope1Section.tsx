@@ -104,91 +104,91 @@ const scope1DataByDuration: Scope1Data = {
     {
       label: 'Stationary Combustion',
       value: 1746.2,
-      percentage: 53.8,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 1)',
+      percentage: 43.8,
+      color: 'fill-[#6f33e8]',
+      rawColor: '#6f33e8',
     },
     {
       label: 'Mobile Combustion',
       value: 985.4,
       percentage: 30.3,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.8)',
+      color: 'fill-[#00bbff]',
+      rawColor: '#00bbff',
     },
-    // {
-    //   label: 'Process Emissions',
-    //   value: 516.2,
-    //   percentage: 15.9,
-    //   color: 'fill-[#0f5744]',
-    //   rawColor: 'rgba(15, 87, 68, 0.6)',
-    // },
-    // {
-    //   label: 'Process Emissions',
-    //   value: 516.2,
-    //   percentage: 15.9,
-    //   color: 'fill-[#0f5744]',
-    //   rawColor: 'rgba(15, 87, 68, 0.6)',
-    // },
+    {
+      label: 'Process Emissions',
+      value: 516.2,
+      percentage: 15.9,
+      color: 'fill-[#ff8c09]',
+      rawColor: '#ff8c09',
+    },
+    {
+      label: 'Emissions',
+      value: 416.2,
+      percentage: 10.9,
+      color: 'fill-[#ffd900]',
+      rawColor: '#ffd900',
+    },
   ],
   'Last Year': [
     {
       label: 'Stationary Combustion',
       value: 1900,
-      percentage: 60,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 1)',
+      percentage: 50,
+      color: 'fill-[#6f33e8]',
+      rawColor: '#6f33e8',
     },
     {
       label: 'Mobile Combustion',
       value: 800,
       percentage: 25,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.8)',
+      color: 'fill-[#00bbff]',
+      rawColor: '#00bbff',
     },
-    // {
-    //   label: 'Process Emissions',
-    //   value: 470,
-    //   percentage: 15,
-    //   color: 'fill-[#0f5744]',
-    //   rawColor: 'rgba(15, 87, 68, 0.6)',
-    // },
-    // {
-    //   label: 'Process Emissions',
-    //   value: 470,
-    //   percentage: 15,
-    //   color: 'fill-[#0f5744]',
-    //   rawColor: 'rgba(15, 87, 68, 0.6)',
-    // },
+    {
+      label: 'Process Emissions',
+      value: 470,
+      percentage: 15,
+      color: 'fill-[#ff8c09]',
+      rawColor: '#ff8c09',
+    },
+    {
+      label: 'Emissions',
+      value: 870,
+      percentage: 10,
+      color: 'fill-[#ffd900]',
+      rawColor: '#ffd900',
+    },
   ],
   'Comparison': [
     {
       label: 'Stationary Combustion',
       value: 1800,
-      percentage: 50,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 1)',
+      percentage: 40,
+      color: 'fill-[#6f33e8]',
+      rawColor: '#6f33e8',
     },
     {
       label: 'Mobile Combustion',
       value: 1100,
-      percentage: 35,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.8)',
+      percentage: 25,
+      color: 'fill-[#00bbff]',
+      rawColor: '#00bbff',
     },
-    // {
-    //   label: 'Process Emissions',
-    //   value: 700,
-    //   percentage: 15,
-    //   color: 'fill-[#0f5744]',
-    //   rawColor: 'rgba(15, 87, 68, 0.6)',
-    // },
-    // {
-    //   label: 'Process Emissions',
-    //   value: 700,
-    //   percentage: 15,
-    //   color: 'fill-[#0f5744]',
-    //   rawColor: 'rgba(15, 87, 68, 0.6)',
-    // },
+    {
+      label: 'Process Emissions',
+      value: 700,
+      percentage: 15,
+      color: 'fill-[#ff8c09]',
+      rawColor: '#ff8c09',
+    },
+    {
+      label: ' Emissions',
+      value: 600,
+      percentage: 10,
+      color: 'fill-[#ffd900]',
+      rawColor: '#ffd900',
+    },
   ],
 };
 
@@ -328,35 +328,6 @@ export default function Scope1Section() {
     { key: 'lastUpdated', label: 'Last Updated', type: 'date' as const }
   ];
 
-  const tableActions = [
-    {
-      label: 'View',
-      icon: <Eye className="w-4 h-4" />,
-      onClick: (row: any) => {
-        console.log('View source:', row);
-        // Add view functionality here
-      },
-      variant: 'primary' as const
-    },
-    {
-      label: 'Edit',
-      icon: <Edit3 className="w-4 h-4" />,
-      onClick: (row: any) => {
-        console.log('Edit source:', row);
-        // Add edit functionality here
-      },
-      variant: 'secondary' as const
-    },
-    {
-      label: 'Delete',
-      icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row: any) => {
-        console.log('Delete source:', row);
-        // Add delete functionality here
-      },
-      variant: 'danger' as const
-    }
-  ];
 
   const handleAddSource = () => {
     console.log('Add new source');

@@ -99,10 +99,10 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative">
       <DashboardHeader />
       <div className="flex pt-16">
-        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] z-10">
+        <div className="fixed left-0 top-0 h-screen z-50">
           <DashboardSidebar 
             activeSection={activeSection} 
             onSectionChange={setActiveSection} 

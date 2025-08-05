@@ -4,6 +4,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { usePermissions } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
+import Link from "next/link";
+import Image from "next/image";
 
 interface DashboardSidebarProps {
   activeSection: string;
@@ -244,7 +246,7 @@ export default function DashboardSidebar({
   // Don't render anything until client-side hydration is complete
   if (!isClient) {
     return (
-      <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 px-2.5 overflow-y-auto h-screen">
+      <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen absolute top-0">
         <div className="animate-pulse">
           <div className="mb-12">
             <div className="px-6 py-2 h-4 bg-white opacity-20 rounded mb-4"></div>
@@ -259,10 +261,18 @@ export default function DashboardSidebar({
   }
 
   return (
-    <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 px-2.5 overflow-y-auto h-screen">
+    <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen no-scrollbar">
+      <Link href='/' className='xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center mb-5 ps-5'>
+          <Image
+              src={'/Logo.svg'}
+              alt="khazra logo"
+              height={26}
+              width={147}
+          />
+      </Link>
       {filteredSidebarItems.map((group, i) => (
-        <div key={i} className="mb-12">
-          <p className="px-6 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider">
+        <div key={i} className="mb-5">
+          <p className="px-2 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider">
             {group.section}
           </p>
           {group.items.map((item) => {
@@ -277,7 +287,7 @@ export default function DashboardSidebar({
                 <div key={item.id}>
                   <button
                     onClick={() => handleDropdown(item.id)}
-                    className={`w-full flex items-center gap-2 pe-2 py-3 px-1 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                    className={`w-full flex items-center gap-2 pe-2 py-3 px-5 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
                       openDropdown === item.id || isChildActive || isActive
                         ? "bg-[#10694e] font-semibold"
                         : ""
@@ -295,7 +305,7 @@ export default function DashboardSidebar({
                         <button
                           key={child.id}
                           onClick={() => onSectionChange(child.id)}
-                          className={`w-full flex items-center gap-3 py-2 ps-1 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                          className={`w-full flex items-center gap-3 py-2 ps-5 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
                             activeSection === child.id
                               ? "bg-[#10694e] font-semibold"
                               : ""
@@ -315,7 +325,7 @@ export default function DashboardSidebar({
               <button
                 key={item.id}
                 onClick={() => onSectionChange(item.id)}
-                className={`w-full flex items-center gap-2 py-2.5 ps-1 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
+                className={`w-full flex items-center gap-2 py-2.5 ps-5 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] ${
                   isActive ? "bg-[#10694e] font-semibold" : ""
                 }`}
               >

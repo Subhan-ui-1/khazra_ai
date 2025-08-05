@@ -30,22 +30,22 @@ const scope2DataByDuration: Scope2Data = {
       label: 'Purchased Electricity',
       value: 1746.2,
       percentage: 73.8,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 1)',
+      color: 'fill-[#6f33e8]',
+      rawColor: '#6f33e8',
     },
     {
       label: 'steam',
       value: 985.4,
       percentage: 17.3,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.8)',
+      color: 'fill-[#00bbff]',
+      rawColor: '#00bbff',
     },
     {
       label: 'Heating & Cooling',
       value: 516.2,
       percentage: 19.9,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.6)',
+      color: 'fill-[#ff8c09]',
+      rawColor: '#ff8c09',
     },
   ],
   'Last Year': [
@@ -53,22 +53,22 @@ const scope2DataByDuration: Scope2Data = {
       label: 'Purchased Electricity',
       value: 1900,
       percentage: 60,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 1)',
+      color: 'fill-[#6f33e8]',
+      rawColor: '#6f33e8',
     },
     {
       label: 'steam',
       value: 800,
       percentage: 25,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.8)',
+      color: 'fill-[#00bbff]',
+      rawColor: '#00bbff',
     },
     {
       label: 'Heating & Cooling',
       value: 470,
       percentage: 15,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.6)',
+      color: 'fill-[#ff8c09]',
+      rawColor: '#ff8c09',
     },
   ],
   'Comparison': [
@@ -76,22 +76,22 @@ const scope2DataByDuration: Scope2Data = {
       label: 'Purchased Electricity',
       value: 1800,
       percentage: 74.4,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 1)',
+      color: 'fill-[#6f33e8]',
+      rawColor: '#6f33e8',
     },
     {
       label: 'steam',
       value: 1100,
       percentage: 18.2,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.8)',
+      color: 'fill-[#00bbff]',
+      rawColor: '#00bbff',
     },
     {
       label: 'Heating & Cooling',
       value: 700,
       percentage: 7.4,
-      color: 'fill-[#0f5744]',
-      rawColor: 'rgba(15, 87, 68, 0.6)',
+      color: 'fill-[#ff8c09]',
+      rawColor: '#ff8c09',
     },
   ],
 };
@@ -631,8 +631,8 @@ export default function Scope2Section() {
       </div>
 
       {/* Charts Section */}
-      <div className="w-full flex flex-wrap justify-between gap-4">
-        <div className="w-[55%] bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+      <div className="w-full xl:flex flex-wrap justify-between gap-4">
+        <div className="xl:w-[55%] bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📊 Scope 2 Breakdown by Source
@@ -673,7 +673,7 @@ export default function Scope2Section() {
           </div>
         </div>
 
-        <div className="w-[40%] bg-white border border-green-100 rounded-xl p-4 shadow-sm">
+        <div className="xl:w-[40%] bg-white border border-green-100 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
               📈 Energy Efficiency Trend
