@@ -3,7 +3,7 @@ import {
   ChevronRight, Target, TrendingDown, Calendar, DollarSign, CheckCircle, 
   AlertCircle, Plus, X, BarChart3, Settings, FileText, Calculator, 
   Globe, Factory, Zap, Truck, Building, AlertTriangle, Info, Award, 
-  Shield, Users, Briefcase, Activity, LineChart, MapPin, Edit3
+  Shield, Users, Briefcase, Activity, LineChart, MapPin, Edit3, Trash2
 } from 'lucide-react';
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
@@ -13,51 +13,9 @@ const FlexibleTargetPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentStep, setCurrentStep] = useState(1);
   const [customTargets, setCustomTargets] = useState<any[]>([]);
-  const [initiatives, setInitiatives] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showInitiativeForm, setShowInitiativeForm] = useState(false);
-  const [editingInitiative, setEditingInitiative] = useState<any>(null);
-  const [initiativeFormData, setInitiativeFormData] = useState({
-    initiative: '',
-    targetYear: 2026,
-    category: 'energy efficiency',
-    reduction: '',
-    investment: '',
-    priority: 'high',
-    feasibility: 'high'
-  });
-
-  // Memoize the form data to prevent unnecessary re-renders
-  const memoizedFormData = React.useMemo(() => initiativeFormData, [initiativeFormData]);
-
-  // Memoize onChange handlers to prevent unnecessary re-renders
-  const handleInitiativeChange = React.useCallback((value: string) => {
-    setInitiativeFormData(prev => ({ ...prev, initiative: value }));
-  }, []);
-
-  const handleTargetYearChange = React.useCallback((value: number) => {
-    setInitiativeFormData(prev => ({ ...prev, targetYear: value }));
-  }, []);
-
-  const handleCategoryChange = React.useCallback((value: string) => {
-    setInitiativeFormData(prev => ({ ...prev, category: value }));
-  }, []);
-
-  const handleReductionChange = React.useCallback((value: string) => {
-    setInitiativeFormData(prev => ({ ...prev, reduction: value }));
-  }, []);
-
-  const handleInvestmentChange = React.useCallback((value: string) => {
-    setInitiativeFormData(prev => ({ ...prev, investment: value }));
-  }, []);
-
-  const handlePriorityChange = React.useCallback((value: string) => {
-    setInitiativeFormData(prev => ({ ...prev, priority: value }));
-  }, []);
-
-  const handleFeasibilityChange = React.useCallback((value: string) => {
-    setInitiativeFormData(prev => ({ ...prev, feasibility: value }));
-  }, []);
+  const [showTargetForm, setShowTargetForm] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<any>(null);
   
   const [targetData, setTargetData] = useState({
     // Organization Info
@@ -204,6 +162,8 @@ const FlexibleTargetPlatform = () => {
         // toast.success("Custom target added successfully");
         await fetchCustomTargets();
         setActiveTab('dashboard');
+        setShowTargetForm(false);
+        resetTargetForm();
       } else {
         // toast.error(response.message || "Failed to add custom target");
       }
@@ -214,92 +174,12 @@ const FlexibleTargetPlatform = () => {
     }
   };
 
-  // Fetch initiatives
-  const fetchInitiatives = async () => {
-    try {
-      const response = await getRequest("initiatives/getInitiatives", getToken());
-      if (response.success) {
-        setInitiatives(response.initiatives || []);
-      } else {
-        // toast.error(response.message || "Failed to fetch initiatives");
-      }
-    } catch (error: any) {
-      // toast.error(error.message || "Failed to fetch initiatives");
-    }
-  };
-
-  // Add initiative
-  const addInitiative = async () => {
-    if (!memoizedFormData.initiative || !memoizedFormData.reduction || !memoizedFormData.investment) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await postRequest(
-        "initiatives/addInitiative",
-        memoizedFormData,
-        "Initiative added successfully",
-        getToken(),
-        "post"
-      );
-
-      if (response.success) {
-        // toast.success("Initiative added successfully");
-        setShowInitiativeForm(false);
-        setInitiativeFormData({
-          initiative: '',
-          targetYear: 2026,
-          category: 'energy efficiency',
-          reduction: '',
-          investment: '',
-          priority: 'high',
-          feasibility: 'high'
-        });
-        await fetchInitiatives();
-      } else {
-        // toast.error(response.message || "Failed to add initiative");
-      }
-    } catch (error: any) {
-      // toast.error(error.message || "Failed to add initiative");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Start editing initiative
-  const startEditInitiative = (initiative: any) => {
-    setEditingInitiative(initiative);
-    setInitiativeFormData({
-      initiative: initiative.initiative,
-      targetYear: initiative.targetYear,
-      category: initiative.category,
-      reduction: initiative.reduction,
-      investment: initiative.investment,
-      priority: initiative.priority,
-      feasibility: initiative.feasibility
-    });
-    setShowInitiativeForm(true);
-  };
-
   // Load custom targets on component mount
   useEffect(() => {
     fetchCustomTargets();
-    fetchInitiatives();
   }, []);
 
-
-
-  const industries = [
-    'agriculture', 'automotive', 'chemicals', 'construction', 'energy', 'financial_services',
-    'food_beverage', 'healthcare', 'manufacturing', 'mining', 'oil_gas', 'retail', 
-    'technology', 'telecommunications', 'transportation', 'utilities', 'real_estate'
-  ];
-
   const targetCategories = [
-    // { value: 'voluntary', label: 'Voluntary Commitment', desc: 'Self-determined sustainability goals' },
-    // { value: 'regulatory', label: 'Regulatory Compliance', desc: 'Meet legal requirements' },
     { value: 'net_zero', label: 'Net Zero Commitment', desc: 'Achieve carbon neutrality' },
     { value: 'custom', label: 'Custom Strategy', desc: 'Tailored approach for your business' }
   ];
@@ -325,22 +205,6 @@ const FlexibleTargetPlatform = () => {
     };
   };
 
-  const calculateIntensityMetrics = () => {
-    const baseline = targetData.baselineEmissions.total;
-    const target = targetData.targetValue;
-    
-    return {
-      revenueIntensity: {
-        baseline: (baseline / (targetData.intensityMetrics.revenue / 1000000)).toFixed(2),
-        target: (target / (targetData.intensityMetrics.revenue / 1000000)).toFixed(2)
-      },
-      employeeIntensity: {
-        baseline: (baseline / targetData.intensityMetrics.employees).toFixed(2),
-        target: (target / targetData.intensityMetrics.employees).toFixed(2)
-      }
-    };
-  };
-
   const assessTargetAmbition = () => {
     const metrics = calculateTargetMetrics();
     const annualRate = parseFloat(metrics.annualReduction);
@@ -349,6 +213,58 @@ const FlexibleTargetPlatform = () => {
     if (annualRate < 4) return { level: 'Moderate', color: 'blue', desc: 'Industry aligned' };
     if (annualRate < 6) return { level: 'Ambitious', color: 'green', desc: 'Above industry average' };
     return { level: 'Transformational', color: 'purple', desc: 'Leading edge' };
+  };
+
+  const resetTargetForm = () => {
+    setTargetData({
+      organizationName: '',
+      industry: '',
+      headquarters: '',
+      revenue: 0,
+      employees: 0,
+      targetCategory: '',
+      targetType: '',
+      methodology: '',
+      ambitionLevel: '',
+      scopeCoverage: {
+        scope1: true,
+        scope2: true,
+        scope3: true,
+        scope3Categories: []
+      },
+      geographicCoverage: '',
+      businessCoverage: 0,
+      baselineYear: 0,
+      baselineEmissions: {
+        scope1: 0,
+        scope2: 0,
+        scope3: 0,
+        total: 0
+      },
+      targetYear: 0,
+      targetValue: 0,
+      targetUnit: '',
+      intensityMetrics: {
+        revenue: 0,
+        employees: 0,
+        productUnits: 0,
+        floorArea: 0
+      },
+      regulations: {
+        euTaxonomy: false,
+        csrd: false,
+        cdp: false,
+        tcfd: false,
+        localRegulations: []
+      },
+      milestones: [
+        { year: 0, target: 0, description: '' },
+        { year: 0, target: 0, description: '' }
+      ],
+      verificationRequired: false,
+      verificationFrequency: ''
+    });
+    setCurrentStep(1);
   };
 
   // Target Setup Form
@@ -665,7 +581,6 @@ const FlexibleTargetPlatform = () => {
                 {(() => {
                   const metrics = calculateTargetMetrics();
                   const ambition = assessTargetAmbition();
-                  const intensity = calculateIntensityMetrics();
                   
                   return (
                     <div className="grid grid-cols-3 gap-6">
@@ -808,16 +723,15 @@ const FlexibleTargetPlatform = () => {
       </div>
     </div>
   );
-console.log(customTargets, 'custom target...........................')
+
   // Target Dashboard
   const TargetDashboard = () => {
     const metrics = calculateTargetMetrics();
     const ambition = assessTargetAmbition();
-    const intensity = calculateIntensityMetrics();
     
     return (
       <div className="space-y-8">
-        {/* Key Metrics */}
+        {/* Key Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
@@ -880,418 +794,126 @@ console.log(customTargets, 'custom target...........................')
           </div>
         </div>
 
-        {/* Target Trajectory */}
+        {/* Custom Targets Table */}
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-black mb-4">Emission Reduction Trajectory</h3>
-          <div className="h-80 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg flex items-center justify-center border border-green-200">
-            <div className="text-center text-black">
-              <LineChart className="w-16 h-16 mx-auto mb-4 text-green-600" />
-              <p className="text-lg font-medium">Target Trajectory Visualization</p>
-              <p className="text-sm mb-2">
-                {targetData.baselineYear}: {targetData.baselineEmissions.total.toLocaleString()} tCO₂e → 
-                {targetData.targetYear}: {targetData.targetValue.toLocaleString()} tCO₂e
-              </p>
-              <div className="text-xs text-green-700 space-y-1">
-                <div>Total Reduction: {metrics.totalReduction}%</div>
-                <div>Annual Rate: {metrics.annualReduction}%/year</div>
-                <div>Strategy: {targetData.targetCategory.replace('_', ' ')}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Custom Targets */}
-        <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h4 className="text-lg font-semibold text-black">Custom Targets</h4>
+            <button
+              onClick={() => setShowTargetForm(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Custom Target</span>
+            </button>
           </div>
           
-          {customTargets.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium">No custom targets yet</p>
-              <p className="text-sm">Create your first carbon reduction target to get started</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {customTargets.map((target, index) => (
-                <div key={target._id || index} className="border border-green-100 rounded-lg p-4 hover:bg-white transition-colors">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <Target className="w-4 h-4 text-green-600" />
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Target Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Methodology
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Scope Coverage
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Reduction Target
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Timeline
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {customTargets.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      <div className="flex flex-col items-center">
+                        <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                        <p className="text-lg font-medium">No custom targets yet</p>
+                        <p className="text-sm">Create your first carbon reduction target to get started</p>
                       </div>
-                      <div>
-                        <h5 className="font-medium text-green-900">{target.targetCategory.name}</h5>
-                        <p className="text-sm text-green-700">{target.targetType}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-black">
-                        {target.targetAnalysis.totalReduction}% reduction
-                      </div>
-                      <div className="text-xs text-black">
-                        {target.baselineYear} → {target.targetYear}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="text-black">Methodology:</span>
-                      <div className="font-medium text-black">{target.methodology.name}</div>
-                    </div>
-                    <div>
-                        <span className="text-black">Scope Coverage:</span>
-                      <div className="font-medium text-black">{target.scopeCoverage.slice(0, 2).join(', ')}</div>
-                    </div>
-                    <div>
-                      <span className="text-black">Business Coverage:</span>
-                      <div className="font-medium text-black">{target.businessCoverage}%</div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-green-100">
-                    <div className="flex items-center justify-between text-xs text-green-600">
-                      <span>Created: {new Date(target.createdAt).toLocaleDateString()}</span>
-                      <span className={`px-2 py-1 rounded-lg ${
-                        target.targetAnalysis.leadingEdge === 'Transformational' ? 'bg-purple-100 text-purple-700' :
-                        target.targetAnalysis.leadingEdge === 'Ambitious' ? 'bg-green-100 text-green-700' :
-                        target.targetAnalysis.leadingEdge === 'Moderate' ? 'bg-blue-100 text-blue-700' :
-                        'bg-orange-100 text-orange-700'
-                      }`}>
-                        {target.targetAnalysis.leadingEdge}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Initiatives & Progress */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-            <h4 className="text-lg font-semibold text-black mb-4">Reduction Initiatives</h4>
-            <div className="space-y-4">
-              {initiatives.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
-                  <p className="text-sm">No initiatives added yet</p>
-                </div>
-              ) : (
-                initiatives.slice(0, 3).map((initiative) => (
-                  <div key={initiative._id} className="flex items-center justify-between p-3 bg-white rounded-lg">
-                    <div>
-                      <div className="font-bold text-green-900">{initiative.initiative}</div>
-                      <div className="text-sm text-black capitalize">{initiative.category.replace('_', ' ')}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-green-900">{initiative.reduction}</div>
-                      <div className="text-xs text-black">Investment: {initiative.investment}</div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-            <h4 className="text-lg font-semibold text-black mb-4">Target Details</h4>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-black">Target Category:</span>
-                <span className="font-medium text-green-900 capitalize">{customTargets.length > 0 ? customTargets[0].targetCategory.name.replace('_', ' ') : 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-black">Methodology:</span>
-                <span className="font-medium text-green-900 capitalize">{customTargets.length > 0 ? customTargets[0].methodology.name.replace('_', ' ') : 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-black">Geographic Coverage:</span>
-                <span className="font-medium text-green-900 capitalize">{customTargets.length > 0 ? customTargets[0].geographicCoverage : 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-black">Business Coverage:</span>
-                <span className="font-medium text-green-900">{customTargets.length > 0 ? customTargets[0].businessCoverage : 'N/A'}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-black">Verification:</span>
-                <span className="font-medium text-green-900">{customTargets.length > 0 ? (customTargets[0].verificationRequired ? 'Required' : 'Optional') : 'N/A'}</span>
-              </div>
-            </div>
+                    </td>
+                  </tr>
+                ) : (
+                  customTargets.map((target, index) => (
+                    <tr key={target._id || index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">{target.targetCategory.name}</div>
+                        <div className="text-sm text-gray-500">{target.targetType}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">{target.methodology.name}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">{target.scopeCoverage.join(', ')}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {target.targetAnalysis.totalReduction}% reduction
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {target.baselineYear} → {target.targetYear}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">
+                          {target.baselineYear} - {target.targetYear}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          target.targetAnalysis.leadingEdge === 'Transformational' ? 'bg-purple-100 text-purple-700' :
+                          target.targetAnalysis.leadingEdge === 'Ambitious' ? 'bg-green-100 text-green-700' :
+                          target.targetAnalysis.leadingEdge === 'Moderate' ? 'bg-blue-100 text-blue-700' :
+                          'bg-orange-100 text-orange-700'
+                        }`}>
+                          {target.targetAnalysis.leadingEdge}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingTarget(target);
+                              setShowTargetForm(true);
+                            }}
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete this target?')) {
+                                // Add delete functionality here
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     );
   };
-
-  // Initiative Manager
-  const InitiativeManager = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-green-800">Reduction Initiatives Portfolio</h3>
-        <button 
-          onClick={() => setShowInitiativeForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Initiative</span>
-        </button>
-      </div>
-
-      {/* Initiative Form */}
-      {showInitiativeForm && (
-        <div className="bg-white border border-green-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="text-lg font-medium text-green-800">
-              {editingInitiative ? 'Edit' : 'Add'} Initiative
-            </h4>
-            <button
-              onClick={() => {
-                setShowInitiativeForm(false);
-                setEditingInitiative(null);
-                setInitiativeFormData({
-                  initiative: '',
-                  targetYear: 2026,
-                  category: 'energy efficiency',
-                  reduction: '',
-                  investment: '',
-                  priority: 'high',
-                  feasibility: 'high'
-                });
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Initiative Name *
-              </label>
-              <input
-                type="text"
-                value={memoizedFormData.initiative}
-                onChange={(e) => handleInitiativeChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                placeholder="e.g., LED Lighting Upgrade"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Target Year
-              </label>
-              <select
-                value={memoizedFormData.targetYear}
-                onChange={(e) => handleTargetYearChange(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-              >
-                {[2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035].map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                value={memoizedFormData.category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="energy efficiency">Energy Efficiency</option>
-                <option value="renewable energy">Renewable Energy</option>
-                <option value="transportation">Transportation</option>
-                <option value="waste management">Waste Management</option>
-                <option value="water conservation">Water Conservation</option>
-                <option value="process optimization">Process Optimization</option>
-                <option value="supply chain">Supply Chain</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reduction *
-              </label>
-              <input
-                type="text"
-                value={memoizedFormData.reduction}
-                onChange={(e) => handleReductionChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                placeholder="e.g., 2,400 tCO₂e"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Investment *
-              </label>
-              <input
-                type="text"
-                value={memoizedFormData.investment}
-                onChange={(e) => handleInvestmentChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                placeholder="e.g., $150k"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Priority
-              </label>
-              <select
-                value={memoizedFormData.priority}
-                onChange={(e) => handlePriorityChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Feasibility
-              </label>
-              <select
-                value={memoizedFormData.feasibility}
-                onChange={(e) => handleFeasibilityChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-6">
-            <button
-              onClick={() => {
-                setShowInitiativeForm(false);
-                setEditingInitiative(null);
-                setInitiativeFormData({
-                  initiative: '',
-                  targetYear: 2026,
-                  category: 'energy efficiency',
-                  reduction: '',
-                  investment: '',
-                  priority: 'high',
-                  feasibility: 'high'
-                });
-              }}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={addInitiative}
-              disabled={loading || !memoizedFormData.initiative || !memoizedFormData.reduction || !memoizedFormData.investment}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
-              <span>{loading ? 'Adding...' : (editingInitiative ? 'Update' : 'Add')} Initiative</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white border border-green-100 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-white">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Initiative</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Target Year</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Reduction</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Investment</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Priority</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Feasibility</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-green-100">
-            {initiatives.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
-                  <div className="flex flex-col items-center">
-                    <Briefcase className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-lg font-medium">No initiatives yet</p>
-                    <p className="text-sm">Add your first reduction initiative to get started</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              initiatives.map((initiative) => (
-                <tr key={initiative._id} className="hover:bg-white">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-green-900">{initiative.initiative}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-green-700 capitalize">
-                      {initiative.category.replace('_', ' ')}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-green-900">{initiative.targetYear}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-green-900">
-                      {initiative.reduction}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-green-900">
-                      {initiative.investment}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      initiative.priority === 'high' ? 'bg-red-100 text-red-700' :
-                      initiative.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {initiative.priority}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      initiative.feasibility === 'high' ? 'bg-green-100 text-green-700' :
-                      initiative.feasibility === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {initiative.feasibility}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => startEditInitiative(initiative)}
-                      className="text-green-600 hover:text-green-800 mr-3"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-10">
@@ -1320,17 +942,6 @@ console.log(customTargets, 'custom target...........................')
             <BarChart3 className="w-4 h-4" />
             <span>Target Dashboard</span>
           </button>
-          <button
-            onClick={() => setActiveTab('initiatives')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'initiatives' 
-                ? 'bg-green-600 text-white shadow-md' 
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            <span>Initiatives</span>
-          </button>
         </div>
         
         {activeTab !== 'setup' && (
@@ -1349,9 +960,32 @@ console.log(customTargets, 'custom target...........................')
         <div className="p-6">
           {activeTab === 'setup' && <TargetSetupForm />}
           {activeTab === 'dashboard' && <TargetDashboard />}
-          {activeTab === 'initiatives' && <InitiativeManager />}
         </div>
       </div>
+
+      {/* Target Form Modal */}
+      {showTargetForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">
+                {editingTarget ? 'Edit Target' : 'Add Custom Target'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowTargetForm(false);
+                  setEditingTarget(null);
+                  resetTargetForm();
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <TargetSetupForm />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -16,18 +16,17 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from "@/utils/localStorage";
+import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
 // Define TypeScript interfaces
 interface FacilityFormData {
   facilityName: string;
   fullAddress: string;
-  city: string;
-  stateProvince: string;
-  country: string;
   postalCode: string;
   latitude: number;
   longitude: number;
   facilityType: string;
+  customFacilityType: string;
   floorArea: string;
   numberOfEmployees: string;
   status: string;
@@ -59,27 +58,64 @@ const statusOptions = [
 ];
 
 const countries = [
-  "United States",
-  "Canada",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Japan",
-  "China",
-  "India",
-  "Australia",
-  "Brazil",
-  "Mexico",
-  "South Africa",
-  "Nigeria",
-  "Kenya",
-  "Egypt",
+  "United Arab Emirates",
   "Saudi Arabia",
-  "UAE",
-  "Turkey",
-  "Russia",
-  "South Korea",
 ];
+
+// States/Emirates for UAE
+const uaeStates = [
+  "Abu Dhabi",
+  "Dubai",
+  "Sharjah",
+  "Ajman",
+  "Umm Al Quwain",
+  "Ras Al Khaimah",
+  "Fujairah"
+];
+
+// States/Provinces for Saudi Arabia
+const saudiStates = [
+  "Riyadh",
+  "Makkah",
+  "Eastern Province",
+  "Asir",
+  "Qassim",
+  "Hail",
+  "Tabuk",
+  "Northern Borders",
+  "Jazan",
+  "Najran",
+  "Al Bahah",
+  "Al Jouf"
+];
+
+// Cities for UAE states
+const uaeCities = {
+  "Abu Dhabi": ["Abu Dhabi City", "Al Ain", "Al Dhafra", "Al Ruwais", "Liwa Oasis"],
+  "Dubai": ["Dubai City", "Jebel Ali", "Hatta", "Al Aweer", "Al Qusais"],
+  "Sharjah": ["Sharjah City", "Khor Fakkan", "Kalba", "Dibba Al-Hisn", "Al Dhaid"],
+  "Ajman": ["Ajman City", "Al Manama", "Masfout"],
+  "Umm Al Quwain": ["Umm Al Quwain City", "Al Sinniyah", "Al Raas"],
+  "Ras Al Khaimah": ["Ras Al Khaimah City", "Al Rams", "Al Jazirah Al Hamra"],
+  "Fujairah": ["Fujairah City", "Dibba", "Khor Fakkan", "Kalba"]
+};
+
+// Cities for Saudi Arabia states
+const saudiCities = {
+  "Riyadh": ["Riyadh City", "Al Kharj", "Al Diriyah", "Al Majma'ah", "Al Zulfi"],
+  "Makkah": ["Mecca", "Jeddah", "Taif", "Rabigh", "Al Lith"],
+  "Eastern Province": ["Dammam", "Al Khobar", "Dhahran", "Al Jubail", "Al Ahsa"],
+  "Asir": ["Abha", "Khamis Mushait", "Bisha", "Najran", "Ranyah"],
+  "Qassim": ["Buraydah", "Unaizah", "Al Rass", "Al Badayea", "Al Mithnab"],
+  "Hail": ["Hail City", "Al Ghat", "Al Shinan", "Al Sulaimi"],
+  "Tabuk": ["Tabuk City", "Al Wajh", "Duba", "Haql", "Umluj"],
+  "Northern Borders": ["Arar", "Rafha", "Turaif"],
+  "Jazan": ["Jazan City", "Abu Arish", "Sabya", "Samtah", "Al Ahad"],
+  "Najran": ["Najran City", "Sharurah", "Badr Al Janub", "Yadamah"],
+  "Al Bahah": ["Al Bahah City", "Baljurashi", "Al Mikhwah", "Al Aqiq"],
+  "Al Jouf": ["Sakaka", "Qurayyat", "Dumat Al Jandal", "Tabarjal"]
+};
+
 
 const AddFacilitySection = () => {
   const [facilityData, setFacilityData] = useState<any[]>([]);
@@ -87,6 +123,12 @@ const AddFacilitySection = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
+  const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
+  const [stateOptions, setStateOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [cityOptions, setCityOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
 
@@ -108,13 +150,11 @@ const AddFacilitySection = () => {
   const [formData, setFormData] = useState<FacilityFormData>({
     facilityName: "",
     fullAddress: "",
-    city: "",
-    stateProvince: "",
-    country: "",
     postalCode: "",
     latitude: 0,
     longitude: 0,
     facilityType: "",
+    customFacilityType: "",
     floorArea: "",
     numberOfEmployees: "",
     status: "",
@@ -186,6 +226,130 @@ const AddFacilitySection = () => {
     }
   };
 
+  // Get state options based on selected country
+  const getStateOptions = (country: string) => {
+    switch (country) {
+      case "United Arab Emirates":
+        return uaeStates.map(state => ({ value: state, label: state }));
+      case "Saudi Arabia":
+        return saudiStates.map(state => ({ value: state, label: state }));
+      default:
+        return [];
+    }
+  };
+
+  // Get city options based on selected country and state
+  const getCityOptions = (country: string, state: string) => {
+    if (!country || !state) return [];
+    
+    switch (country) {
+      case "United Arab Emirates":
+        return (uaeCities[state as keyof typeof uaeCities] || []).map(city => ({ value: city, label: city }));
+      case "Saudi Arabia":
+        return (saudiCities[state as keyof typeof saudiCities] || []).map(city => ({ value: city, label: city }));
+      default:
+        return [];
+    }
+  };
+
+  // Update state options when country changes
+  const handleCountryChange = (country: string) => {
+    const newStateOptions = getStateOptions(country);
+    setStateOptions(newStateOptions);
+    setCityOptions([]);
+    setSelectedCountry(country);
+    setSelectedState("");
+    setSelectedCity("");
+    console.log(country);
+  };
+
+  // Update city options when state changes
+  const handleStateChange = (state: string) => {
+    const newCityOptions = getCityOptions(selectedCountry, state);
+    setCityOptions(newCityOptions);
+    setSelectedState(state);
+    setSelectedCity("");
+  };
+
+  const NUMBER_OF_EMPLOYEES_OPTIONS = [
+    "1-10",
+    "11-50",
+    "51-100",
+    "101-500",
+    "501-1000",
+    "1001-5000",
+    "5001-10000",
+    "10001-50000",
+    "50001-100000",
+    "100001-500000",
+    "500001-1000000",
+  ];
+
+  // Define form fields for DynamicForm
+  const facilityFormFields: FormField[] = [
+    {
+      name: "facilityName",
+      label: "Facility Name",
+      type: "text",
+      required: true,
+      placeholder: "Enter facility name"
+    },
+    {
+      name: "facilityType",
+      label: "Facility Type",
+      type: "select",
+      required: true,
+      options: facilityTypes.map(type => ({ value: type, label: type }))
+    },
+    {
+      name: "customFacilityType",
+      label: "Custom Facility Type",
+      type: "text",
+      required: true,
+      placeholder: "Enter custom facility type",
+      condition: (formData) => formData.facilityType === "Other",
+      validation: {
+        message: "Custom facility type is required when 'Other' is selected"
+      }
+    },
+    {
+      name: "fullAddress",
+      label: "Full Address",
+      type: "text",
+      required: true,
+      placeholder: "Enter complete address"
+    },
+    {
+      name: "postalCode",
+      label: "Postal Code",
+      type: "text",
+      required: true,
+      placeholder: "Enter postal code"
+    },
+    {
+      name: "floorArea",
+      label: "Floor Area (sq ft)",
+      type: "text",
+      required: true,
+      placeholder: "Enter floor area"
+    },
+    {
+      name: "numberOfEmployees",
+      label: "Number of Employees",
+      type: "select",
+      required: false,
+      placeholder: "Enter number of employees",
+      options: NUMBER_OF_EMPLOYEES_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      required: true,
+      options: statusOptions.map(status => ({ value: status, label: status }))
+    }
+  ];
+
   const fetchFacilities = async () => {
     try {
       setLoading(true);
@@ -233,37 +397,22 @@ const AddFacilitySection = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    // Validate required fields
-    if (
-      !formData.facilityName ||
-      !formData.fullAddress ||
-      !formData.city ||
-      !formData.stateProvince ||
-      !formData.country ||
-      !formData.postalCode ||
-      !formData.facilityType ||
-      !formData.floorArea ||
-      !formData.status
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
+  const handleFormSubmit = async (data: any) => {
     // Prepare facility data
     const facilityData = {
-      facilityName: formData.facilityName,
-      fullAddress: formData.fullAddress,
-      city: formData.city,
-      stateProvince: formData.stateProvince,
-      country: formData.country,
-      postalCode: formData.postalCode,
+      facilityName: data.facilityName,
+      fullAddress: data.fullAddress,
+      city: selectedCity,
+      stateProvince: selectedState,
+      country: selectedCountry,
+      postalCode: data.postalCode,
       latitude: location.latitude,
       longitude: location.longitude,
-      facilityType: formData.facilityType,
-      floorArea: parseInt(formData.floorArea),
-      numberOfEmployees: parseInt(formData.numberOfEmployees) || 0,
-      status: formData.status,
+      facilityType: data.facilityType === "Other" ? data.customFacilityType : data.facilityType,
+      customFacilityType: data.customFacilityType || "",
+      floorArea: parseInt(data.floorArea),
+      numberOfEmployees: parseInt(data.numberOfEmployees) || 0,
+      status: data.status,
     };
 
     try {
@@ -301,17 +450,20 @@ const AddFacilitySection = () => {
         setFormData({
           facilityName: "",
           fullAddress: "",
-          city: "",
-          stateProvince: "",
-          country: "",
           postalCode: "",
           latitude: 0,
           longitude: 0,
           facilityType: "",
+          customFacilityType: "",
           floorArea: "",
           numberOfEmployees: "",
           status: "",
         });
+        setSelectedCountry("");
+        setSelectedState("");
+        setSelectedCity("");
+        setStateOptions([]);
+        setCityOptions([]);
         fetchFacilities(); // Refresh the list after adding/updating
       } else {
         toast.error(response.message || "Operation failed");
@@ -321,18 +473,51 @@ const AddFacilitySection = () => {
     }
   };
 
+  const resetForm = () => {
+    setShowForm(false);
+    setEditingItem(null);
+    setFormData({
+      facilityName: "",
+      fullAddress: "",
+      postalCode: "",
+      latitude: 0,
+      longitude: 0,
+      facilityType: "",
+      customFacilityType: "",
+      floorArea: "",
+      numberOfEmployees: "",
+      status: "",
+    });
+    setSelectedCountry("");
+    setSelectedState("");
+    setSelectedCity("");
+    setStateOptions([]);
+    setCityOptions([]);
+  };
+
   const startEdit = (item: any) => {
+    // Check if the facility type is custom (not in predefined list)
+    const isCustomType = !facilityTypes.includes(item.facilityType);
+    
+    // Set state and city options based on the item's country and state
+    const itemStateOptions = getStateOptions(item.country);
+    const itemCityOptions = getCityOptions(item.country, item.stateProvince);
+    
+    setStateOptions(itemStateOptions);
+    setCityOptions(itemCityOptions);
+    setSelectedCountry(item.country || "");
+    setSelectedState(item.stateProvince || "");
+    setSelectedCity(item.city || "");
+    
     setEditingItem(item);
     setFormData({
       facilityName: item.facilityName || "",
       fullAddress: item.fullAddress || "",
-      city: item.city || "",
-      stateProvince: item.stateProvince || "",
-      country: item.country || "",
       postalCode: item.postalCode || "",
       latitude: item.latitude || 0,
       longitude: item.longitude || 0,
-      facilityType: item.facilityType || "",
+      facilityType: isCustomType ? "Other" : (item.facilityType || ""),
+      customFacilityType: isCustomType ? (item.facilityType || "") : (item.customFacilityType || ""),
       floorArea: item.floorArea?.toString() || "",
       numberOfEmployees: item.numberOfEmployees?.toString() || "",
       status: item.status || "",
@@ -374,6 +559,14 @@ const AddFacilitySection = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
 
   const handleFilterChange = (
     key: keyof FilterState,
@@ -384,6 +577,69 @@ const AddFacilitySection = () => {
       [key]: value,
       page: 1, // Reset to first page when filters change
     }));
+  };
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedFacilities(facilityData.map(facility => facility.id || facility._id));
+    } else {
+      setSelectedFacilities([]);
+    }
+  };
+
+  const handleSelectFacility = (facilityId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedFacilities(prev => [...prev, facilityId]);
+    } else {
+      setSelectedFacilities(prev => prev.filter(id => id !== facilityId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedFacilities.length} selected facilities?`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = selectedFacilities.map(facilityId => 
+        postRequest(
+          `facilities/deleteFacilities/${facilityId}`,
+          {},
+          "Facility Deleted Successfully",
+          tokenData.accessToken,
+          "delete"
+        )
+      );
+
+      await Promise.all(deletePromises);
+      toast.success(`${selectedFacilities.length} facilities deleted successfully`);
+      setSelectedFacilities([]);
+      fetchFacilities();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete some facilities");
+    }
+  };
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    try {
+      const updatePromises = selectedFacilities.map(facilityId => 
+        postRequest(
+          `facilities/updateFacilities/${facilityId}`,
+          { status: newStatus },
+          "Facility Updated Successfully",
+          tokenData.accessToken,
+          "put"
+        )
+      );
+
+      await Promise.all(updatePromises);
+      toast.success(`${selectedFacilities.length} facilities status updated successfully`);
+      setSelectedFacilities([]);
+      fetchFacilities();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update some facilities");
+    }
   };
 
   return (
@@ -444,264 +700,41 @@ const AddFacilitySection = () => {
         </div>
       </div>
 
-      {showForm && (
-        <div className="bg-white border border-green-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="text-lg font-medium text-green-900">
-              {editingItem ? "Edit" : "Add"} Facility
-            </h4>
-            <button
-              onClick={() => {
-                setShowForm(false);
-                setEditingItem(null);
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
 
-          <div className="space-y-6">
-            {/* Facility Name and Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facility Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.facilityName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      facilityName: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter facility name"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facility Type *
-                </label>
+      {/* Bulk Actions */}
+      {selectedFacilities.length > 0 && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium text-blue-900'>
+                {selectedFacilities.length} facilit{selectedFacilities.length > 1 ? 'ies' : 'y'} selected
+              </span>
+            </div>
+            <div className='flex gap-2'>
+              <PermissionGuard permission="facilities.update">
                 <select
-                  value={formData.facilityType}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      facilityType: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
+                  onChange={(e) => handleBulkStatusUpdate(e.target.value)}
+                  className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 border-0'
                 >
-                  <option value="">Select Facility Type</option>
-                  {facilityTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
+                  <option value="">Update Status</option>
+                  {statusOptions.map(status => (
+                    <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
-              </div>
-            </div>
-
-            {/* Full Address */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Address *
-              </label>
-              <textarea
-                value={formData.fullAddress}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    fullAddress: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                rows={3}
-                placeholder="Enter complete address"
-                required
-              />
-            </div>
-
-            {/* City, State/Province, Country */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, city: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter city"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State/Province *
-                </label>
-                <input
-                  type="text"
-                  value={formData.stateProvince}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      stateProvince: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter state or province"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country *
-                </label>
-                <select
-                  value={formData.country}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      country: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Country</option>
-                  {countries.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Postal Code, Floor Area, Number of Employees */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Postal Code *
-                </label>
-                <input
-                  type="text"
-                  value={formData.postalCode}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      postalCode: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter postal code"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Floor Area (sq ft) *
-                </label>
-                <input
-                  type="number"
-                  value={formData.floorArea}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      floorArea: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter floor area"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Number of Employees
-                </label>
-                <input
-                  type="number"
-                  value={formData.numberOfEmployees}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      numberOfEmployees: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter number of employees"
-                />
-              </div>
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status *
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, status: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                required
-              >
-                <option value="">Select Status</option>
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Location Info */}
-            {/* <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                📍 Location Information
-              </p>
-              <p className="text-xs text-gray-600">
-                Latitude: {location.latitude.toFixed(6)} | Longitude: {location.longitude.toFixed(6)}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Location detected automatically from your device
-              </p>
-            </div> */}
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-4">
+              </PermissionGuard>
+              <PermissionGuard permission="facilities.delete">
               <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingItem(null);
-                }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                Cancel
+                  onClick={handleBulkDelete}
+                  className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                >
+                  Delete Selected
               </button>
+              </PermissionGuard>
               <button
-                onClick={handleSubmit}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                onClick={() => setSelectedFacilities([])}
+                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
               >
-                <Save className="w-4 h-4" />
-                <span>{editingItem ? "Update" : "Save"} Facility</span>
+                Clear Selection
               </button>
             </div>
           </div>
@@ -719,6 +752,14 @@ const AddFacilitySection = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <input
+                    type="checkbox"
+                    checked={selectedFacilities.length === facilityData.length && facilityData.length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   ID
                 </th>
@@ -749,7 +790,7 @@ const AddFacilitySection = () => {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={9}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     Loading facilities...
@@ -758,7 +799,7 @@ const AddFacilitySection = () => {
               ) : facilityData.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={9}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     No facilities found. Add your first facility to get started.
@@ -767,6 +808,14 @@ const AddFacilitySection = () => {
               ) : (
                 facilityData.map((facility,i) => (
                   <tr key={facility.id || facility._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedFacilities.includes(facility.id || facility._id)}
+                        onChange={(e) => handleSelectFacility(facility.id || facility._id, e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">FC-{i+1}</div>
                     </td>
@@ -824,7 +873,7 @@ const AddFacilitySection = () => {
                             <Edit3 className="w-4 h-4" />
                           </button>
                         </PermissionGuard>
-                        <PermissionGuard permission="facilities.delete">
+                        {/* <PermissionGuard permission="facilities.delete">
                           <button
                             onClick={() =>
                               deleteFacility(facility.id || facility._id)
@@ -833,7 +882,7 @@ const AddFacilitySection = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        </PermissionGuard>
+                        </PermissionGuard> */}
                       </div>
                     </td>
                   </tr>
@@ -843,6 +892,80 @@ const AddFacilitySection = () => {
           </table>
         </div>
       </div>
+
+      {showForm && (
+        <div className="space-y-6">
+          {/* Location Dropdowns */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Location Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Country *
+                </label>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => handleCountryChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  required
+                >
+                  <option value="">Select Country</option>
+                  {countries.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  State/Province *
+                </label>
+                <select
+                  value={selectedState}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  required
+                  disabled={!selectedCountry}
+                >
+                  <option value="">Select State/Province</option>
+                  {stateOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City *
+                </label>
+                <select
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  required
+                  disabled={!selectedState}
+                >
+                  <option value="">Select City</option>
+                  {cityOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Form */}
+          <DynamicForm
+            title={editingItem ? 'Edit Facility' : 'Add Facility'}
+            fields={facilityFormFields}
+            onSubmit={handleFormSubmit}
+            onCancel={resetForm}
+            initialData={formData}
+            loading={false}
+            submitText={editingItem ? 'Update Facility' : 'Save Facility'}
+            cancelText="Cancel"
+            onClose={resetForm}
+          />
+        </div>
+      )}
     </div>
   );
 };

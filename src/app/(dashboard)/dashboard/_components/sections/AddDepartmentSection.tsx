@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { getRequest, postRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from '@/utils/localStorage';
+import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
 interface DepartmentFormData {
   name: string;
@@ -34,6 +35,7 @@ const AddDepartmentSection = () => {
   const [editingItem, setEditingItem] = useState<Department | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   
@@ -109,53 +111,7 @@ const AddDepartmentSection = () => {
     console.log(userData.organization, 'organisation id')
     return userData.organization;
   }
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      toast.error("Department name is required");
-      return;
-    }
-    const organizationId = await getOrganizationId();
-    setSubmitting(true);
-    try {
-      if (editingItem) {
-        // Update existing department
-        const response = await postRequest(
-          `departments/updateDepartment/${editingItem._id}`,
-          {...formData},
-          "Department updated successfully",
-          tokenData.accessToken,
-          "put"
-        );
-        
-        if (response.success) {
-          toast.success("Department updated successfully");
-          resetForm();
-          fetchDepartments();
-        }
-      } else {
-        // Add new department
-        const response = await postRequest(
-          "departments/addDepartment",
-        {...formData, organization:organizationId },
-          "Department added successfully",
-          tokenData.accessToken,
-          "post"
-        );
-        
-        if (response.success) {
-          toast.success("Department added successfully");
-          resetForm();
-          fetchDepartments();
-        }
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save department");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+
 
   const handleEdit = (department: Department) => {
     setEditingItem(department);
@@ -195,10 +151,7 @@ const AddDepartmentSection = () => {
     setShowForm(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -206,6 +159,102 @@ const AddDepartmentSection = () => {
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  // Form fields configuration
+  const departmentFormFields: FormField[] = [
+    {
+      name: 'name',
+      label: 'Department Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Enter department name'
+    },
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      placeholder: 'Enter department description',
+      rows: 3
+    }
+  ];
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
+
+  const handleFormSubmit = async (data: any) => {
+    setSubmitting(true);
+    try {
+      const departmentData = {
+        ...data,
+        // organizationId: await getOrganizationId()
+      };
+
+      const response = await postRequest(
+        editingItem ? `departments/updateDepartment/${editingItem._id}` : "departments/addDepartment",
+        departmentData,
+        editingItem ? "Department updated successfully" : "Department created successfully",
+        tokenData.accessToken,
+        editingItem ? "put" : "post"
+      );
+      
+      if (response.success) {
+        toast.success(editingItem ? "Department updated successfully" : "Department created successfully");
+        resetForm();
+        fetchDepartments();
+      }
+    } catch (error: any) {
+      toast.error(error.message || (editingItem ? "Failed to update department" : "Failed to create department"));
+    } finally {
+      setSubmitting(false);
+    }
+  };;
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedDepartments(departmentData.map(dept => dept._id));
+    } else {
+      setSelectedDepartments([]);
+    }
+  };
+
+  const handleSelectDepartment = (departmentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedDepartments(prev => [...prev, departmentId]);
+    } else {
+      setSelectedDepartments(prev => prev.filter(id => id !== departmentId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedDepartments.length} selected departments?`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = selectedDepartments.map(departmentId => 
+        postRequest(
+          `departments/deleteDepartments/${departmentId}`,
+          {},
+          "Department Deleted Successfully",
+          tokenData.accessToken,
+          "delete"
+        )
+      );
+
+      await Promise.all(deletePromises);
+      toast.success(`${selectedDepartments.length} departments deleted successfully`);
+      setSelectedDepartments([]);
+      fetchDepartments();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete some departments");
+    }
   };
 
 
@@ -260,86 +309,34 @@ const AddDepartmentSection = () => {
       </div>
 
       {/* Form Section */}
-      {showForm && (
-        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-semibold text-gray-800'>
-              {editingItem ? 'Edit Department' : 'Add New Department'}
-            </h2>
-            <button
-              onClick={resetForm}
-              className='text-gray-500 hover:text-gray-700'
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+
+
+      {/* Bulk Actions */}
+      {selectedDepartments.length > 0 && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium text-blue-900'>
+                {selectedDepartments.length} department{selectedDepartments.length > 1 ? 's' : ''} selected
+              </span>
+            </div>
+            <div className='flex gap-2'>
+              <PermissionGuard permission="department.delete">
+                <button
+                  onClick={handleBulkDelete}
+                  className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                >
+                  Delete Selected
+                </button>
+              </PermissionGuard>
+              <button
+                onClick={() => setSelectedDepartments([])}
+                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+              >
+                Clear Selection
+              </button>
+            </div>
           </div>
-          
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div>
-              <label htmlFor='name' className='block text-sm font-medium text-gray-700 mb-2'>
-                Department Name *
-              </label>
-              <input
-                type='text'
-                id='name'
-                name='name'
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder='Enter department name'
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor='description' className='block text-sm font-medium text-gray-700 mb-2'>
-                Department Description
-              </label>
-              <textarea
-                id='description'
-                name='description'
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder='Enter department description (optional)'
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-              />
-            </div>
-            
-            <div className='flex gap-3 pt-4'>
-              <button
-                type='submit'
-                disabled={submitting}
-                className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
-              >
-                {submitting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {editingItem ? 'Updating...' : 'Adding...'}
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {editingItem ? 'Update Department' : 'Add Department'}
-                  </>
-                )}
-              </button>
-              <button
-                type='button'
-                onClick={resetForm}
-                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
         </div>
       )}
 
@@ -376,6 +373,14 @@ const AddDepartmentSection = () => {
               <thead className='bg-gray-50'>
                 <tr>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.length === departmentData.length && departmentData.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     ID
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
@@ -393,6 +398,14 @@ const AddDepartmentSection = () => {
               <tbody className='bg-white divide-y divide-gray-200'>
                 {departmentData.map((department,i) => (
                   <tr key={department._id} className='hover:bg-gray-50'>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <input
+                        type="checkbox"
+                        checked={selectedDepartments.includes(department._id)}
+                        onChange={(e) => handleSelectDepartment(department._id, e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                    </td>
                     <td className='px-6 py-4 whitespace-nowrap'>
                       <div className='text-sm font-medium text-gray-900'>DP-{i+1}</div>
                     </td>
@@ -435,6 +448,19 @@ const AddDepartmentSection = () => {
           </div>
         )}
       </div>
+      {showForm && (
+        <DynamicForm
+          title={editingItem ? 'Edit Department' : 'Add New Department'}
+          fields={departmentFormFields}
+          onSubmit={handleFormSubmit}
+          onCancel={resetForm}
+          initialData={formData}
+          loading={submitting}
+          submitText={editingItem ? 'Update Department' : 'Create Department'}
+          cancelText="Cancel"
+          onClose={resetForm}
+        />
+      )}
     </div>
   );
 };

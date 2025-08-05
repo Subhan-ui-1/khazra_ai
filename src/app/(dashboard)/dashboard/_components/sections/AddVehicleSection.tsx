@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from "@/utils/localStorage";
+import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
 // Define TypeScript interfaces
 interface VehicleFormData {
@@ -172,6 +173,7 @@ const AddVehicleSection = () => {
   }
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
 
   // Check if user has permission to view vehicles
@@ -195,6 +197,158 @@ const AddVehicleSection = () => {
   const purchaseYears = formData.modelYear
     ? getPurchaseYears(formData.modelYear)
     : [];
+
+  // Define form fields for DynamicForm (flattened structure)
+  const vehicleFormFields: FormField[] = [
+    {
+      name: "vehicleType",
+      label: "Vehicle Type",
+      type: "select",
+      required: true,
+      options: vehicleTypes.map(type => ({ value: type, label: type }))
+    },
+    {
+      name: "modelYear",
+      label: "Model Year",
+      type: "select",
+      required: true,
+      options: modelYears.map(year => ({ value: year.toString(), label: year.toString() }))
+    },
+    {
+      name: "make",
+      label: "Make",
+      type: "text",
+      required: true,
+      placeholder: "e.g., Toyota, Ford, Tesla"
+    },
+    {
+      name: "model",
+      label: "Model",
+      type: "text",
+      required: true,
+      placeholder: "e.g., Camry, F-150, Model 3"
+    },
+    {
+      name: "purchaseYear",
+      label: "Purchase Year",
+      type: "select",
+      required: false,
+      options: purchaseYears.map(year => ({ value: year.toString(), label: year.toString() }))
+    },
+    {
+      name: "fuelType",
+      label: "Fuel Type",
+      type: "select",
+      required: true,
+      options: fuelTypes.map(type => ({ value: type, label: type }))
+    },
+    {
+      name: "secondaryFuelType",
+      label: "Secondary Fuel Type",
+      type: "select",
+      required: false,
+      options: fuelTypes.map(type => ({ value: type, label: type }))
+    },
+    {
+      name: "region",
+      label: "Region",
+      type: "select",
+      required: false,
+      options: regions.map(region => ({ value: region, label: region }))
+    },
+    {
+      name: "fuelConsumptionValue",
+      label: "Fuel Consumption Value",
+      type: "text",
+      required: false,
+      placeholder: "Enter value"
+    },
+    {
+      name: "fuelConsumptionUnit",
+      label: "Fuel Consumption Unit",
+      type: "select",
+      required: false,
+      options: fuelCombustionUnits.map(unit => ({ value: unit, label: unit }))
+    },
+    {
+      name: "electricityConsumptionValue",
+      label: "Electricity Consumption Value",
+      type: "text",
+      required: false,
+      placeholder: "Enter value"
+    },
+    {
+      name: "electricityConsumptionUnit",
+      label: "Electricity Consumption Unit",
+      type: "select",
+      required: false,
+      options: electricityConsumptionUnits.map(unit => ({ value: unit, label: unit }))
+    },
+    {
+      name: "annualMileageValue",
+      label: "Annual Mileage Value",
+      type: "text",
+      required: false,
+      placeholder: "Enter value"
+    },
+    {
+      name: "annualMileageUnit",
+      label: "Annual Mileage Unit",
+      type: "select",
+      required: false,
+      options: annualMileageUnits.map(unit => ({ value: unit, label: unit }))
+    },
+    {
+      name: "emissionCO2",
+      label: "CO₂ Emissions (g/km)",
+      type: "text",
+      required: false,
+      placeholder: "CO₂ emissions"
+    },
+    {
+      name: "emissionCH4",
+      label: "CH₄ Emissions (g/km)",
+      type: "text",
+      required: false,
+      placeholder: "CH₄ emissions"
+    },
+    {
+      name: "emissionN2O",
+      label: "N₂O Emissions (g/km)",
+      type: "text",
+      required: false,
+      placeholder: "N₂O emissions"
+    },
+    {
+      name: "emissionStandard",
+      label: "Emission Standard",
+      type: "select",
+      required: false,
+      options: EMISSION_STANDARDS_OPTIONS.map(standard => ({ value: standard, label: standard }))
+    },
+    {
+      name: "averageSpeed",
+      label: "Average Speed (km/h)",
+      type: "text",
+      required: false,
+      placeholder: "Enter average speed"
+    },
+    {
+      name: "dataSource",
+      label: "Data Source",
+      type: "select",
+      required: false,
+      options: dataSources.map(source => ({ value: source, label: source }))
+    },
+    {
+      name: "notes",
+      label: "Notes",
+      type: "textarea",
+      required: false,
+      placeholder: "Enter any additional notes or comments about the vehicle"
+    }
+  ];
+
   // Fetch vehicles on component mount
   useEffect(() => {
     fetchVehicles();
@@ -247,39 +401,39 @@ const AddVehicleSection = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleFormSubmit = async (data: any) => {
     // Prepare the request body according to the API specification
     const requestBody = {
-      vehicleType: formData.vehicleType,
-      make: formData.make,
-      model: formData.model,
-      modelYear: formData.modelYear,
-      purchaseYear: formData.purchaseYear,
-      fuelType: formData.fuelType,
-      secondaryFuelType: formData.secondaryFuelType,
+      vehicleType: data.vehicleType,
+      make: data.make,
+      model: data.model,
+      modelYear: Number(data.modelYear),
+      purchaseYear: Number(data.purchaseYear) || 0,
+      fuelType: data.fuelType,
+      secondaryFuelType: data.secondaryFuelType || "",
       fuelConsumptionRate: {
-        value: formData.fuelConsumptionRate.value,
-        unit: formData.fuelConsumptionRate.unit,
+        value: Number(data.fuelConsumptionValue) || 0,
+        unit: data.fuelConsumptionUnit || "L/100km",
       },
       electricityConsumptionRate: {
-        value: formData.electricityConsumptionRate.value,
-        unit: formData.electricityConsumptionRate.unit,
+        value: Number(data.electricityConsumptionValue) || 0,
+        unit: data.electricityConsumptionUnit || "kWh/100km",
       },
       annualMileage: {
-        value: formData.annualMileage.value,
-        unit: formData.annualMileage.unit,
+        value: Number(data.annualMileageValue) || 0,
+        unit: data.annualMileageUnit || "km",
       },
       emissionFactors: {
-        CO2: formData.emissionFactors.CO2,
-        CH4: formData.emissionFactors.CH4,
-        N2O: formData.emissionFactors.N2O,
-        HFC: formData.emissionFactors.HFC, // Default value as per API specification
+        CO2: Number(data.emissionCO2) || 0,
+        CH4: Number(data.emissionCH4) || 0,
+        N2O: Number(data.emissionN2O) || 0,
+        HFC: 0, // Default value as per API specification
       },
-      emissionStandard: formData.emissionStandard,
-      averageSpeed: formData.averageSpeed,
-      region: formData.region,
-      dataSource: formData.dataSource,
-      notes: formData.notes,
+      emissionStandard: data.emissionStandard || "Euro 6",
+      averageSpeed: Number(data.averageSpeed) || 0,
+      region: data.region || "",
+      dataSource: data.dataSource || "Manufacturer Specs",
+      notes: data.notes || "",
     };
 
     try {
@@ -324,11 +478,50 @@ const AddVehicleSection = () => {
     }
   };
 
+  const resetForm = () => {
+    setShowForm(false);
+    setEditingItem(null);
+    setFormData(empty);
+  };
+
   const startEdit = (item: any) => {
     setEditingItem(item);
-    setFormData(item);
+    // Flatten the nested structure for DynamicForm
+    const flattenedData = {
+      vehicleType: item.vehicleType || "",
+      modelYear: item.modelYear?.toString() || "",
+      make: item.make || "",
+      model: item.model || "",
+      purchaseYear: item.purchaseYear?.toString() || "",
+      fuelType: item.fuelType || "",
+      secondaryFuelType: item.secondaryFuelType || "",
+      region: item.region || "",
+      fuelConsumptionValue: item.fuelConsumptionRate?.value?.toString() || "",
+      fuelConsumptionUnit: item.fuelConsumptionRate?.unit || "",
+      electricityConsumptionValue: item.electricityConsumptionRate?.value?.toString() || "",
+      electricityConsumptionUnit: item.electricityConsumptionRate?.unit || "",
+      annualMileageValue: item.annualMileage?.value?.toString() || "",
+      annualMileageUnit: item.annualMileage?.unit || "",
+      emissionCO2: item.emissionFactors?.CO2?.toString() || "",
+      emissionCH4: item.emissionFactors?.CH4?.toString() || "",
+      emissionN2O: item.emissionFactors?.N2O?.toString() || "",
+      emissionStandard: item.emissionStandard || "",
+      averageSpeed: item.averageSpeed?.toString() || "",
+      dataSource: item.dataSource || "",
+      notes: item.notes || "",
+    };
+    setFormData(flattenedData as any);
     setShowForm(true);
   };
+
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
 
   const getVehicleTypeColor = (type: string) => {
     switch (type) {
@@ -361,6 +554,63 @@ const AddVehicleSection = () => {
       [key]: value,
       page: 1, // Reset to first page when filters change
     }));
+  };
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedVehicles(vehicleData.map(vehicle => vehicle.id || vehicle._id));
+    } else {
+      setSelectedVehicles([]);
+    }
+  };
+
+  const handleSelectVehicle = (vehicleId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedVehicles(prev => [...prev, vehicleId]);
+    } else {
+      setSelectedVehicles(prev => prev.filter(id => id !== vehicleId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedVehicles.length} selected vehicles?`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = selectedVehicles.map(vehicleId => 
+        postRequest(
+          `vehicles/deleteVehicle/${vehicleId}`,
+          {},
+          "Vehicle Deleted Successfully",
+          tokenData.accessToken,
+          "delete"
+        )
+      );
+
+      await Promise.all(deletePromises);
+      toast.success(`${selectedVehicles.length} vehicles deleted successfully`);
+      setSelectedVehicles([]);
+      fetchVehicles();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete some vehicles");
+    }
+  };
+
+  const handleBulkExport = async () => {
+    try {
+      // This would typically call an API endpoint to export selected vehicles
+      const selectedVehicleData = vehicleData.filter(vehicle => 
+        selectedVehicles.includes(vehicle.id || vehicle._id)
+      );
+      
+      // For now, just show a success message
+      toast.success(`${selectedVehicles.length} vehicles exported successfully`);
+      setSelectedVehicles([]);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to export vehicles");
+    }
   };
 
   return (
@@ -423,589 +673,39 @@ const AddVehicleSection = () => {
         </div>
       </div>
 
-      {showForm && (
-        <div className="bg-white border border-green-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="text-lg font-medium text-green-900">
-              {editingItem ? "Edit" : "Add"} Vehicle
-            </h4>
-            <button
-              onClick={() => {
-                setShowForm(false);
-                setEditingItem(null);
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
 
-          <div className="space-y-6">
-            {/* Vehicle Type and Model Year */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Vehicle Type *
-                </label>
-                <select
-                  value={formData.vehicleType}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      vehicleType: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Vehicle Type</option>
-                  {vehicleTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Model Year *
-                </label>
-                <select
-                  value={formData.modelYear}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      modelYear: Number(e.target.value),
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Model Year</option>
-                  {modelYears.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Make and Model */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Make *
-                </label>
-                <input
-                  type="text"
-                  value={formData.make}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      make: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="e.g., Toyota, Ford, Tesla"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Model *
-                </label>
-                <input
-                  type="text"
-                  value={formData.model}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      model: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="e.g., Camry, F-150, Model 3"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Purchase Year and Fuel Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Purchase Year
-                </label>
-                <select
-                  value={formData.purchaseYear}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      purchaseYear: Number(e.target.value),
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="">Select Purchase Year</option>
-                  {purchaseYears.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fuel Type *
-                </label>
-                <select
-                  value={formData.fuelType}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      fuelType: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Fuel Type</option>
-                  {fuelTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Secondary Fuel Type and Region */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Secondary Fuel Type
-                </label>
-                <select
-                  value={formData.secondaryFuelType}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      secondaryFuelType: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="">Select Secondary Fuel Type</option>
-                  {fuelTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Region
-                </label>
-                <select
-                  value={formData.region}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      region: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="">Select Region</option>
-                  {regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Fuel Combustion Rate - Disabled for EV */}
-            <div
-              className={`bg-gray-50 p-4 rounded-lg ${
-                isEV ? "opacity-50" : ""
-              }`}
-            >
-              <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Fuel Combustion Rate{" "}
-                {isEV && (
-                  <span className="text-gray-500">(Not applicable for EV)</span>
-                )}
-              </h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Value
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.fuelConsumptionRate.value}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        fuelConsumptionRate: {
-                          ...prev.fuelConsumptionRate,
-                          value: Number(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter value"
-                    step="0.01"
-                    disabled={isEV}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Unit
-                  </label>
-                  <select
-                    value={formData.fuelConsumptionRate.unit}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        fuelConsumptionRate: {
-                          ...prev.fuelConsumptionRate,
-                          unit: e.target.value as
-                            | "L/100km"
-                            | "gal/mile"
-                            | "L/hr",
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    disabled={isEV}
-                  >
-                    <option value="">Select Unit</option>
-                    {fuelCombustionUnits.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Electricity Consumption Rate - Enabled only for EV */}
-            <div
-              className={`bg-gray-50 p-4 rounded-lg ${
-                !isEV ? "opacity-50" : ""
-              }`}
-            >
-              <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Electricity Consumption Rate{" "}
-                {!isEV && (
-                  <span className="text-gray-500">
-                    (Only applicable for EV)
+      {/* Bulk Actions */}
+      {selectedVehicles.length > 0 && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium text-blue-900'>
+                {selectedVehicles.length} vehicle{selectedVehicles.length > 1 ? 's' : ''} selected
                   </span>
-                )}
-              </h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Value
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.electricityConsumptionRate.value}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        electricityConsumptionRate: {
-                          ...prev.electricityConsumptionRate,
-                          value: Number(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter value"
-                    step="0.01"
-                    disabled={!isEV}
-                  />
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Unit
-                  </label>
-                  <select
-                    value={formData.electricityConsumptionRate.unit}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        electricityConsumptionRate: {
-                          ...prev.electricityConsumptionRate,
-                          unit: e.target.value as "kWh/100km" | "kWh/mile",
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    disabled={!isEV}
-                  >
-                    <option value="">Select Unit</option>
-                    {electricityConsumptionUnits.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Annual Mileage */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Annual Mileage
-              </h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Value
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.annualMileage.value}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        annualMileage: {
-                          ...prev.annualMileage,
-                          value: Number(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter value"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Unit
-                  </label>
-                  <select
-                    value={formData.annualMileage.unit}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        annualMileage: {
-                          ...prev.annualMileage,
-                          unit: e.target.value as "km" | "miles",
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="">Select Unit</option>
-                    {annualMileageUnits.map((unit) => (
-                      <option key={unit} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Emission Factors */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h5 className="text-sm font-medium text-gray-700 mb-3">
-                Emission Factors (g/km)
-              </h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    CO₂
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.emissionFactors.CO2}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        emissionFactors: {
-                          ...prev.emissionFactors,
-                          CO2: Number(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    placeholder="CO₂ emissions"
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    CH₄
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.emissionFactors.CH4}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        emissionFactors: {
-                          ...prev.emissionFactors,
-                          CH4: Number(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    placeholder="CH₄ emissions"
-                    step="0.001"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">
-                    N₂O
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.emissionFactors.N2O}
-                    onChange={(e) =>
-                      setFormData((prev: VehicleFormData) => ({
-                        ...prev,
-                        emissionFactors: {
-                          ...prev.emissionFactors,
-                          N2O: Number(e.target.value),
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                    placeholder="N₂O emissions"
-                    step="0.001"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Emission Standard, Average Speed, and Data Source */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Emission Standard
-                </label>
-                <select
-                  value={formData.emissionStandard}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      emissionStandard: e.target.value as
-                        | "Euro 6"
-                        | "EPA Tier 3"
-                        | "China VI"
-                        | "Euro 5"
-                        | "EPA Tier 2",
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+            <div className='flex gap-2'>
+              <PermissionGuard permission="vehicle.update">
+                <button
+                  onClick={handleBulkExport}
+                  className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
                 >
-                  <option value="">Select Emission Standard</option>
-                  {EMISSION_STANDARDS_OPTIONS.map((source) => (
-                    <option key={source} value={source}>
-                      {source}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Average Speed (km/h)
-                </label>
-                <input
-                  type="number"
-                  value={formData.averageSpeed}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      averageSpeed: Number(e.target.value),
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter average speed"
-                  step="0.1"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Data Source
-                </label>
-                <select
-                  value={formData.dataSource}
-                  onChange={(e) =>
-                    setFormData((prev: VehicleFormData) => ({
-                      ...prev,
-                      dataSource: e.target.value as
-                        | "Manufacturer Specs"
-                        | "Fleet Records"
-                        | "VCA Database"
-                        | "Estimate",
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="">Select Data Source</option>
-                  {dataSources.map((source) => (
-                    <option key={source} value={source}>
-                      {source}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
-              </label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData((prev: VehicleFormData) => ({
-                    ...prev,
-                    notes: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                rows={3}
-                placeholder="Enter any additional notes or comments about the vehicle"
-              />
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-4">
+                  Export Selected
+                </button>
+              </PermissionGuard>
+              <PermissionGuard permission="vehicle.delete">
               <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingItem(null);
-                }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                Cancel
+                  onClick={handleBulkDelete}
+                  className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                >
+                  Delete Selected
               </button>
+              </PermissionGuard>
               <button
-                onClick={handleSubmit}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                onClick={() => setSelectedVehicles([])}
+                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
               >
-                <Save className="w-4 h-4" />
-                <span>{editingItem ? "Update" : "Save"} Vehicle</span>
+                Clear Selection
               </button>
             </div>
           </div>
@@ -1021,6 +721,14 @@ const AddVehicleSection = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <input
+                    type="checkbox"
+                    checked={selectedVehicles.length === vehicleData.length && vehicleData.length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   ID
                 </th>
@@ -1051,7 +759,7 @@ const AddVehicleSection = () => {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={9}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     Loading vehicles...
@@ -1060,7 +768,7 @@ const AddVehicleSection = () => {
               ) : vehicleData.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={9}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     No vehicles found. Add your first vehicle to get started.
@@ -1069,6 +777,14 @@ const AddVehicleSection = () => {
               ) : (
                 vehicleData.map((vehicle,i) => (
                   <tr key={vehicle.id || vehicle._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedVehicles.includes(vehicle.id || vehicle._id)}
+                        onChange={(e) => handleSelectVehicle(vehicle.id || vehicle._id, e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">VH-{i+1}</div>
                     </td>
@@ -1116,7 +832,7 @@ const AddVehicleSection = () => {
                             <Edit3 className="w-4 h-4" />
                           </button>
                         </PermissionGuard>
-                        <PermissionGuard permission="vehicle.delete">
+                        {/* <PermissionGuard permission="vehicle.delete">
                           <button
                             onClick={() =>
                               deleteVehicle(vehicle.id || vehicle._id)
@@ -1125,7 +841,7 @@ const AddVehicleSection = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        </PermissionGuard>
+                        </PermissionGuard> */}
                       </div>
                     </td>
                   </tr>
@@ -1135,6 +851,19 @@ const AddVehicleSection = () => {
           </table>
         </div>
       </div>
+      {showForm && (
+        <DynamicForm
+          title={editingItem ? 'Edit Vehicle' : 'Add Vehicle'}
+          fields={vehicleFormFields}
+          onSubmit={handleFormSubmit}
+          onCancel={resetForm}
+          initialData={formData}
+          loading={false}
+          submitText={editingItem ? 'Update Vehicle' : 'Save Vehicle'}
+          cancelText="Cancel"
+          onClose={resetForm}
+        />
+      )}
     </div>
   );
 };

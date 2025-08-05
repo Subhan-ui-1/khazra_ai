@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { getRequest, postRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
+import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 
 interface RoleFormData {
   name: string;
@@ -142,6 +143,21 @@ const AddRoleSection = () => {
     }
   };
 
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
+
+  const getOrganizationId = async () => {
+    const user = safeLocalStorage.getItem("user");
+    const userData = JSON.parse(user || "");
+    return userData.organization;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -247,19 +263,19 @@ const AddRoleSection = () => {
 
   const handleSelectAll = () => {
     // Get all available permission IDs from the permissions array
-    const allPermissionIds = permissions.map(permission => permission._id);
-    
+    const allPermissionIds = permissions.map((permission) => permission._id);
+
     // If all permissions are already selected, unselect all
     if (formData.permissions.length === allPermissionIds.length) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        permissions: []
+        permissions: [],
       }));
     } else {
       // Otherwise, select all permissions
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        permissions: allPermissionIds
+        permissions: allPermissionIds,
       }));
     }
   };
@@ -277,6 +293,71 @@ const AddRoleSection = () => {
       .map((id) => permissions.find((p) => p._id === id)?.name)
       .filter(Boolean)
       .join(", ");
+  };
+
+  // Form fields configuration
+  const roleFormFields: FormField[] = [
+    {
+      name: "name",
+      label: "Role Name",
+      type: "text",
+      required: true,
+      placeholder: "Enter role name",
+    },
+    {
+      name: "description",
+      label: "Description",
+      type: "textarea",
+      placeholder: "Enter role description",
+      rows: 3,
+    },
+    {
+      name: "permissions",
+      label: "Permissions",
+      type: "multiselect",
+      placeholder: "Select permissions",
+      options: permissions.map((permission) => ({
+        value: permission._id,
+        label: permission.name,
+      })),
+    },
+  ];
+
+  const handleFormSubmit = async (data: any) => {
+    setSubmitting(true);
+    try {
+      const roleData = {
+        ...data,
+        organizationId: await getOrganizationId(),
+      };
+
+      const response = await postRequest(
+        editingItem
+          ? `roles/updateRole/${editingItem._id}`
+          : "roles/createRole",
+        roleData,
+        editingItem ? "Role updated successfully" : "Role created successfully",
+        tokenData.accessToken,
+        editingItem ? "put" : "post"
+      );
+
+      if (response.success) {
+        toast.success(
+          editingItem
+            ? "Role updated successfully"
+            : "Role created successfully"
+        );
+        resetForm();
+        fetchRoles();
+      }
+    } catch (error: any) {
+      toast.error(
+        error.message ||
+          (editingItem ? "Failed to update role" : "Failed to create role")
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -347,6 +428,177 @@ const AddRoleSection = () => {
             </select>
           </div>
         </div>
+      </div>
+
+      {/* Roles List */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800">Roles</h3>
+        </div>
+
+        {loading ? (
+          <div className="p-8 text-center">
+            <svg
+              className="animate-spin h-8 w-8 mx-auto text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <p className="mt-2 text-gray-600">Loading roles...</p>
+          </div>
+        ) : roleData.length === 0 ? (
+          <div className="p-8 text-center">
+            <svg
+              className="w-16 h-16 mx-auto text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <p className="mt-2 text-gray-600">No roles found</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-4 bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200"
+            >
+              Add your first role
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Role Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Permissions
+                  </th>
+
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {roleData.map((role, i) => (
+                  <tr key={role._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        RL-{i + 1}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {role.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 max-w-xs truncate">
+                        {role.description || "No description"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 max-w-xs">
+                        {role.permissions && role.permissions.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {role.permissions
+                              .slice(0, 3)
+                              .map((permission, index) => (
+                                <span
+                                  key={permission._id}
+                                  className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-800"
+                                >
+                                  {permission.name}
+                                </span>
+                              ))}
+                            {role.permissions.length > 3 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-800">
+                                +{role.permissions.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">No permissions</span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex gap-2">
+                        <PermissionGuard permission="role.update">
+                          <button
+                            onClick={() => handleEdit(role)}
+                            className="text-green-600 hover:text-green-900 transition-colors duration-200"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                        </PermissionGuard>
+                        <PermissionGuard permission="role.delete">
+                          <button
+                            onClick={() => handleDelete(role._id)}
+                            className="text-red-600 hover:text-red-900 transition-colors duration-200"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </PermissionGuard>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Form Section */}
@@ -420,17 +672,22 @@ const AddRoleSection = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">Select All</span>
-                    <input 
-                      type="checkbox" 
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" 
-                      checked={formData.permissions.length === permissions.length && permissions.length > 0}
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                      checked={
+                        formData.permissions.length === permissions.length &&
+                        permissions.length > 0
+                      }
                       onChange={handleSelectAll}
                     />
                   </div>
                   {formData.permissions.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, permissions: [] }))}
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, permissions: [] }))
+                      }
                       className="text-xs text-red-600 hover:text-red-800 underline"
                     >
                       Clear All
@@ -553,26 +810,26 @@ const AddRoleSection = () => {
                                       className="px-4 py-3 text-center "
                                     >
                                       <div className="flex items-center justify-center gap-2">
-                                      {action.charAt(0).toUpperCase() +
-                                        action.slice(1)}{" "}
-                                      {permission ? (
-                                        <input
-                                          type="checkbox"
-                                          checked={formData.permissions.includes(
-                                            permission._id
-                                          )}
-                                          onChange={() =>
-                                            handlePermissionChange(
+                                        {action.charAt(0).toUpperCase() +
+                                          action.slice(1)}{" "}
+                                        {permission ? (
+                                          <input
+                                            type="checkbox"
+                                            checked={formData.permissions.includes(
                                               permission._id
-                                            )
-                                          }
-                                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                                        />
-                                      ) : (
-                                        <span className="text-gray-400 text-xs">
-                                          -
-                                        </span>
-                                      )}
+                                            )}
+                                            onChange={() =>
+                                              handlePermissionChange(
+                                                permission._id
+                                              )
+                                            }
+                                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                          />
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">
+                                            -
+                                          </span>
+                                        )}
                                       </div>
                                     </td>
                                   );
@@ -652,175 +909,6 @@ const AddRoleSection = () => {
           </form>
         </div>
       )}
-
-      {/* Roles List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">Roles</h3>
-        </div>
-
-        {loading ? (
-          <div className="p-8 text-center">
-            <svg
-              className="animate-spin h-8 w-8 mx-auto text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <p className="mt-2 text-gray-600">Loading roles...</p>
-          </div>
-        ) : roleData.length === 0 ? (
-          <div className="p-8 text-center">
-            <svg
-              className="w-16 h-16 mx-auto text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            <p className="mt-2 text-gray-600">No roles found</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-4 bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200"
-            >
-              Add your first role
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Permissions
-                  </th>
-
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {roleData.map((role,i) => (
-                  <tr key={role._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">RL-{i+1}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {role.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500 max-w-xs truncate">
-                        {role.description || "No description"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500 max-w-xs">
-                        {role.permissions && role.permissions.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {role.permissions
-                              .slice(0, 3)
-                              .map((permission, index) => (
-                                <span
-                                  key={permission._id}
-                                  className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-green-100 text-green-800"
-                                >
-                                  {permission.name}
-                                </span>
-                              ))}
-                            {role.permissions.length > 3 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-800">
-                                +{role.permissions.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">No permissions</span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
-                        <PermissionGuard permission="role.update">
-                          <button
-                            onClick={() => handleEdit(role)}
-                            className="text-green-600 hover:text-green-900 transition-colors duration-200"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                        </PermissionGuard>
-                        <PermissionGuard permission="role.delete">
-                          <button
-                            onClick={() => handleDelete(role._id)}
-                            className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </PermissionGuard>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

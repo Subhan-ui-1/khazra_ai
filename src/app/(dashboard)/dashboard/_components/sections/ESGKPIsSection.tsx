@@ -1,6 +1,106 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
+import { Plus, X, Edit3, Trash2, Briefcase } from 'lucide-react';
+import { getRequest, postRequest } from "@/utils/api";
+import toast from "react-hot-toast";
+import { safeLocalStorage } from '@/utils/localStorage';
+
 export default function ESGKPIsSection() {
+  const [initiatives, setInitiatives] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showInitiativeForm, setShowInitiativeForm] = useState(false);
+  const [editingInitiative, setEditingInitiative] = useState<any>(null);
+  const [initiativeFormData, setInitiativeFormData] = useState({
+    initiative: '',
+    targetYear: 2026,
+    category: 'energy efficiency',
+    reduction: '',
+    investment: '',
+    priority: 'high',
+    feasibility: 'high'
+  });
+
+  // API Functions
+  const getToken = () => {
+    const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
+    return tokenData.accessToken;
+  };
+
+  // Fetch initiatives
+  const fetchInitiatives = async () => {
+    try {
+      const response = await getRequest("initiatives/getInitiatives", getToken());
+      if (response.success) {
+        setInitiatives(response.initiatives || []);
+      } else {
+        // toast.error(response.message || "Failed to fetch initiatives");
+      }
+    } catch (error: any) {
+      // toast.error(error.message || "Failed to fetch initiatives");
+    }
+  };
+
+  // Add initiative
+  const addInitiative = async () => {
+    if (!initiativeFormData.initiative || !initiativeFormData.reduction || !initiativeFormData.investment) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await postRequest(
+        "initiatives/addInitiative",
+        initiativeFormData,
+        "Initiative added successfully",
+        getToken(),
+        "post"
+      );
+
+      if (response.success) {
+        toast.success("Initiative added successfully");
+        setShowInitiativeForm(false);
+        setInitiativeFormData({
+          initiative: '',
+          targetYear: 2026,
+          category: 'energy efficiency',
+          reduction: '',
+          investment: '',
+          priority: 'high',
+          feasibility: 'high'
+        });
+        await fetchInitiatives();
+      } else {
+        toast.error(response.message || "Failed to add initiative");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add initiative");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Start editing initiative
+  const startEditInitiative = (initiative: any) => {
+    setEditingInitiative(initiative);
+    setInitiativeFormData({
+      initiative: initiative.initiative,
+      targetYear: initiative.targetYear,
+      category: initiative.category,
+      reduction: initiative.reduction,
+      investment: initiative.investment,
+      priority: initiative.priority,
+      feasibility: initiative.feasibility
+    });
+    setShowInitiativeForm(true);
+  };
+
+  // Load initiatives on component mount
+  useEffect(() => {
+    fetchInitiatives();
+  }, []);
+
   return (
     <div className="space-y-10">
       {/* Page Header */}
@@ -317,7 +417,7 @@ export default function ESGKPIsSection() {
       </div>
 
       {/* ESG Data Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
+      {/* <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
         <div className="flex justify-between items-center p-6 border-b border-green-100">
           <div className="text-lg font-semibold text-green-800">ESG Performance Metrics</div>
           <div className="flex gap-3">
@@ -398,7 +498,305 @@ export default function ESGKPIsSection() {
             </tbody>
           </table>
         </div>
+      </div> */}
+
+      {/* Initiatives Section */}
+      <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-green-800 flex items-center gap-2">
+            <Briefcase className="w-5 h-5" />
+            Sustainability Initiatives
+          </h3>
+          <button
+            onClick={() => setShowInitiativeForm(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Initiative</span>
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Initiative
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Target Year
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Reduction
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Investment
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Priority
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Feasibility
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {initiatives.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center">
+                      <Briefcase className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-lg font-medium">No initiatives yet</p>
+                      <p className="text-sm">Add your first sustainability initiative to get started</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                initiatives.map((initiative) => (
+                  <tr key={initiative._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{initiative.initiative}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 capitalize">
+                        {initiative.category.replace('_', ' ')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">{initiative.targetYear}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {initiative.reduction}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {initiative.investment}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        initiative.priority === 'high' ? 'bg-red-100 text-red-700' :
+                        initiative.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {initiative.priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        initiative.feasibility === 'high' ? 'bg-green-100 text-green-700' :
+                        initiative.feasibility === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {initiative.feasibility}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => startEditInitiative(initiative)}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this initiative?')) {
+                              // Add delete functionality here
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {/* Initiative Form Modal */}
+      {showInitiativeForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">
+                {editingInitiative ? 'Edit Initiative' : 'Add Initiative'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowInitiativeForm(false);
+                  setEditingInitiative(null);
+                  setInitiativeFormData({
+                    initiative: '',
+                    targetYear: 2026,
+                    category: 'energy efficiency',
+                    reduction: '',
+                    investment: '',
+                    priority: 'high',
+                    feasibility: 'high'
+                  });
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Initiative Name *
+                </label>
+                <input
+                  type="text"
+                  value={initiativeFormData.initiative}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, initiative: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  placeholder="e.g., LED Lighting Upgrade"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Target Year
+                </label>
+                <select
+                  value={initiativeFormData.targetYear}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, targetYear: parseInt(e.target.value) }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  {[2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035].map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  value={initiativeFormData.category}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="energy efficiency">Energy Efficiency</option>
+                  <option value="renewable energy">Renewable Energy</option>
+                  <option value="transportation">Transportation</option>
+                  <option value="waste management">Waste Management</option>
+                  <option value="water conservation">Water Conservation</option>
+                  <option value="process optimization">Process Optimization</option>
+                  <option value="supply chain">Supply Chain</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reduction *
+                </label>
+                <input
+                  type="text"
+                  value={initiativeFormData.reduction}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, reduction: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  placeholder="e.g., 2,400 tCO₂e"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Investment *
+                </label>
+                <input
+                  type="text"
+                  value={initiativeFormData.investment}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, investment: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  placeholder="e.g., $150k"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Priority
+                </label>
+                <select
+                  value={initiativeFormData.priority}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, priority: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Feasibility
+                </label>
+                <select
+                  value={initiativeFormData.feasibility}
+                  onChange={(e) => setInitiativeFormData(prev => ({ ...prev, feasibility: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-6">
+              <button
+                onClick={() => {
+                  setShowInitiativeForm(false);
+                  setEditingInitiative(null);
+                  setInitiativeFormData({
+                    initiative: '',
+                    targetYear: 2026,
+                    category: 'energy efficiency',
+                    reduction: '',
+                    investment: '',
+                    priority: 'high',
+                    feasibility: 'high'
+                  });
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addInitiative}
+                disabled={loading || !initiativeFormData.initiative || !initiativeFormData.reduction || !initiativeFormData.investment}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+                <span>{loading ? 'Adding...' : (editingInitiative ? 'Update' : 'Add')} Initiative</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
