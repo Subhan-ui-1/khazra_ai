@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from '@/utils/localStorage';
+import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
 // Define TypeScript interfaces
 interface EquipmentFormData {
@@ -92,6 +93,7 @@ const AddEquipmentSection = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   
@@ -191,6 +193,152 @@ const AddEquipmentSection = () => {
       console.error('Failed to fetch equipment types:', error);
     }
   };
+
+  // Form fields configuration
+  const equipmentFormFields: FormField[] = [
+    {
+      name: 'facilityId',
+      label: 'Facility',
+      type: 'select',
+      required: true,
+      placeholder: 'Select Facility',
+      options: facilities.map(facility => ({ value: facility._id, label: facility.facilityName }))
+    },
+    {
+      name: 'equipmentTypeId',
+      label: 'Equipment Type',
+      type: 'select',
+      required: true,
+      placeholder: 'Select Equipment Type',
+      options: equipmentTypeData.map(type => ({ value: type._id, label: type.equipmentName }))
+    },
+    {
+      name: 'equipmentName',
+      label: 'Equipment Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Enter equipment name'
+    },
+    {
+      name: 'manufacturer',
+      label: 'Manufacturer',
+      type: 'text',
+      placeholder: 'Enter Manufacturer',
+      required: true,
+      // options: manufacturers.map(manufacturer => ({ value: manufacturer, label: manufacturer }))
+    },
+    {
+      name: 'model',
+      label: 'Model',
+      type: 'text',
+      placeholder: 'Enter model'
+    },
+    {
+      name: 'serialNumber',
+      label: 'Serial Number',
+      type: 'text',
+      placeholder: 'Enter serial number'
+    },
+    {
+      name: 'capacityValue',
+      label: 'Capacity Value',
+      type: 'number',
+      placeholder: 'Enter capacity value'
+    },
+    {
+      name: 'capacityUnit',
+      label: 'Capacity Unit',
+      type: 'select',
+      placeholder: 'Select Capacity Unit',
+      options: capacityUnits.map(unit => ({ value: unit, label: unit }))
+    },
+    {
+      name: 'efficiency',
+      label: 'Efficiency (%)',
+      type: 'number',
+      placeholder: 'Enter efficiency percentage'
+    },
+    {
+      name: 'installationYear',
+      label: 'Installation Year',
+      type: 'select',
+      placeholder: 'Select Installation Year',
+      options: installationYears.map(year => ({ value: year.toString(), label: year.toString() }))
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      placeholder: 'Select Status',
+      options: statusOptions.map(status => ({ value: status, label: status }))
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      placeholder: 'Enter additional notes',
+      rows: 3
+    }
+  ];
+
+  const handleFormSubmit = async (data: any) => {
+    try {
+      const equipmentData = {
+        ...data,
+        // organizationId: await getOrganizationId()
+      };
+
+      const response = await postRequest(
+        editingItem ? `equipments/updateEquipment/${editingItem._id}` : "equipments/createEquipment",
+        equipmentData,
+        editingItem ? "Equipment updated successfully" : "Equipment created successfully",
+        tokenData.accessToken,
+        editingItem ? "put" : "post"
+      );
+      
+      if (response.success) {
+        toast.success(editingItem ? "Equipment updated successfully" : "Equipment created successfully");
+        resetForm();
+        fetchEquipments();
+      }
+    } catch (error: any) {
+      toast.error(error.message || (editingItem ? "Failed to update equipment" : "Failed to create equipment"));
+    }
+  };
+
+  const getOrganizationId = async () => {
+    const user = safeLocalStorage.getItem('user');
+    const userData = JSON.parse(user || "");
+    return userData.organization;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      facilityId: '',
+      equipmentTypeId: '',
+      equipmentName: '',
+      manufacturer: '',
+      model: '',
+      serialNumber: '',
+      capacityValue: '',
+      capacityUnit: '',
+      efficiency: '',
+      installationYear: '',
+      status: '',
+      notes: ''
+    });
+    setEditingItem(null);
+    setShowForm(false);
+  };
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
 
   const deleteEquipment = async (equipmentId: string) => {
     try {
@@ -345,6 +493,69 @@ const AddEquipmentSection = () => {
     }));
   };
 
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedEquipments(equipmentData.map(equipment => equipment.id || equipment._id));
+    } else {
+      setSelectedEquipments([]);
+    }
+  };
+
+  const handleSelectEquipment = (equipmentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedEquipments(prev => [...prev, equipmentId]);
+    } else {
+      setSelectedEquipments(prev => prev.filter(id => id !== equipmentId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedEquipments.length} selected equipments?`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = selectedEquipments.map(equipmentId => 
+        postRequest(
+          `equipments/deleteEquipment/${equipmentId}`,
+          {},
+          "Equipment Deleted Successfully",
+          tokenData.accessToken,
+          "delete"
+        )
+      );
+
+      await Promise.all(deletePromises);
+      toast.success(`${selectedEquipments.length} equipments deleted successfully`);
+      setSelectedEquipments([]);
+      fetchEquipments();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete some equipments");
+    }
+  };
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    try {
+      const updatePromises = selectedEquipments.map(equipmentId => 
+        postRequest(
+          `equipments/updateEquipment/${equipmentId}`,
+          { status: newStatus },
+          "Equipment Updated Successfully",
+          tokenData.accessToken,
+          "put"
+        )
+      );
+
+      await Promise.all(updatePromises);
+      toast.success(`${selectedEquipments.length} equipments status updated successfully`);
+      setSelectedEquipments([]);
+      fetchEquipments();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update some equipments");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -400,247 +611,42 @@ const AddEquipmentSection = () => {
         </div>
       </div>
 
-      {showForm && (
-        <div className="bg-white border border-green-200 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="text-lg font-medium text-green-900">
-              {editingItem ? 'Edit' : 'Add'} Equipment
-            </h4>
-            <button
-              onClick={() => {
-                setShowForm(false);
-                setEditingItem(null);
-              }}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+   
 
-          <div className="space-y-6">
-            {/* Facility and Equipment Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facility *
-                </label>
-                <select
-                  value={formData.facilityId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, facilityId: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Facility</option>
-                  {facilities.map(facility => (
-                    <option key={facility.id || facility._id} value={facility.id || facility._id}>
-                      {facility.facilityName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Equipment Type *
-                </label>
-                <select
-                  value={formData.equipmentTypeId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, equipmentTypeId: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Equipment Type</option>
-                  {equipmentTypeData.map(type => (
-                    <option key={type._id || type.id} value={type._id || type.id}>
-                      {type.equipmentName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      {/* Bulk Actions */}
+      {selectedEquipments.length > 0 && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium text-blue-900'>
+                {selectedEquipments.length} equipment{selectedEquipments.length > 1 ? 's' : ''} selected
+              </span>
             </div>
-
-            {/* Equipment Name and Manufacturer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Equipment Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.equipmentName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, equipmentName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter equipment name"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Manufacturer *
-                </label>
+            <div className='flex gap-2'>
+              <PermissionGuard permission="equipment.update">
                 <select
-                  value={formData.manufacturer}
-                  onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
+                  onChange={(e) => handleBulkStatusUpdate(e.target.value)}
+                  className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 border-0'
                 >
-                  <option value="">Select Manufacturer</option>
-                  {manufacturers.map(manufacturer => (
-                    <option key={manufacturer} value={manufacturer}>{manufacturer}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Model and Serial Number */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Model *
-                </label>
-                <input
-                  type="text"
-                  value={formData.model}
-                  onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter model number"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Serial Number *
-                </label>
-                <input
-                  type="text"
-                  value={formData.serialNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, serialNumber: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter serial number"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Capacity and Efficiency */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Capacity Value
-                </label>
-                <input
-                  type="number"
-                  value={formData.capacityValue}
-                  onChange={(e) => setFormData(prev => ({ ...prev, capacityValue: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter capacity"
-                  step="0.01"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Capacity Unit
-                </label>
-                <select
-                  value={formData.capacityUnit}
-                  onChange={(e) => setFormData(prev => ({ ...prev, capacityUnit: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="">Select Unit</option>
-                  {capacityUnits.map(unit => (
-                    <option key={unit} value={unit}>{unit}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Efficiency (%)
-                </label>
-                <input
-                  type="number"
-                  value={formData.efficiency}
-                  onChange={(e) => setFormData(prev => ({ ...prev, efficiency: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter efficiency"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-              </div>
-            </div>
-
-            {/* Installation Year and Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Installation Year
-                </label>
-                <select
-                  value={formData.installationYear}
-                  onChange={(e) => setFormData(prev => ({ ...prev, installationYear: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                >
-                  <option value="">Select Year</option>
-                  {installationYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status *
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                  required
-                >
-                  <option value="">Select Status</option>
+                  <option value="">Update Status</option>
                   {statusOptions.map(status => (
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
-              </label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                rows={3}
-                placeholder="Enter any additional notes or comments"
-              />
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-4">
+              </PermissionGuard>
+              <PermissionGuard permission="equipment.delete">
+                <button
+                  onClick={handleBulkDelete}
+                  className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                >
+                  Delete Selected
+                </button>
+              </PermissionGuard>
               <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingItem(null);
-                }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                onClick={() => setSelectedEquipments([])}
+                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                <span>{editingItem ? 'Update' : 'Save'} Equipment</span>
+                Clear Selection
               </button>
             </div>
           </div>
@@ -656,6 +662,14 @@ const AddEquipmentSection = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <input
+                    type="checkbox"
+                    checked={selectedEquipments.length === equipmentData.length && equipmentData.length > 0}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facility</th>
@@ -669,19 +683,27 @@ const AddEquipmentSection = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                     Loading equipments...
                   </td>
                 </tr>
               ) : equipmentData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                     No equipments found. Add your first equipment to get started.
                   </td>
                 </tr>
               ) : (
                 equipmentData.map((equipment,i ) => (
                   <tr key={equipment.id || equipment._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedEquipments.includes(equipment.id || equipment._id)}
+                        onChange={(e) => handleSelectEquipment(equipment.id || equipment._id, e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">EQ-{i+1}</div>
                     </td>
@@ -719,14 +741,14 @@ const AddEquipmentSection = () => {
                             <Edit3 className="w-4 h-4" />
                           </button>
                         </PermissionGuard>
-                        <PermissionGuard permission="equipment.delete">
+                        {/* <PermissionGuard permission="equipment.delete">
                           <button
                             onClick={() => deleteEquipment(equipment.id || equipment._id)}
                             className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        </PermissionGuard>
+                        </PermissionGuard> */}
                       </div>
                     </td>
                   </tr>
@@ -736,6 +758,20 @@ const AddEquipmentSection = () => {
           </table>
         </div>
       </div>
+
+      {showForm && (
+        <DynamicForm
+          title={editingItem ? 'Edit Equipment' : 'Add Equipment'}
+          fields={equipmentFormFields}
+          onSubmit={handleFormSubmit}
+          onCancel={resetForm}
+          initialData={formData}
+          loading={false}
+          submitText={editingItem ? 'Update Equipment' : 'Save Equipment'}
+          cancelText="Cancel"
+          onClose={resetForm}
+        />
+      )}
     </div>
   );
 };

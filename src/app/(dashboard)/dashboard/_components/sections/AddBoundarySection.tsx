@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { postRequest, getRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from '@/utils/localStorage';
+import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
 // Constants
 const INDUSTRY_OPTIONS = [
@@ -71,11 +72,17 @@ interface BoundaryFormData {
   industry: string;
   businessNature: string;
   baselineYear: string;
+  hasBaselineEmissions: string;
   baselineEmissions?: string;
+  hasVehicles: string;
   vehicleCount: number;
+  hasFacilities: string;
   facilityCount: number;
+  hasEquipment: string;
   equipmentCount: number;
   businessFormationDate: string;
+  reportingPeriodStartDate: string;
+  reportingPeriodEndDate: string;
   reportingPeriod: {
     startDate: string;
     endDate: string;
@@ -110,19 +117,20 @@ interface Boundary {
   updatedAt: string;
 }
 
-const FORM_ROUTES = {
-  vehicle: "/dashboard?section=add-vehicle",
-  facility: "/dashboard?section=add-facility",
-  equipment: "/dashboard?section=add-equipment",
-};
-
 const AddBoundarySection = () => {
   const [boundaryData, setBoundaryData] = useState<Boundary | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingBoundary, setEditingBoundary] = useState<Boundary | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [questions, setQuestions] = useState({
+    hasVehicles: "",
+    hasFacilities: "",
+    hasEquipment: "",
+    hasBaselineEmissions: "",
+  });
   const router = useRouter();
-  const { canView, canCreate } = usePermissions();
+  const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   
   const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
   if (!tokenData.accessToken) {
@@ -139,28 +147,22 @@ const AddBoundarySection = () => {
     );
   }
 
-  const [questions, setQuestions] = useState<{
-    vehicleCount: "Yes" | "No" | "";
-    facilityCount: "Yes" | "No" | "";
-    equipmentCount: "Yes" | "No" | "";
-    baselineEmissionsAvailable: "Yes" | "No" | "";
-  }>({
-    vehicleCount: "",
-    facilityCount: "",
-    equipmentCount: "",
-    baselineEmissionsAvailable: "",
-  });
-
   const [formData, setFormData] = useState<BoundaryFormData>({
     organizationId: getOrganizationId(),
     industry: "",
     businessNature: "",
     baselineYear: "",
+    hasBaselineEmissions: "",
     baselineEmissions: "",
+    hasVehicles: "",
     vehicleCount: 0,
+    hasFacilities: "",
     facilityCount: 0,
+    hasEquipment: "",
     equipmentCount: 0,
     businessFormationDate: "",
+    reportingPeriodStartDate: "",
+    reportingPeriodEndDate: "",
     reportingPeriod: {
       startDate: "",
       endDate: "",
@@ -211,16 +213,6 @@ const AddBoundarySection = () => {
     }
   };
 
-  const changeQuestion = (
-    question: "vehicleCount" | "facilityCount" | "equipmentCount" | "baselineEmissionsAvailable",
-    value: "Yes" | "No" | ""
-  ) => {
-    setQuestions((prev) => ({
-        ...prev,
-      [question]: value,
-      }));
-  };
-
   const validateForm = useCallback((data: BoundaryFormData): boolean => {
     if (!data.industry || data.industry === "Industry") {
       toast.error("Please select a valid industry");
@@ -240,100 +232,23 @@ const AddBoundarySection = () => {
     return true;
   }, []);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-
-      if (!validateForm(formData)) {
-        return;
-      }
-
-      setSubmitting(true);
-
-      // Determine which forms to show next
-      const formQueue: string[] = [];
-      if (questions.vehicleCount === "Yes") formQueue.push(FORM_ROUTES.vehicle);
-      if (questions.facilityCount === "Yes") formQueue.push(FORM_ROUTES.facility);
-      if (questions.equipmentCount === "Yes") formQueue.push(FORM_ROUTES.equipment);
-
-      try {
-        const validBusinessFormationDate =
-          Date.now() > new Date(formData.businessFormationDate).getTime();
-        if (!validBusinessFormationDate) {
-          toast.error("Business formation date must be in the past");
-          return;
-        }
-
-        const response = await postRequest(
-          "boundaries/addBoundary",
-          {
-            ...formData,
-            baselineEmissionsAvailable: questions.baselineEmissionsAvailable === "Yes",
-            businessFormationDate: new Date(formData.businessFormationDate),
-          },
-          "Boundary created successfully",
-          tokenData.accessToken,
-          "post"
-        );
-
-        if (response?.success) {
-          toast.success(response.message || "Boundary created successfully");
-          const userData = safeLocalStorage.getItem('user');
-          const userDataParsed = JSON.parse(userData || "{}");
-          userDataParsed.boundary = response.boundaries._id;
-          safeLocalStorage.setItem('user', JSON.stringify(userDataParsed));
-          
-          // Save the queue to sessionStorage
-          if (formQueue.length > 0) {
-            sessionStorage.setItem("khazra_form_queue", JSON.stringify(formQueue));
-            // Route to the first form in the queue
-            router.push(formQueue[0]);
-          } else {
-            // If no forms to show, go to dashboard
-            router.push("/dashboard");
-          }
-        } else {
-          toast.error(response?.message || "Failed to create boundary");
-        }
-      } catch (error) {
-        console.error("Error creating boundary:", error);
-        toast.error("An error occurred while creating the boundary. Please try again.");
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [formData, validateForm, router, questions]
-  );
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleInputChanges = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      reportingPeriod: {
-        ...prev.reportingPeriod,
-        [name]: value,
-      },
-    }));
-  };
-
   const resetForm = () => {
     setFormData({
       organizationId: getOrganizationId(),
       industry: "",
       businessNature: "",
       baselineYear: "",
+      hasBaselineEmissions: "",
       baselineEmissions: "",
+      hasVehicles: "",
       vehicleCount: 0,
+      hasFacilities: "",
       facilityCount: 0,
+      hasEquipment: "",
       equipmentCount: 0,
       businessFormationDate: "",
+      reportingPeriodStartDate: "",
+      reportingPeriodEndDate: "",
       reportingPeriod: {
         startDate: "",
         endDate: "",
@@ -345,12 +260,271 @@ const AddBoundarySection = () => {
       internationalBusinessTraveling: false,
     });
     setQuestions({
-      vehicleCount: "",
-      facilityCount: "",
-      equipmentCount: "",
-      baselineEmissionsAvailable: "",
+      hasVehicles: "",
+      hasFacilities: "",
+      hasEquipment: "",
+      hasBaselineEmissions: "",
     });
     setShowForm(false);
+    setEditingBoundary(null);
+  };
+
+  const startEdit = (boundary: Boundary) => {
+    setEditingBoundary(boundary);
+    setFormData({
+      organizationId: getOrganizationId(),
+      industry: boundary.industry,
+      businessNature: boundary.businessNature,
+      baselineYear: boundary.baselineYear,
+      hasBaselineEmissions: boundary.baselineEmissions ? "Yes" : "No",
+      baselineEmissions: boundary.baselineEmissions || "",
+      hasVehicles: boundary.vehicleCount > 0 ? "Yes" : "No",
+      vehicleCount: boundary.vehicleCount,
+      hasFacilities: boundary.facilityCount > 0 ? "Yes" : "No",
+      facilityCount: boundary.facilityCount,
+      hasEquipment: boundary.equipmentCount > 0 ? "Yes" : "No",
+      equipmentCount: boundary.equipmentCount,
+      businessFormationDate: boundary.businessFormationDate,
+      reportingPeriodStartDate: boundary.reportingPeriod.startDate,
+      reportingPeriodEndDate: boundary.reportingPeriod.endDate,
+      reportingPeriod: boundary.reportingPeriod,
+      primaryFunctionalCurrency: boundary.primaryFunctionalCurrency,
+      numberOfEmployees: boundary.numberOfEmployees,
+      secondaryFunctionalCurrency: boundary.secondaryFunctionalCurrency,
+      annualRevenue: boundary.annualRevenue,
+      internationalBusinessTraveling: boundary.internationalBusinessTraveling,
+    });
+    setQuestions({
+      hasVehicles: boundary.vehicleCount > 0 ? "Yes" : "No",
+      hasFacilities: boundary.facilityCount > 0 ? "Yes" : "No",
+      hasEquipment: boundary.equipmentCount > 0 ? "Yes" : "No",
+      hasBaselineEmissions: boundary.baselineEmissions ? "Yes" : "No",
+    });
+    setShowForm(true);
+  };
+
+  // Define form fields for DynamicForm
+  const boundaryFormFields: FormField[] = [
+    {
+      name: "industry",
+      label: "Industry",
+      type: "select",
+      required: true,
+      options: INDUSTRY_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "businessNature",
+      label: "Business Nature",
+      type: "select",
+      required: true,
+      options: BUSINESS_NATURE_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "baselineYear",
+      label: "Baseline Year",
+      type: "select",
+      required: true,
+      options: PAST_YEARS.map(year => ({ value: year, label: year }))
+    },
+    {
+      name: "hasBaselineEmissions",
+      label: "Do you have baseline emissions data?",
+      type: "select",
+      required: true,
+      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "baselineEmissions",
+      label: "Baseline Emissions",
+      type: "number",
+      required: false,
+      placeholder: "Enter baseline emissions",
+      condition: (formData) => formData.hasBaselineEmissions === "Yes"
+    },
+    {
+      name: "hasVehicles",
+      label: "Do you have vehicles?",
+      type: "select",
+      required: true,
+      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "vehicleCount",
+      label: "Vehicle Count",
+      type: "number",
+      required: true,
+      placeholder: "Enter vehicle count",
+      condition: (formData) => formData.hasVehicles === "Yes"
+    },
+    {
+      name: "hasFacilities",
+      label: "Do you have facilities?",
+      type: "select",
+      required: true,
+      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "facilityCount",
+      label: "Facility Count",
+      type: "number",
+      required: true,
+      placeholder: "Enter facility count",
+      condition: (formData) => formData.hasFacilities === "Yes"
+    },
+    {
+      name: "hasEquipment",
+      label: "Do you have equipment?",
+      type: "select",
+      required: true,
+      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "equipmentCount",
+      label: "Equipment Count",
+      type: "number",
+      required: true,
+      placeholder: "Enter equipment count",
+      condition: (formData) => formData.hasEquipment === "Yes"
+    },
+    {
+      name: "businessFormationDate",
+      label: "Business Formation Date",
+      type: "date",
+      required: true
+    },
+    {
+      name: "reportingPeriodStartDate",
+      label: "Reporting Period Start Date",
+      type: "date",
+      required: true
+    },
+    {
+      name: "reportingPeriodEndDate",
+      label: "Reporting Period End Date",
+      type: "date",
+      required: true
+    },
+    {
+      name: "primaryFunctionalCurrency",
+      label: "Primary Functional Currency",
+      type: "select",
+      required: true,
+      options: CURRENCY_OPTIONS.map(currency => ({ value: currency, label: currency }))
+    },
+    {
+      name: "numberOfEmployees",
+      label: "Number of Employees",
+      type: "select",
+      required: true,
+      options: NUMBER_OF_EMPLOYEES_OPTIONS.map(option => ({ value: option, label: option }))
+    },
+    {
+      name: "secondaryFunctionalCurrency",
+      label: "Secondary Functional Currency",
+      type: "select",
+      required: false,
+      options: CURRENCY_OPTIONS.map(currency => ({ value: currency, label: currency }))
+    },
+    {
+      name: "annualRevenue",
+      label: "Annual Revenue",
+      type: "select",
+      required: true,
+      options: ANNUAL_REVENUE_OPTIONS.map(option => ({ value: option, label: option }))
+    }
+  ];
+
+  const handleFormSubmit = async (data: any) => {
+    if (!validateForm(data)) {
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const validBusinessFormationDate =
+        Date.now() > new Date(data.businessFormationDate).getTime();
+      if (!validBusinessFormationDate) {
+        toast.error("Business formation date must be in the past");
+        return;
+      }
+
+      if (editingBoundary) {
+        // Update existing boundary
+        const response = await postRequest(
+          `boundaries/updateBoundary/${editingBoundary._id}`,
+          {
+            industry: data.industry,
+            businessNature: data.businessNature,
+            baselineYear: data.baselineYear,
+            baselineEmissions: data.hasBaselineEmissions === "Yes" ? (data.baselineEmissions || 0) : 0,
+            vehicleCount: data.hasVehicles === "Yes" ? (parseInt(data.vehicleCount) || 0) : 0,
+            facilityCount: data.hasFacilities === "Yes" ? (parseInt(data.facilityCount) || 0) : 0,
+            equipmentCount: data.hasEquipment === "Yes" ? (parseInt(data.equipmentCount) || 0) : 0,
+          },
+          "Boundary updated successfully",
+          tokenData.accessToken,
+          "put"
+        );
+
+        if (response?.success) {
+          toast.success("Boundary updated successfully");
+          setBoundaryData(response.data.boundary);
+          setEditingBoundary(null);
+          setShowForm(false);
+          checkExistingBoundary(); // Refresh the boundary data
+        } else {
+          toast.error(response?.message || "Failed to update boundary");
+        }
+      } else {
+        // Create new boundary
+        const response = await postRequest(
+          "boundaries/addBoundary",
+          {
+            organizationId: getOrganizationId(),
+            industry: data.industry,
+            businessNature: data.businessNature,
+            baselineYear: data.baselineYear,
+            baselineEmissions: data.hasBaselineEmissions === "Yes" ? (data.baselineEmissions || 0) : 0,
+            vehicleCount: data.hasVehicles === "Yes" ? (parseInt(data.vehicleCount) || 0) : 0,
+            facilityCount: data.hasFacilities === "Yes" ? (parseInt(data.facilityCount) || 0) : 0,
+            equipmentCount: data.hasEquipment === "Yes" ? (parseInt(data.equipmentCount) || 0) : 0,
+            businessFormationDate: new Date(data.businessFormationDate),
+            reportingPeriod: {
+              startDate: data.reportingPeriodStartDate,
+              endDate: data.reportingPeriodEndDate,
+            },
+            primaryFunctionalCurrency: data.primaryFunctionalCurrency,
+            numberOfEmployees: data.numberOfEmployees,
+            secondaryFunctionalCurrency: data.secondaryFunctionalCurrency,
+            annualRevenue: data.annualRevenue,
+            internationalBusinessTraveling: false,
+            baselineEmissionsAvailable: data.hasBaselineEmissions === "Yes",
+          },
+          "Boundary created successfully",
+          tokenData.accessToken,
+          "post"
+        );
+
+        if (response?.success) {
+          toast.success(response.message || "Boundary created successfully");
+          const userData = safeLocalStorage.getItem('user');
+          const userDataParsed = JSON.parse(userData || "{}");
+          userDataParsed.boundary = response.boundary._id;
+          safeLocalStorage.setItem('user', JSON.stringify(userDataParsed));
+          
+          // Redirect to dashboard after successful creation
+          router.push("/dashboard");
+        } else {
+          toast.error(response?.message || "Failed to create boundary");
+        }
+      }
+    } catch (error) {
+      console.error("Error handling boundary:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -362,7 +536,7 @@ const AddBoundarySection = () => {
   };
 
   // If boundary exists, show card instead of form
-  if (boundaryData) {
+  if (boundaryData && !showForm) {
     return (
       <div className='flex flex-col gap-6'>
         <div className='flex justify-between items-center'>
@@ -440,10 +614,23 @@ const AddBoundarySection = () => {
           </div>
 
           <div className='mt-6 pt-6 border-t border-gray-200'>
-            <p className='text-sm text-gray-600'>
-              Your boundary has been successfully created. You can now proceed to add your assets (vehicles, facilities, equipment) 
-              to start tracking your emissions.
-            </p>
+            <div className='flex justify-between items-center'>
+              <p className='text-sm text-gray-600'>
+                Your boundary has been successfully created. You can now proceed to add your assets (vehicles, facilities, equipment) 
+                to start tracking your emissions.
+              </p>
+              <PermissionGuard permission="boundaries.update">
+                <button
+                  onClick={() => startEdit(boundaryData)}
+                  className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit Boundary
+                </button>
+              </PermissionGuard>
+            </div>
           </div>
         </div>
       </div>
@@ -469,378 +656,18 @@ const AddBoundarySection = () => {
 
       {/* Form Section */}
       {showForm && (
-        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-semibold text-gray-800'>Add New Boundary</h2>
-            <button
-              onClick={resetForm}
-              className='text-gray-500 hover:text-gray-700'
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <label htmlFor='industry' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Industry *
-                </label>
-                <select
-                  id='industry'
-                  name='industry'
-                  value={formData.industry}
-                  onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select your industry</option>
-                  {INDUSTRY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor='businessNature' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Business Nature *
-                </label>
-                <select
-                  id='businessNature'
-                  name='businessNature'
-              value={formData.businessNature}
-              onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select business nature</option>
-                  {BUSINESS_NATURE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-          </div>
-
-              <div>
-                <label htmlFor='businessFormationDate' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Business Formation Date *
-                </label>
-                <input
-                  type='date'
-                  id='businessFormationDate'
-                  name='businessFormationDate'
-              value={formData.businessFormationDate}
-              onChange={handleInputChange}
-                  max={new Date().toISOString().split('T')[0]}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-            />
-          </div>
-
-              <div>
-                <label htmlFor='baselineYear' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Baseline Year *
-                </label>
-                <select
-                  id='baselineYear'
-                  name='baselineYear'
-                  value={formData.baselineYear}
-                  onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select baseline year</option>
-                  {PAST_YEARS.map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor='startDate' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Start Date *
-                </label>
-                <input
-                  type='date'
-                  id='startDate'
-                  name='startDate'
-              value={formData.reportingPeriod.startDate}
-                  onChange={(e) => handleInputChanges('startDate', e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-            />
-          </div>
-
-              <div>
-                <label htmlFor='endDate' className='block text-sm font-medium text-gray-700 mb-2'>
-                  End Date *
-                </label>
-                <input
-                  type='date'
-                  id='endDate'
-                  name='endDate'
-                  value={formData.reportingPeriod.endDate}
-                  onChange={(e) => handleInputChanges('endDate', e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-            />
-          </div>
-
-              <div>
-                <label htmlFor='primaryFunctionalCurrency' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Primary Functional Currency *
-                </label>
-                <select
-                  id='primaryFunctionalCurrency'
-                  name='primaryFunctionalCurrency'
-              value={formData.primaryFunctionalCurrency}
-              onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select primary functional currency</option>
-                  {CURRENCY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-          </div>
-
-              <div>
-                <label htmlFor='secondaryFunctionalCurrency' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Secondary Functional Currency
-                </label>
-                <select
-                  id='secondaryFunctionalCurrency'
-                  name='secondaryFunctionalCurrency'
-              value={formData.secondaryFunctionalCurrency}
-              onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                >
-                  <option value="">Select secondary functional currency</option>
-                  {CURRENCY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-          </div>
-
-              <div>
-                <label htmlFor='numberOfEmployees' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Number of Employees *
-                </label>
-                <select
-                  id='numberOfEmployees'
-                  name='numberOfEmployees'
-              value={formData.numberOfEmployees}
-              onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select number of employees</option>
-                  {NUMBER_OF_EMPLOYEES_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-          </div>
-
-              <div>
-                <label htmlFor='annualRevenue' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Annual Revenue *
-                </label>
-                <select
-                  id='annualRevenue'
-                  name='annualRevenue'
-              value={formData.annualRevenue}
-              onChange={handleInputChange}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select annual revenue range</option>
-                  {ANNUAL_REVENUE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-          </div>
-
-              <div>
-                <label htmlFor='internationalBusinessTraveling' className='block text-sm font-medium text-gray-700 mb-2'>
-                  International Business Traveling *
-                </label>
-                <select
-                  id='internationalBusinessTraveling'
-                  name='internationalBusinessTraveling'
-              value={formData.internationalBusinessTraveling ? "Yes" : "No"}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  internationalBusinessTraveling: e.target.value === "Yes",
-                }))
-              }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                >
-                  <option value="">Select Yes or No</option>
-                  {YES_NO_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
-          </div>
-
-            {/* Asset Questions */}
-            <div className='space-y-4'>
-              <h3 className='text-lg font-medium text-gray-800'>Asset Information</h3>
-              
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Do you have any vehicles?
-                  </label>
-                  <select
-              value={questions.vehicleCount}
-                    onChange={(e) => changeQuestion("vehicleCount", e.target.value as "Yes" | "No" | "")}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  >
-                    <option value="">Select Yes or No</option>
-                    {YES_NO_OPTIONS.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-            {questions.vehicleCount === "Yes" && (
-                    <div className='mt-2'>
-                      <input
-                        type='number'
-                        name='vehicleCount'
-                  value={formData.vehicleCount}
-                  onChange={handleInputChange}
-                        placeholder='Enter number of vehicles'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                />
-              </div>
-            )}
-          </div>
-
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Do you have any facilities?
-                  </label>
-                  <select
-              value={questions.facilityCount}
-                    onChange={(e) => changeQuestion("facilityCount", e.target.value as "Yes" | "No" | "")}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  >
-                    <option value="">Select Yes or No</option>
-                    {YES_NO_OPTIONS.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-            {questions.facilityCount === "Yes" && (
-                    <div className='mt-2'>
-                      <input
-                        type='number'
-                        name='facilityCount'
-                  value={formData.facilityCount}
-                  onChange={handleInputChange}
-                        placeholder='Enter number of facilities'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                />
-              </div>
-            )}
-          </div>
-
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Do you have any equipments?
-                  </label>
-                  <select
-              value={questions.equipmentCount}
-                    onChange={(e) => changeQuestion("equipmentCount", e.target.value as "Yes" | "No" | "")}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  >
-                    <option value="">Select Yes or No</option>
-                    {YES_NO_OPTIONS.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-            {questions.equipmentCount === "Yes" && (
-                    <div className='mt-2'>
-                      <input
-                        type='number'
-                        name='equipmentCount'
-                  value={formData.equipmentCount}
-                  onChange={handleInputChange}
-                        placeholder='Enter number of equipments'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                />
-              </div>
-            )}
-          </div>
-
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Do you have baseline emissions available?
-                  </label>
-                  <select
-              value={questions.baselineEmissionsAvailable}
-                    onChange={(e) => changeQuestion("baselineEmissionsAvailable", e.target.value as "Yes" | "No" | "")}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  >
-                    <option value="">Select Yes or No</option>
-                    {YES_NO_OPTIONS.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-            {questions.baselineEmissionsAvailable === "Yes" && (
-                    <div className='mt-2'>
-                      <input
-                        type='number'
-                        name='baselineEmissions'
-                  value={formData.baselineEmissions}
-                  onChange={handleInputChange}
-                        placeholder='Enter baseline emissions'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                />
-              </div>
-            )}
-                </div>
-              </div>
-          </div>
-
-            <div className='flex gap-3 pt-4'>
-          <button
-                type='submit'
-                disabled={submitting}
-                className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
-              >
-                {submitting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating Boundary...
-              </>
-            ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Create Boundary
-                  </>
-            )}
-          </button>
-              <button
-                type='button'
-                onClick={resetForm}
-                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+        <DynamicForm
+          title={editingBoundary ? 'Edit Boundary' : 'Add New Boundary'}
+          fields={boundaryFormFields}
+          onSubmit={handleFormSubmit}
+          onCancel={resetForm}
+          initialData={formData}
+          loading={submitting}
+          submitText={editingBoundary ? 'Update Boundary' : 'Create Boundary'}
+          cancelText="Cancel"
+          onClose={resetForm}
+          confirmationMessage={editingBoundary ? 'Do you really want to update this boundary?' : 'Do you really want to create this boundary?'}
+        />
       )}
 
       {/* Empty State */}

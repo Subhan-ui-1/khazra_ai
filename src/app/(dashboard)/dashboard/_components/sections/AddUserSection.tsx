@@ -6,12 +6,14 @@ import toast from 'react-hot-toast';
 import { getRequest, postRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from '@/utils/localStorage';
+import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
 interface UserFormData {
   firstName: string;
   lastName: string;
   email: string;
   phoneNo: string;
+  countryCode: string;
   departmentId: string;
   roleId: string;
 }
@@ -52,6 +54,53 @@ interface User {
   updatedAt: string;
 }
 
+// Country code options for Saudi Arabia and UAE
+const countryCodes = [
+  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: '+971', country: 'UAE', flag: '🇦🇪' }
+];
+
+// Phone number validation patterns
+const phoneValidationPatterns = {
+  '+966': /^5[0-9]{8}$/, // Saudi Arabia: 5XXXXXXXX (9 digits starting with 5)
+  '+971': /^5[0-9]{8}$/  // UAE: 5XXXXXXXX (9 digits starting with 5)
+};
+
+// Phone validation function
+const validatePhoneNumber = (countryCode: string, phoneNumber: string): { isValid: boolean; message: string } => {
+  // Handle undefined/null values
+  if (!phoneNumber || typeof phoneNumber !== 'string') {
+    return { isValid: true, message: '' }; // Phone is optional
+  }
+
+  const trimmedPhone = phoneNumber.trim();
+  if (!trimmedPhone) {
+    return { isValid: true, message: '' }; // Phone is optional
+  }
+
+  if (!countryCode) {
+    return { isValid: false, message: 'Please select a country code' };
+  }
+
+  const pattern = phoneValidationPatterns[countryCode as keyof typeof phoneValidationPatterns];
+  if (!pattern) {
+    return { isValid: false, message: 'Invalid country code' };
+  }
+
+  // Remove any non-digit characters from phone number
+  const cleanPhone = trimmedPhone.replace(/\D/g, '');
+  
+  if (!pattern.test(cleanPhone)) {
+    if (countryCode === '+966') {
+      return { isValid: false, message: 'Saudi Arabia phone number must be 9 digits starting with 5 (e.g., 501234567)' };
+    } else if (countryCode === '+971') {
+      return { isValid: false, message: 'UAE phone number must be 9 digits starting with 5 (e.g., 501234567)' };
+    }
+  }
+
+  return { isValid: true, message: '' };
+};
+
 const AddUserSection = () => {
   const [userData, setUserData] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -61,6 +110,8 @@ const AddUserSection = () => {
   const [submitting, setSubmitting] = useState(false);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [loadingRoles, setLoadingRoles] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   
@@ -85,6 +136,7 @@ const AddUserSection = () => {
     lastName: '',
     email: '',
     phoneNo: '',
+    countryCode: '',
     departmentId: '',
     roleId: ''
   });
@@ -107,11 +159,22 @@ const AddUserSection = () => {
     fetchRoles();
   }, [filters]);
 
+  // Scroll to bottom when form opens
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
+
   const getOrganizationId = () => {
     const user = safeLocalStorage.getItem('user');
     const userData = JSON.parse(user || "");
     return userData.organization;
   }
+
   const fetchUsers = async () => {
     try {
       const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
@@ -203,63 +266,22 @@ const AddUserSection = () => {
     return userData.boundary;
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
-      toast.error("First name, last name, and email are required");
-      return;
-    }
-
-    if (!formData.departmentId || !formData.roleId) {
-      toast.error("Department and role are required");
-      return;
-    }
-
-    // Email validation for work email
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const userData = {
-        ...formData,
-        organizationId:getOrganizationId(),
-        boundaryId: getBoundaryId()
-      };
-
-      const response = await postRequest(
-        "user/createUser",
-        userData,
-        "User created successfully",
-        tokenData.accessToken,
-        "post"
-      );
-      
-      if (response.success) {
-        toast.success("User created successfully");
-        resetForm();
-        fetchUsers();
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create user");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleEdit = (user: User) => {
+    // Extract country code from phone number if it exists
+    const phoneParts = user.phoneNo?.split(' ') || [];
+    const countryCode = phoneParts.length > 1 ? phoneParts[0] : '';
+    const phoneNumber = phoneParts.length > 1 ? phoneParts.slice(1).join(' ') : user.phoneNo;
+    
     setFormData({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      phoneNo: user.phoneNo,
+      phoneNo: phoneNumber,
+      countryCode: countryCode,
       departmentId: user.department?._id || '',
       roleId: user.role?._id || ''
     });
+    setEditingUser(user);
     setShowForm(true);
   };
 
@@ -292,15 +314,12 @@ const AddUserSection = () => {
       lastName: '',
       email: '',
       phoneNo: '',
+      countryCode: '',
       departmentId: '',
       roleId: ''
     });
+    setEditingUser(null);
     setShowForm(false);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const formatDate = (dateString: string) => {
@@ -314,6 +333,185 @@ const AddUserSection = () => {
   const createDP = (name: string) => {
     return name.split(' ').map((e:string)=>e.charAt(0).toUpperCase()).join('');
   }
+
+  // Form fields configuration
+  const userFormFields: FormField[] = [
+    {
+      name: 'firstName',
+      label: 'First Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Enter first name'
+    },
+    {
+      name: 'lastName',
+      label: 'Last Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Enter last name'
+    },
+    {
+      name: 'email',
+      label: 'Email Address (Work email only)',
+      type: 'email',
+      required: true,
+      placeholder: 'Enter work email address',
+      validation: {
+        pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        message: 'Please enter a valid email address'
+      }
+    },
+    {
+      name: 'phoneNo',
+      label: 'Phone Number',
+      type: 'phone',
+      placeholder: 'Enter phone number',
+      maxLength: 9,
+      options: [
+        { value: '+966', label: 'Saudi Arabia', flag: '🇸🇦', code: '+966' },
+        { value: '+971', label: 'UAE', flag: '🇦🇪', code: '+971' }
+      ],
+      validation: {
+        custom: ({ countryCode, phoneNumber }: { countryCode: string; phoneNumber: string }) => {
+          return validatePhoneNumber(countryCode, phoneNumber);
+        }
+      }
+    },
+    {
+      name: 'departmentId',
+      label: 'Department',
+      type: 'select',
+      required: true,
+      placeholder: 'Select Department',
+      options: departments.map(dept => ({ value: dept._id, label: dept.name }))
+    },
+    {
+      name: 'roleId',
+      label: 'Role',
+      type: 'select',
+      required: true,
+      placeholder: 'Select Role',
+      options: roles.map(role => ({ value: role._id, label: role.name }))
+    }
+  ];
+
+  const handleFormSubmit = async (data: any) => {
+    setSubmitting(true);
+    try {
+      // Safely format phone number with country code if provided
+      let formattedPhoneNo = '';
+      if (data.phoneNo && typeof data.phoneNo === 'string' && data.phoneNo.trim()) {
+        const countryCode = data.countryCode || '';
+        formattedPhoneNo = countryCode ? `${countryCode} ${data.phoneNo.trim()}` : data.phoneNo.trim();
+      }
+      
+      const userData = {
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phoneNo: formattedPhoneNo,
+        departmentId: data.departmentId || '',
+        roleId: data.roleId || '',
+        organizationId: getOrganizationId(),
+        boundaryId: getBoundaryId()
+      };
+
+      let response;
+      
+      if (editingUser) {
+        // Update existing user
+        response = await postRequest(
+          `user/updateUser/${editingUser._id}`,
+          userData,
+          "User updated successfully",
+          tokenData.accessToken,
+          "put"
+        );
+      } else {
+        // Create new user
+        response = await postRequest(
+          "user/createUser",
+          userData,
+          "User created successfully",
+          tokenData.accessToken,
+          "post"
+        );
+      }
+      
+      if (response.success) {
+        toast.success(editingUser ? "User updated successfully" : "User created successfully");
+        resetForm();
+        fetchUsers();
+      }
+    } catch (error: any) {
+      toast.error(error.message || (editingUser ? "Failed to update user" : "Failed to create user"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(userData.map(user => user._id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(prev => [...prev, userId]);
+    } else {
+      setSelectedUsers(prev => prev.filter(id => id !== userId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedUsers.length} selected users?`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = selectedUsers.map(userId => 
+        postRequest(
+          `user/deleteUser/${userId}`,
+          {},
+          "User deleted successfully",
+          tokenData.accessToken,
+          "delete"
+        )
+      );
+
+      await Promise.all(deletePromises);
+      toast.success(`${selectedUsers.length} users deleted successfully`);
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete some users");
+    }
+  };
+
+  const handleBulkVerify = async () => {
+    try {
+      const verifyPromises = selectedUsers.map(userId => 
+        postRequest(
+          `user/verifyUser/${userId}`,
+          {},
+          "User verified successfully",
+          tokenData.accessToken,
+          "put"
+        )
+      );
+
+      await Promise.all(verifyPromises);
+      toast.success(`${selectedUsers.length} users verified successfully`);
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to verify some users");
+    }
+  };
 
   return (
     <div className='flex flex-col gap-6'>
@@ -402,181 +600,44 @@ const AddUserSection = () => {
         </div>
       </div>
 
-      {/* Form Section */}
-      {showForm && (
-        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-semibold text-gray-800'>Add New User</h2>
-            <button
-              onClick={resetForm}
-              className='text-gray-500 hover:text-gray-700'
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+      {/* Bulk Actions */}
+      {selectedUsers.length > 0 && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium text-blue-900'>
+                {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
+              </span>
+            </div>
+            <div className='flex gap-2'>
+              <PermissionGuard permission="user.update">
+                <button
+                  onClick={handleBulkVerify}
+                  className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                >
+                  Verify Selected
+                </button>
+              </PermissionGuard>
+              <PermissionGuard permission="user.delete">
+                <button
+                  onClick={handleBulkDelete}
+                  className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                >
+                  Delete Selected
+                </button>
+              </PermissionGuard>
+              <button
+                onClick={() => setSelectedUsers([])}
+                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+              >
+                Clear Selection
+              </button>
+            </div>
           </div>
-          
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <label htmlFor='firstName' className='block text-sm font-medium text-gray-700 mb-2'>
-                  First Name *
-                </label>
-                <input
-                  type='text'
-                  id='firstName'
-                  name='firstName'
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  placeholder='Enter first name'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor='lastName' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Last Name *
-                </label>
-                <input
-                  type='text'
-                  id='lastName'
-                  name='lastName'
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  placeholder='Enter last name'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor='email' className='block text-sm font-medium text-gray-700 mb-2'>
-                Email Address * (Work email only)
-              </label>
-              <input
-                type='email'
-                id='email'
-                name='email'
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder='Enter work email address'
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor='phoneNo' className='block text-sm font-medium text-gray-700 mb-2'>
-                Phone Number
-              </label>
-              <input
-                type='tel'
-                id='phoneNo'
-                name='phoneNo'
-                value={formData.phoneNo}
-                onChange={handleInputChange}
-                placeholder='Enter phone number'
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-              />
-            </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <label htmlFor='departmentId' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Department *
-                </label>
-                {loadingDepartments ? (
-                  <div className='flex items-center gap-2 text-gray-500'>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Loading departments...
-                  </div>
-                ) : (
-                  <select
-                    id='departmentId'
-                    name='departmentId'
-                    value={formData.departmentId}
-                    onChange={handleInputChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                    required
-                  >
-                    <option value="">Select Department</option>
-                    {departments.map((dept) => (
-                      <option key={dept._id} value={dept._id}>{dept.name}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor='roleId' className='block text-sm font-medium text-gray-700 mb-2'>
-                  Role *
-                </label>
-                {loadingRoles ? (
-                  <div className='flex items-center gap-2 text-gray-500'>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Loading roles...
-                  </div>
-                ) : (
-                  <select
-                    id='roleId'
-                    name='roleId'
-                    value={formData.roleId}
-                    onChange={handleInputChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
-                    required
-                  >
-                    <option value="">Select Role</option>
-                    {roles.map((role) => (
-                      <option key={role._id} value={role._id}>{role.name}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-            
-            <div className='flex gap-3 pt-4'>
-              <button
-                type='submit'
-                disabled={submitting}
-                className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
-              >
-                {submitting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Create User
-                  </>
-                )}
-              </button>
-              <button
-                type='button'
-                onClick={resetForm}
-                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
         </div>
       )}
+
+     
 
       {/* Users List */}
       <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'>
@@ -611,6 +672,14 @@ const AddUserSection = () => {
               <thead className='bg-gray-50'>
                 <tr>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.length === userData.length && userData.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     ID
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
@@ -640,6 +709,14 @@ const AddUserSection = () => {
               <tbody className='bg-white divide-y divide-gray-200'>
                 {userData.map((user,i) => (
                   <tr key={user._id} className='hover:bg-gray-50'>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user._id)}
+                        onChange={(e) => handleSelectUser(user._id, e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                    </td>
                     <td className='px-6 py-4 whitespace-nowrap'>
                       <div className='text-sm font-medium text-gray-900'>US-{i+1}</div>
                     </td>
@@ -703,6 +780,22 @@ const AddUserSection = () => {
           </div>
         )}
       </div>
+
+       {/* Form Section */}
+       {showForm && (
+        <DynamicForm
+          title={editingUser ? 'Edit User' : 'Add New User'}
+          fields={userFormFields}
+          onSubmit={handleFormSubmit}
+          onCancel={resetForm}
+          initialData={formData}
+          loading={submitting}
+          submitText={editingUser ? 'Update User' : 'Create User'}
+          cancelText="Cancel"
+          onClose={resetForm}
+          confirmationMessage={editingUser ? 'Do you really want to update this user?' : 'Do you really want to create this user?'}
+        />
+      )}
     </div>
   );
 };

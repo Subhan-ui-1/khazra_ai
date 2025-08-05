@@ -20,15 +20,19 @@ const getHeaders = (token?: string) => {
 
 const handleError = (error: any) => {
   if (axios.isAxiosError(error)) {
-    const errorMessage = error.response?.data?.message || "Request failed.";
-    console.log(errorMessage);
-    console.error(
-      "Axios Error:",
-      error.response?.data.message || error.message
-    );
-    throw new Error(error.response?.data.message);
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Something went wrong.";
+
+    console.error("Axios Error:", message, error.response?.data);
+    toast.error(message); // 🔥 Show toast
+    throw new Error(message); // Still throw for catching
   } else {
     console.error("Unexpected Error:", error);
+    toast.error("Unexpected error occurred.");
+    throw new Error("Unexpected error occurred.");
   }
 };
 
@@ -104,9 +108,9 @@ export const postRequest = async (
       throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
     }
   } catch (error: any) {
-    if (endPoint === "auth/login") {
+    // if (endPoint === "auth/login") {
       handleError(error);
-    }
+    // }
     throw error;
   }
 };

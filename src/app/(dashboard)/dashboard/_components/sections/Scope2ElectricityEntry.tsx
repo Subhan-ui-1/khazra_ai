@@ -245,6 +245,15 @@ const Scope2ElectricityEntry: React.FC = () => {
     setShowForm(true);
   };
 
+  useEffect(() => {
+    if (showForm) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [showForm]);
+
   const deleteRecord = async (item: any) => {
     try {
       const editingId = item?._id || item?.id;
@@ -323,6 +332,68 @@ const Scope2ElectricityEntry: React.FC = () => {
 
   return (
     <div className="space-y-6">
+       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <Table
+          title="Purchased Electricity"
+          data={filteredData}
+          loading={loading}
+          columns={[
+            {
+              key: "monthYear",
+              label: "Month/Year",
+              render: (value, row) => (
+                <span>
+                  {getMonthName(row.month)} {row.year}
+                </span>
+              ),
+            },
+            {
+              key: "facility",
+              label: "Facility",
+              render: (value, row) => <span>{getFacilityName(row.facility)}</span>,
+            },
+            {
+              key: "gridLocation",
+              label: "Grid Location",
+              render: (value, row) => <span>{row.gridLocation}</span>,
+            },
+            {
+              key: "consumedUnits",
+              label: "Consumed Units",
+              type: "number",
+              render: (value, row) => (
+                <span>{row.consumedUnits?.toLocaleString()}</span>
+              ),
+            },
+            {
+              key: "amountOfConsumption",
+              label: "Amount of Consumption",
+              type: "number",
+              render: (value, row) => (
+                <span>{row.amountOfConsumption?.toLocaleString()}</span>
+              ),
+            },
+            {
+              key: "emissionFactor",
+              label: "Emission Factor",
+              render: (value, row) => <span>{row.emissionFactor}</span>,
+            },
+          ]}
+          actions={[
+            {
+              label: "Edit",
+              icon: <Edit3 className="w-4 h-4" />,
+              onClick: (row) => startEdit(row),
+              variant: "primary",
+            },
+          ]}
+          showAddButton={true}
+          addButtonLabel="Add Electricity Record"
+          onAddClick={() => setShowForm(true)}
+          emptyMessage="No electricity records found."
+          rowKey="_id"
+        />
+      </div>
       {showForm && (
         <div className="bg-white border border-blue-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
@@ -568,68 +639,7 @@ const Scope2ElectricityEntry: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <Table
-          title="Purchased Electricity"
-          data={filteredData}
-          loading={loading}
-          columns={[
-            {
-              key: "monthYear",
-              label: "Month/Year",
-              render: (value, row) => (
-                <span>
-                  {getMonthName(row.month)} {row.year}
-                </span>
-              ),
-            },
-            {
-              key: "facility",
-              label: "Facility",
-              render: (value, row) => <span>{getFacilityName(row.facility)}</span>,
-            },
-            {
-              key: "gridLocation",
-              label: "Grid Location",
-              render: (value, row) => <span>{row.gridLocation}</span>,
-            },
-            {
-              key: "consumedUnits",
-              label: "Consumed Units",
-              type: "number",
-              render: (value, row) => (
-                <span>{row.consumedUnits?.toLocaleString()}</span>
-              ),
-            },
-            {
-              key: "amountOfConsumption",
-              label: "Amount of Consumption",
-              type: "number",
-              render: (value, row) => (
-                <span>{row.amountOfConsumption?.toLocaleString()}</span>
-              ),
-            },
-            {
-              key: "emissionFactor",
-              label: "Emission Factor",
-              render: (value, row) => <span>{row.emissionFactor}</span>,
-            },
-          ]}
-          actions={[
-            {
-              label: "Edit",
-              icon: <Edit3 className="w-4 h-4" />,
-              onClick: (row) => startEdit(row),
-              variant: "primary",
-            },
-          ]}
-          showAddButton={true}
-          addButtonLabel="Add Electricity Record"
-          onAddClick={() => setShowForm(true)}
-          emptyMessage="No electricity records found."
-          rowKey="_id"
-        />
-      </div>
+     
     </div>
   );
 };
