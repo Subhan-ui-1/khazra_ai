@@ -55,6 +55,7 @@ export default function StationaryCombustionSection() {
   const [reviewData, setReviewData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -180,10 +181,24 @@ export default function StationaryCombustionSection() {
 
   // Load dropdown data on component mount
   useEffect(() => {
-    fetchFacilities();
-    fetchEquipments();
-    fetchFuelTypes();
-    getStationaryTotal();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchFacilities(),
+          fetchEquipments(),
+          fetchFuelTypes(),
+          getStationaryTotal()
+        ]);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   const handleStationarySubmit = async (e: React.FormEvent) => {
@@ -341,22 +356,26 @@ export default function StationaryCombustionSection() {
 
   // Get facility name by ID
   const getFacilityName = (facilityId: string) => {
+    if (!facilityId) return "N/A";
     const facility = facilities.find((f) => f._id === facilityId);
-    return facility ? facility.facilityName : facilityId;
+    return facility ? facility.facilityName : "Loading...";
   };
 
   // Get equipment type name by ID
   const getEquipmentTypeName = (equipmentTypeId: string) => {
+    if (!equipmentTypeId) return "N/A";
+    console.log('equipmentTypeId', equipmentTypeId, equipments)
     const equipment = equipments.find((e) => e._id === equipmentTypeId);
-    return equipment ? equipment.equipmentName : equipmentTypeId;
+    return equipment ? equipment.equipmentName : "Loading...";
   };
 
   // Get fuel type name by ID
   const getFuelTypeName = (fuelTypeId: string) => {
+    if (!fuelTypeId) return "N/A";
     const fuelType = fuelTypes.find((f) => f._id === fuelTypeId);
     return fuelType
       ? `${fuelType.fuelType} (${fuelType.fuelTypeUnit})`
-      : fuelTypeId;
+      : "Loading...";
   };
 
   // Generate years for dropdown (current year - 10 to current year + 5)
@@ -588,13 +607,6 @@ export default function StationaryCombustionSection() {
             icon: <Edit3 className="w-4 h-4" />,
             onClick: (row) => handleEditStationary(row, stationaryCombustionData.findIndex(item => item._id === row._id)),
             variant: 'primary'
-          },
-
-          {
-            // label: 'Delete',
-            icon: <Trash2 className="w-4 h-4" />,
-            onClick: (row) => console.log('Delete row:', row),
-            variant: 'danger'
           }
         ]}
         showAddButton={true}
@@ -603,6 +615,8 @@ export default function StationaryCombustionSection() {
         showSearch={true}
         // showFilter={true}
         rowKey="_id"
+        loading={loading}
+        emptyMessage={dataLoaded ? "No stationary combustion data found" : "Loading data..."}
       />
 
       {/* Stationary Combustion Form */}
@@ -975,11 +989,9 @@ export default function StationaryCombustionSection() {
                   id='editEquipment'
                   value={stationaryFormData.equipment}
                   onChange={(e) =>{
-                    const desc = equipments.find(f => f._id === e.target.value)
                     setStationaryFormData({
                       ...stationaryFormData,
                       equipment: e.target.value,
-                      emissionFactor: desc?.emissionFactorC02||0,
                     })
                   }
                   }
@@ -1007,7 +1019,7 @@ export default function StationaryCombustionSection() {
                     setStationaryFormData({
                       ...stationaryFormData,
                       fuelType: e.target.value,
-                      emissionFactor: desc?.emissionFactorC02||0,
+                      emissionFactor: desc?.emissionFactorC02 || 0,
                     })
                   }
                   }

@@ -3,6 +3,7 @@ import { Plus, X, Edit3, Trash2, Thermometer } from 'lucide-react';
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from '@/utils/localStorage';
+import Table from "@/components/Table";
 
 interface Facility {
   _id: string;
@@ -37,6 +38,7 @@ const Scope2SteamEntry: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -101,9 +103,23 @@ const Scope2SteamEntry: React.FC = () => {
 
   // Load dropdown data on component mount
   useEffect(() => {
-    fetchFacilities();
-    fetchEnergyTypes();
-    getSteamTotal();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchFacilities(),
+          fetchEnergyTypes(),
+          getSteamTotal()
+        ]);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   const handleSubmit = async () => {
@@ -225,6 +241,7 @@ const Scope2SteamEntry: React.FC = () => {
       const response = await postRequest(
         `purchased-electricity/deletePurchasedElectricity/${editingId}`,
         {},
+        "Steam record deleted successfully",
         getToken(),
         "delete",
         true,
@@ -244,13 +261,15 @@ const Scope2SteamEntry: React.FC = () => {
 
   // Helper functions to get names from IDs
   const getFacilityName = (facilityId: string) => {
+    if (!facilityId) return "N/A";
     const facility = facilities.find(f => f._id === facilityId);
-    return facility ? facility.facilityName : facilityId;
+    return facility ? facility.facilityName : (dataLoaded ? "N/A" : "Loading...");
   };
 
   const getEnergyTypeName = (energyTypeId: string) => {
+    if (!energyTypeId) return "N/A";
     const energyType = energyTypes.find(e => e._id === energyTypeId);
-    return energyType ? energyType.energyType : energyTypeId;
+    return energyType ? energyType.energyType : (dataLoaded ? "N/A" : "Loading...");
   };
 
   const generateYearOptions = () => {
@@ -277,19 +296,6 @@ const Scope2SteamEntry: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Thermometer className="w-6 h-6 text-red-600" />
-          <h3 className="text-xl font-semibold text-gray-900">Purchased Steam</h3>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg hover:bg-red-700"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Steam Record</span>
-        </button>
-      </div>
       {showForm && (
         <div className="bg-white border border-red-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
@@ -479,66 +485,66 @@ const Scope2SteamEntry: React.FC = () => {
         </div>
       )}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month/Year</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facility</th>
-              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Energy Type</th> */}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grid Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Consumed Units</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount of Consumption</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Emission Factor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredData.map((record) => (
-              <tr key={record._id || record.id}>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">
-                    {getMonthName(record.month)} {record.year}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">{getFacilityName(record.facility)}</div>
-                </td>
-                {/* <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">{getEnergyTypeName(record.energyType)}</div>
-                </td> */}
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">{record.gridLocation}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">
-                    {record.consumedUnits?.toLocaleString()}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">
-                    {record.amountOfConsumption?.toLocaleString()}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900">
-                    {record.emissionFactor}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => startEdit(record)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                 
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Table
+          title="Purchased Steam"
+          data={filteredData}
+          loading={loading}
+          columns={[
+            {
+              key: "monthYear",
+              label: "Month/Year",
+              render: (value, row) => (
+                <span>
+                  {getMonthName(row.month)} {row.year}
+                </span>
+              ),
+            },
+            {
+              key: "facility",
+              label: "Facility",
+              render: (value, row) => <span>{getFacilityName(row.facility)}</span>,
+            },
+            {
+              key: "gridLocation",
+              label: "Grid Location",
+              render: (value, row) => <span>{row.gridLocation}</span>,
+            },
+            {
+              key: "consumedUnits",
+              label: "Consumed Units",
+              type: "number",
+              render: (value, row) => (
+                <span>{row.consumedUnits?.toLocaleString()}</span>
+              ),
+            },
+            {
+              key: "amountOfConsumption",
+              label: "Amount of Consumption",
+              type: "number",
+              render: (value, row) => (
+                <span>{row.amountOfConsumption?.toLocaleString()}</span>
+              ),
+            },
+            {
+              key: "emissionFactor",
+              label: "Emission Factor",
+              render: (value, row) => <span>{row.emissionFactor}</span>,
+            },
+          ]}
+          actions={[
+            {
+              label: "Edit",
+              icon: <Edit3 className="w-4 h-4" />,
+              onClick: (row) => startEdit(row),
+              variant: "primary",
+            },
+          ]}
+          showAddButton={true}
+          addButtonLabel="Add Steam Record"
+          onAddClick={() => setShowForm(true)}
+          emptyMessage="No steam records found."
+          rowKey="_id"
+        />
       </div>
     </div>
   );

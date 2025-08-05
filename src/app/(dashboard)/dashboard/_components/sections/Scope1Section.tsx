@@ -11,6 +11,10 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+import Table from "../../../../../components/Table";
+import { Edit3, Trash2, Eye } from 'lucide-react';
+
+
 type Source = {
   icon: string;
   title: string;
@@ -24,8 +28,10 @@ type Scope1Source = {
   label: string;
   value: number;
   color: string; 
+   
   percentage: number;
   rawColor: string; 
+  
 };
 
 type DurationType = 'This Year' | 'Last Year' | 'Comparison';
@@ -33,6 +39,65 @@ type DurationType = 'This Year' | 'Last Year' | 'Comparison';
 type Scope1Data = {
   [key in DurationType]: Scope1Source[];
 };
+
+// Sample data for Scope 1 emission sources
+const scope1EmissionData = [
+  {
+    id: 1,
+    source: 'Boiler #1',
+    facility: 'Main Plant',
+    fuelType: 'Natural Gas',
+    consumption: 1250.5,
+    emissions: 2340.8,
+    efficiency: 85.2,
+    status: 'active',
+    lastUpdated: '2024-01-15'
+  },
+  {
+    id: 2,
+    source: 'Furnace #3',
+    facility: 'Production Unit A',
+    fuelType: 'Heating Oil',
+    consumption: 890.3,
+    emissions: 1675.2,
+    efficiency: 78.9,
+    status: 'active',
+    lastUpdated: '2024-01-12'
+  },
+  {
+    id: 3,
+    source: 'Generator #2',
+    facility: 'Backup Power',
+    fuelType: 'Diesel',
+    consumption: 456.7,
+    emissions: 1234.5,
+    efficiency: 82.1,
+    status: 'maintenance',
+    lastUpdated: '2024-01-10'
+  },
+  {
+    id: 4,
+    source: 'Fleet Vehicle #15',
+    facility: 'Transportation',
+    fuelType: 'Gasoline',
+    consumption: 234.1,
+    emissions: 567.8,
+    efficiency: 75.4,
+    status: 'active',
+    lastUpdated: '2024-01-08'
+  },
+  {
+    id: 5,
+    source: 'Forklift #7',
+    facility: 'Warehouse',
+    fuelType: 'LPG',
+    consumption: 89.2,
+    emissions: 198.3,
+    efficiency: 88.7,
+    status: 'active',
+    lastUpdated: '2024-01-05'
+  }
+];
 
 const scope1DataByDuration: Scope1Data = {
   'This Year': [
@@ -50,6 +115,13 @@ const scope1DataByDuration: Scope1Data = {
       color: 'fill-[#0f5744]',
       rawColor: 'rgba(15, 87, 68, 0.8)',
     },
+    // {
+    //   label: 'Process Emissions',
+    //   value: 516.2,
+    //   percentage: 15.9,
+    //   color: 'fill-[#0f5744]',
+    //   rawColor: 'rgba(15, 87, 68, 0.6)',
+    // },
     // {
     //   label: 'Process Emissions',
     //   value: 516.2,
@@ -80,6 +152,13 @@ const scope1DataByDuration: Scope1Data = {
     //   color: 'fill-[#0f5744]',
     //   rawColor: 'rgba(15, 87, 68, 0.6)',
     // },
+    // {
+    //   label: 'Process Emissions',
+    //   value: 470,
+    //   percentage: 15,
+    //   color: 'fill-[#0f5744]',
+    //   rawColor: 'rgba(15, 87, 68, 0.6)',
+    // },
   ],
   'Comparison': [
     {
@@ -96,6 +175,13 @@ const scope1DataByDuration: Scope1Data = {
       color: 'fill-[#0f5744]',
       rawColor: 'rgba(15, 87, 68, 0.8)',
     },
+    // {
+    //   label: 'Process Emissions',
+    //   value: 700,
+    //   percentage: 15,
+    //   color: 'fill-[#0f5744]',
+    //   rawColor: 'rgba(15, 87, 68, 0.6)',
+    // },
     // {
     //   label: 'Process Emissions',
     //   value: 700,
@@ -123,6 +209,14 @@ const sourceData: Source[] = [
     percentage: 30.3,
     description: '45 vehicles • Diesel, gasoline, hybrid',
   },
+  // {
+  //   icon: '🏭',
+  //   title: 'Process Emissions',
+  //   subtitle: 'Industrial manufacturing',
+  //   value: 516.2,
+  //   percentage: 15.9,
+  //   description: 'Chemical processes • Manufacturing',
+  // },
   // {
   //   icon: '🏭',
   //   title: 'Process Emissions',
@@ -206,6 +300,79 @@ export default function Scope1Section() {
       },
     },
   };
+
+  // Table configuration
+  const tableColumns = [
+    { key: 'source', label: 'Source', type: 'text' as const },
+    { key: 'facility', label: 'Facility', type: 'text' as const },
+    { key: 'fuelType', label: 'Fuel Type', type: 'text' as const },
+    { 
+      key: 'consumption', 
+      label: 'Consumption (GJ)', 
+      type: 'number' as const,
+      align: 'right' as const 
+    },
+    { 
+      key: 'emissions', 
+      label: 'Emissions (tCO₂e)', 
+      type: 'number' as const,
+      align: 'right' as const 
+    },
+    { 
+      key: 'efficiency', 
+      label: 'Efficiency (%)', 
+      type: 'number' as const,
+      align: 'right' as const 
+    },
+    { key: 'status', label: 'Status', type: 'status' as const },
+    { key: 'lastUpdated', label: 'Last Updated', type: 'date' as const }
+  ];
+
+  const tableActions = [
+    {
+      label: 'View',
+      icon: <Eye className="w-4 h-4" />,
+      onClick: (row: any) => {
+        console.log('View source:', row);
+        // Add view functionality here
+      },
+      variant: 'primary' as const
+    },
+    {
+      label: 'Edit',
+      icon: <Edit3 className="w-4 h-4" />,
+      onClick: (row: any) => {
+        console.log('Edit source:', row);
+        // Add edit functionality here
+      },
+      variant: 'secondary' as const
+    },
+    {
+      label: 'Delete',
+      icon: <Trash2 className="w-4 h-4" />,
+      onClick: (row: any) => {
+        console.log('Delete source:', row);
+        // Add delete functionality here
+      },
+      variant: 'danger' as const
+    }
+  ];
+
+  const handleAddSource = () => {
+    console.log('Add new source');
+    // Add new source functionality here
+  };
+
+  const handleSearch = (query: string) => {
+    console.log('Search query:', query);
+    // Add search functionality here
+  };
+
+  const handleFilter = () => {
+    console.log('Filter sources');
+    // Add filter functionality here
+  };
+
 
   return (
     <div className="space-y-10">
@@ -399,19 +566,21 @@ export default function Scope1Section() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white border border-green-100 rounded-xl overflow-hidden shadow-sm">
-        <div className="flex justify-between items-center p-6 border-b border-green-100">
-          <div className="text-lg font-semibold text-black">Scope 1 Emission Sources Detail</div>
-          <div className="flex gap-3">
-            <button className="px-4 py-2 text-green-800 bg-white border border-green-800 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors">
-              Filter
-            </button>
-            <button className="px-4 py-2 bg-green-800 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
-              Add Source
-            </button>
-          </div>
-        </div>
-      </div>
+      <Table
+        title="Scope 1 Emission Sources Detail"
+        columns={tableColumns}
+        data={scope1EmissionData}
+        // actions={tableActions}
+        // showSearch={true}
+        // showFilter={true}
+        showAddButton={false}
+        // addButtonLabel="Add Source"
+        onAddClick={handleAddSource}
+        onSearch={handleSearch}
+        onFilter={handleFilter}
+        emptyMessage="No emission sources found"
+        rowKey="id"
+      />
     </div>
   );
-} 
+}

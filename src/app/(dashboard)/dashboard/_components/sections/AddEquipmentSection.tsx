@@ -656,6 +656,7 @@ const AddEquipmentSection = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facility</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
@@ -679,8 +680,11 @@ const AddEquipmentSection = () => {
                   </td>
                 </tr>
               ) : (
-                equipmentData.map((equipment) => (
+                equipmentData.map((equipment,i ) => (
                   <tr key={equipment.id || equipment._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">EQ-{i+1}</div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{equipment.equipmentName}</div>
                       <div className="text-sm text-gray-500">{equipment.model}</div>

@@ -1,3 +1,5 @@
+'use client'
+
 export const safeLocalStorage = {
   getItem(key: string) {
     if (typeof window === "undefined") return null;

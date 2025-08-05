@@ -360,7 +360,7 @@ const FlexibleTargetPlatform = () => {
           <div key={step} className="flex items-center">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-semibold border-2 ${
               currentStep >= step ? 'bg-green-600 text-white border-green-600' : 
-              currentStep === step ? 'bg-white text-green-600 border-green-600' :
+              currentStep === step ? 'bg-white text-black border-black' :
               'bg-gray-100 text-gray-400 border-gray-300'
             }`}>
               {currentStep > step ? <CheckCircle className="w-6 h-6" /> : step}
@@ -822,14 +822,14 @@ console.log(customTargets, 'custom target...........................')
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                   Current Emissions
                 </div>
-                <div className="text-3xl font-bold text-green-800 mb-2">
+                <div className="text-3xl font-bold text-black mb-2">
                   {customTargets.length > 0 ? customTargets[0].totalEmissions : '0'}
                 </div>
-                <div className="text-sm text-green-800 mb-2">tCO₂e (2024)</div>
-                <div className="text-xs text-green-800 opacity-60">
+                <div className="text-sm text-black mb-2">tCO₂e (2024)</div>
+                <div className="text-xs text-black opacity-60">
                   Baseline year emissions
                 </div>
               </div>
@@ -842,14 +842,14 @@ console.log(customTargets, 'custom target...........................')
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                   Annual Reduction
                 </div>
-                <div className="text-3xl font-bold text-green-800 mb-2">
+                <div className="text-3xl font-bold text-black mb-2">
                   {customTargets.length > 0 ? customTargets[0].targetAnalysis.totalReduction : '0'}%
                 </div>
-                <div className="text-sm text-green-800 mb-2">per year</div>
-                <div className="text-xs text-green-800 opacity-60">
+                <div className="text-sm text-black mb-2">per year</div>
+                <div className="text-xs text-black opacity-60">
                   Target reduction rate
                 </div>
               </div>
@@ -862,14 +862,14 @@ console.log(customTargets, 'custom target...........................')
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="text-xs font-semibold text-green-800 opacity-70 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                   Ambition Level
                 </div>
-                <div className="text-3xl font-bold text-green-800 mb-2">
+                <div className="text-3xl font-bold text-black mb-2">
                   {ambition.level.split(' ')[0]}
                 </div>
-                <div className="text-sm text-green-800 mb-2">{ambition.desc}</div>
-                <div className="text-xs text-green-800 opacity-60">
+                <div className="text-sm text-black mb-2">{ambition.desc}</div>
+                <div className="text-xs text-black opacity-60">
                   Target classification
                 </div>
               </div>
@@ -882,9 +882,9 @@ console.log(customTargets, 'custom target...........................')
 
         {/* Target Trajectory */}
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-green-800 mb-4">Emission Reduction Trajectory</h3>
+          <h3 className="text-lg font-semibold text-black mb-4">Emission Reduction Trajectory</h3>
           <div className="h-80 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg flex items-center justify-center border border-green-200">
-            <div className="text-center text-green-800">
+            <div className="text-center text-black">
               <LineChart className="w-16 h-16 mx-auto mb-4 text-green-600" />
               <p className="text-lg font-medium">Target Trajectory Visualization</p>
               <p className="text-sm mb-2">
@@ -903,7 +903,7 @@ console.log(customTargets, 'custom target...........................')
         {/* Custom Targets */}
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-green-800">Custom Targets</h4>
+            <h4 className="text-lg font-semibold text-black">Custom Targets</h4>
           </div>
           
           {customTargets.length === 0 ? (
@@ -927,10 +927,10 @@ console.log(customTargets, 'custom target...........................')
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium text-green-900">
+                      <div className="text-sm font-medium text-black">
                         {target.targetAnalysis.totalReduction}% reduction
                       </div>
-                      <div className="text-xs text-green-600">
+                      <div className="text-xs text-black">
                         {target.baselineYear} → {target.targetYear}
                       </div>
                     </div>
@@ -938,23 +938,23 @@ console.log(customTargets, 'custom target...........................')
                   
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="text-green-700">Methodology:</span>
-                      <div className="font-medium text-green-900">{target.methodology.name}</div>
+                      <span className="text-black">Methodology:</span>
+                      <div className="font-medium text-black">{target.methodology.name}</div>
                     </div>
                     <div>
-                      <span className="text-green-700">Scope Coverage:</span>
-                      <div className="font-medium text-green-900">{target.scopeCoverage.slice(0, 2).join(', ')}</div>
+                        <span className="text-black">Scope Coverage:</span>
+                      <div className="font-medium text-black">{target.scopeCoverage.slice(0, 2).join(', ')}</div>
                     </div>
                     <div>
-                      <span className="text-green-700">Business Coverage:</span>
-                      <div className="font-medium text-green-900">{target.businessCoverage}%</div>
+                      <span className="text-black">Business Coverage:</span>
+                      <div className="font-medium text-black">{target.businessCoverage}%</div>
                     </div>
                   </div>
                   
                   <div className="mt-3 pt-3 border-t border-green-100">
                     <div className="flex items-center justify-between text-xs text-green-600">
                       <span>Created: {new Date(target.createdAt).toLocaleDateString()}</span>
-                      <span className={`px-2 py-1 rounded-full ${
+                      <span className={`px-2 py-1 rounded-lg ${
                         target.targetAnalysis.leadingEdge === 'Transformational' ? 'bg-purple-100 text-purple-700' :
                         target.targetAnalysis.leadingEdge === 'Ambitious' ? 'bg-green-100 text-green-700' :
                         target.targetAnalysis.leadingEdge === 'Moderate' ? 'bg-blue-100 text-blue-700' :
@@ -973,7 +973,7 @@ console.log(customTargets, 'custom target...........................')
         {/* Initiatives & Progress */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-            <h4 className="text-lg font-semibold text-green-800 mb-4">Reduction Initiatives</h4>
+            <h4 className="text-lg font-semibold text-black mb-4">Reduction Initiatives</h4>
             <div className="space-y-4">
               {initiatives.length === 0 ? (
                 <div className="text-center py-4 text-gray-500">
@@ -983,12 +983,12 @@ console.log(customTargets, 'custom target...........................')
                 initiatives.slice(0, 3).map((initiative) => (
                   <div key={initiative._id} className="flex items-center justify-between p-3 bg-white rounded-lg">
                     <div>
-                      <div className="font-medium text-green-900">{initiative.initiative}</div>
-                      <div className="text-sm text-green-700 capitalize">{initiative.category.replace('_', ' ')}</div>
+                      <div className="font-bold text-green-900">{initiative.initiative}</div>
+                      <div className="text-sm text-black capitalize">{initiative.category.replace('_', ' ')}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-green-900">{initiative.reduction}</div>
-                      <div className="text-xs text-green-600">Investment: {initiative.investment}</div>
+                      <div className="text-xs text-black">Investment: {initiative.investment}</div>
                     </div>
                   </div>
                 ))
@@ -997,26 +997,26 @@ console.log(customTargets, 'custom target...........................')
           </div>
 
           <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
-            <h4 className="text-lg font-semibold text-green-800 mb-4">Target Details</h4>
+            <h4 className="text-lg font-semibold text-black mb-4">Target Details</h4>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-green-700">Target Category:</span>
+                <span className="text-black">Target Category:</span>
                 <span className="font-medium text-green-900 capitalize">{customTargets.length > 0 ? customTargets[0].targetCategory.name.replace('_', ' ') : 'N/A'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-green-700">Methodology:</span>
+                <span className="text-black">Methodology:</span>
                 <span className="font-medium text-green-900 capitalize">{customTargets.length > 0 ? customTargets[0].methodology.name.replace('_', ' ') : 'N/A'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-green-700">Geographic Coverage:</span>
+                <span className="text-black">Geographic Coverage:</span>
                 <span className="font-medium text-green-900 capitalize">{customTargets.length > 0 ? customTargets[0].geographicCoverage : 'N/A'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-green-700">Business Coverage:</span>
+                <span className="text-black">Business Coverage:</span>
                 <span className="font-medium text-green-900">{customTargets.length > 0 ? customTargets[0].businessCoverage : 'N/A'}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-green-700">Verification:</span>
+                <span className="text-black">Verification:</span>
                 <span className="font-medium text-green-900">{customTargets.length > 0 ? (customTargets[0].verificationRequired ? 'Required' : 'Optional') : 'N/A'}</span>
               </div>
             </div>
@@ -1297,10 +1297,10 @@ console.log(customTargets, 'custom target...........................')
     <div className="space-y-10">
       {/* Page Header */}
       <div className="border-b border-green-100 pb-6">
-        <h1 className="text-3xl font-bold text-green-800 mb-4">
+        <h1 className="text-3xl font-bold text-black mb-4">
           Carbon Target Setting
         </h1>
-        <p className="text-green-800 opacity-70 max-w-4xl leading-relaxed">
+        <p className="text-black opacity-70 max-w-4xl leading-relaxed">
           Set and manage your organization's carbon reduction targets with flexible methodologies, 
           track progress, and implement reduction initiatives to achieve your sustainability goals.
         </p>
