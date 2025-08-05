@@ -19,7 +19,7 @@ type DurationType = typeof durations[number];
 
 const scopeChartData: Record<DurationType, { labels: string[]; datasets: any[] }> = {
     Monthly: {
-        labels: ['Jan', 'Feb', 'Mar', 'April', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
+        labels: ['Jan', 'Feb', 'Mar', 'April', 'May', 'June'],
         datasets: [
             {
                 label: 'Scope 1',
@@ -35,13 +35,6 @@ const scopeChartData: Record<DurationType, { labels: string[]; datasets: any[] }
                 stack: 'scopes',
                 barThickness: 40,
             },
-            {
-                label: 'Scope 3',
-                data: [2000, 1800, 1500, 1400, 2750, 3800, 1900, 3900, 4000, 2200, 3500, 2700],
-                backgroundColor: '#35896d',
-                stack: 'scopes',
-                barThickness: 40,
-            },
         ],
     },
     Quarterly: {
@@ -49,26 +42,20 @@ const scopeChartData: Record<DurationType, { labels: string[]; datasets: any[] }
         datasets: [
             {
                 label: 'Scope 1',
-                data: [6000, 5120, 4800, 5000],
+                data: [6000, 5120, 4800, 3000],
                 backgroundColor: '#0a1c10',
                 stack: 'scopes',
             },
             {
                 label: 'Scope 2',
-                data: [3150, 4000, 2080, 1000],
+                data: [3150, 4000, 3580, 4000],
                 backgroundColor: '#34d399',
-                stack: 'scopes',
-            },
-            {
-                label: 'Scope 3',
-                data: [2750, 3220, 4200, 1500],
-                backgroundColor: '#35896d',
                 stack: 'scopes',
             },
         ],
     },
     Yearly: {
-        labels: ['2016', '2017', '2019', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'],
+        labels: [ '2023', '2024', '2025'],
         datasets: [
             {
                 label: 'Scope 1',
@@ -80,12 +67,6 @@ const scopeChartData: Record<DurationType, { labels: string[]; datasets: any[] }
                 label: 'Scope 2',
                 data: [2100, 2200, 2700, 3700, 1500, 2000, 4000, 1200, 4500, 3200, 3600],
                 backgroundColor: '#34d399',
-                stack: 'scopes',
-            },
-            {
-                label: 'Scope 3',
-                data: [1800, 1900, 2700, 3700, 1500, 2000, 4000, 1200, 4500, 3200, 3600],
-                backgroundColor: '#0D5942',
                 stack: 'scopes',
             },
         ],
@@ -105,12 +86,18 @@ const options = {
         x: {
             stacked: true,
             grid: { display: false },
+            ticks: {
+                color: '#000000',
+            },
         },
         y: {
             stacked: true,
             beginAtZero: true,
-            max: 16000,
+            max: 10000,
             grid: { display: false },
+            ticks: {
+                color: '#000000',
+            },
         },
     },
 };

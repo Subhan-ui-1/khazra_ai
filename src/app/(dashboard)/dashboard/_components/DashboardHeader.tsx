@@ -18,7 +18,7 @@ export default function DashboardHeader() {
     return tokenData.accessToken;
   };
   return (
-    <header className="bg-white border-b border-green-100 px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between fixed top-0 left-0 right-0 z-50 shadow-sm">
+    <header className="bg-white border-b border-green-100 px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between fixed top-0 left-0 right-0 z-40 shadow-sm">
       {/* Logo */}
       <Link href='/' className='xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center'>
           <Image

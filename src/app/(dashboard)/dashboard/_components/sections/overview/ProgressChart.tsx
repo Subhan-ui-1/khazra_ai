@@ -10,10 +10,10 @@ export default function ProgressChart({ overallProgressValue }: ProgressChartPro
   const progress = (overallProgressValue / 100) * circumference;
 
   return (
-    <div className="bg-white border border-green-100 rounded-2xl p-6 shadow-sm w-full mx-auto xl:h-[600px] h-[400px]">
+    <div className="bg-white border border-green-100 rounded-2xl p-6 shadow-sm w-full mx-auto xl:h-[580px] h-[400px]">
       <div className="mb-4 flex justify-between items-center">
         <h3 className="text-lg font-semibold text-black flex items-center gap-2">
-          🎯 Overall Progress
+          🎯 Custom Target Data
         </h3>
         <span className="text-sm text-green-700 font-medium">{overallProgressValue}%</span>
       </div>
