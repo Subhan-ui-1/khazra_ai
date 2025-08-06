@@ -167,7 +167,7 @@ export default function DashboardSidebar({
         items: [
           // { id: 'sustainability-reporting', icon: '📋', label: 'Sustainability Reporting' },
           // { id: 'analytics', icon: '📊', label: 'Analytics & Insights' },
-          { id: "reporting", icon: "📊", label: "Reporting" },
+          { id: "reporting", icon: "📊", label: "Materiality Engine" },
         ],
       },
       {
