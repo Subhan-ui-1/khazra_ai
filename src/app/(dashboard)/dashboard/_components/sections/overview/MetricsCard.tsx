@@ -1,6 +1,6 @@
 'use client';
 
-import { SetStateAction, useMemo, useCallback, memo } from 'react';
+import { useMemo, useCallback, memo } from 'react';
 
 interface MetricsCardProps {
   metric: {

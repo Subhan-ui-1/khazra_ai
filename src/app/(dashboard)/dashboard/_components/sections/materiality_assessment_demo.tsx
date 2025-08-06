@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, Target, TrendingUp, AlertCircle, CheckCircle, FileText, Settings, ChevronRight, ChevronDown, Edit3, Save, Eye, Filter, Loader2 } from 'lucide-react';
 import { getRequest, postRequest } from '../../../../../utils/api';
 import { safeLocalStorage } from '@/utils/localStorage';
+import BubbleChart from './BubbleChart';
 
 // TypeScript interfaces
 interface Report {
@@ -228,8 +229,8 @@ const MaterialityAssessmentEngine = () => {
   const updateReporting = async (reportId: string, reportingData: ReportingData): Promise<boolean> => {
     try {
       console.log('Updating reporting data for reportId:', reportId, reportingData);
-     let some = reportingData 
-     some.reportId = undefined
+      let some = { ...reportingData };
+      // delete some.reportId;
       const response: ReportingResponse = await postRequest(`reporting/updateReporting/${reportId}`, some, undefined, getToken(), 'put');
       console.log('Update reporting response:', response);
       return response.success;
@@ -358,7 +359,7 @@ const MaterialityAssessmentEngine = () => {
       return false;
     }
   };
-  console.log(topics)
+  console.log("All topics we have",topics)
 
   const filteredTopics = topics.filter(topic => {
     // Filter by status
@@ -445,23 +446,42 @@ const MaterialityAssessmentEngine = () => {
     <div className="space-y-6">
       {/* Summary Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-          <div className="text-3xl font-bold text-blue-600">{topics.length}</div>
-          <div className="text-sm text-gray-600">Total Topics</div>
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y-2 flex flex-col justify-between">
+          <p className="text-sm text-gray-5">Total Topics</p>
+          <div className="text-3xl font-bold texblack">{topics.length}</div>
+          <p className="text-sm text-gray-5">We have Enviornmental, Economic, Social & Governance topics.</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-          <div className="text-3xl font-bold text-green-600">{assessedTopics.length}</div>
-          <div className="text-sm text-gray-600">Assessed</div>
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y-2 flex flex-col justify-between">
+          <div className="text-sm text-gray-500">Assessed Topics</div>
+          <div className="text-3xl font-bold textblack">{assessedTopics.length}</div>
+          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-800 transition-all duration-700 ease-out"
+              style={{ width: `${(assessedTopics.length / topics.length) * 100}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-          <div className="text-3xl font-bold text-red-600">{materialTopics.length}</div>
-          <div className="text-sm text-gray-600">Material Topics</div>
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y-2 flex flex-col justify-between">
+          <div className="text-sm text-gray-500">Material Topics</div>
+          <div className="text-3xl font-bold teblack">{materialTopics.length}</div>
+          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-800 transition-all duration-700 ease-out"
+                style={{ width: `${(materialTopics.length / topics.length) * 100}%` }}
+              ></div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-          <div className="text-3xl font-bold text-purple-600">
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y- flex flex-col justify-between">
+          <div className="text-sm text-gray-500">Progress</div>
+          <div className="text-3xl font-bold text-black">
             {Math.round((assessedTopics.length / topics.length) * 100)}%
           </div>
-          <div className="text-sm text-gray-600">Progress</div>
+          <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-800 transition-all duration-700 ease-out"
+              style={{ width: `${(assessedTopics.length / topics.length) * 100}%` }}
+            ></div>
+          </div>
         </div>
       </div>
 
@@ -650,7 +670,7 @@ const MaterialityAssessmentEngine = () => {
               <div className="flex space-x-4 mt-2">
                 <span className="text-sm bg-blue-100 px-2 py-1 rounded">{topic.griStandard}</span>
                 <span className="text-sm bg-green-100 px-2 py-1 rounded">{topic.ifrsAlignment}</span>
-                <span className="text-sm bg-purple-100 px-2 py-1 rounded text-xs">{topic.category}</span>
+                <span className="text-sm bg-purple-100 px-2 py-1 rounded">{topic.category}</span>
               </div>
               <div className="mt-2">
                 <span className="text-sm text-gray-600"><strong>Disclosure Frameworks:</strong> {topic.disclosureFramework}</span>
@@ -1023,7 +1043,7 @@ const MaterialityAssessmentEngine = () => {
   const MaterialityMatrix = () => (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-lg font-semibold mb-4">Materiality Matrix - All Assessed Topics</h3>
-      <div className="h-80">
+      <div className="h-120">
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 40 }}>
             <CartesianGrid />
@@ -1031,14 +1051,14 @@ const MaterialityAssessmentEngine = () => {
               type="number" 
               dataKey="impactScore" 
               name="Impact Materiality (GRI)" 
-              domain={[0, 10]}
+              domain={[0, 20]}
               label={{ value: 'Impact Materiality (GRI)', position: 'insideBottom', offset: -10 }}
             />
             <YAxis 
               type="number" 
               dataKey="financialScore" 
               name="Financial Materiality (IFRS)" 
-              domain={[0, 10]}
+              domain={[0, 20]}
               label={{ value: 'Financial Materiality (IFRS)', position: 'insideLeft', angle: -90 }}
             />
             <Tooltip 
@@ -1099,7 +1119,11 @@ const MaterialityAssessmentEngine = () => {
             <TopicOverview />
             {assessedTopics.length > 0 && (
               <div className="mt-8">
-                <MaterialityMatrix />
+                <BubbleChart
+                  assessedTopics={topics.filter(t => t.assessmentComplete)}
+                  calculateMaterialityLevel={calculateMaterialityLevel}
+                />
+
               </div>
             )}
           </>
