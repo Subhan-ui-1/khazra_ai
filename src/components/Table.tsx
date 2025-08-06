@@ -98,11 +98,11 @@ const Table: React.FC<TableProps> = ({
     switch (column.type) {
       case 'status':
         return (
-          <span className={`px-2 py-1 text-xs rounded-full ${
-            value === 'active' ? 'bg-green-100 text-green-700' :
-            value === 'inactive' ? 'bg-red-100 text-red-700' :
-            value === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-            'bg-gray-100 text-gray-700'
+          <span className={`px-2 py-1 text-semibold text-xs rounded-lg ${
+            value === 'active' ? 'bg-green-100 text-green-700 border border-green-700' :
+            value === 'inactive' ? 'bg-red-100 text-red-700 border border-red-700' :
+            value === 'pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-700' :
+            'bg-gray-100 text-gray-700 border border-gray-300'
           }`}>
             {value}
           </span>
