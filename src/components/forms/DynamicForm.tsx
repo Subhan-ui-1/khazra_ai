@@ -56,13 +56,21 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<any>(null);
 
-  // Initialize form data with initial values
+  // Initialize form data with initial values and update when initialData changes
   useEffect(() => {
-    const initialFormData: any = {};
-    fields.forEach(field => {
-      initialFormData[field.name] = initialData[field.name] || field.defaultValue || '';
+    setFormData(prev => {
+      const updatedFormData = { ...prev };
+      fields.forEach(field => {
+        if (initialData[field.name] !== undefined) {
+          updatedFormData[field.name] = initialData[field.name];
+        } else if (field.defaultValue !== undefined) {
+          updatedFormData[field.name] = field.defaultValue;
+        } else if (!(field.name in updatedFormData)) {
+          updatedFormData[field.name] = '';
+        }
+      });
+      return updatedFormData;
     });
-    setFormData(initialFormData);
   }, [initialData, fields]);
 
   const validateField = (name: string, value: any): string => {
@@ -170,7 +178,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     setErrors(newErrors);
 
     if (!hasErrors) {
-      // Show confirmation modal instead of submitting directly
       setPendingFormData(formData);
       setShowConfirmation(true);
     }

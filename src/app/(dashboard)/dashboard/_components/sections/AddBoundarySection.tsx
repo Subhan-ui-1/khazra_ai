@@ -84,8 +84,8 @@ interface BoundaryFormData {
   reportingPeriodStartDate: string;
   reportingPeriodEndDate: string;
   reportingPeriod: {
-    startDate: string;
-    endDate: string;
+    start: string;
+    end: string;
   };
   primaryFunctionalCurrency: string;
   numberOfEmployees: string;
@@ -105,8 +105,8 @@ interface Boundary {
   equipmentCount: number;
   businessFormationDate: string;
   reportingPeriod: {
-    startDate: string;
-    endDate: string;
+    start: string;
+    end: string;
   };
   primaryFunctionalCurrency: string;
   numberOfEmployees: string;
@@ -164,8 +164,8 @@ const AddBoundarySection = () => {
     reportingPeriodStartDate: "",
     reportingPeriodEndDate: "",
     reportingPeriod: {
-      startDate: "",
-      endDate: "",
+      start: "",
+      end: "",
     },
     primaryFunctionalCurrency: "",
     numberOfEmployees: "",
@@ -215,17 +215,17 @@ const AddBoundarySection = () => {
 
   const validateForm = useCallback((data: BoundaryFormData): boolean => {
     if (!data.industry || data.industry === "Industry") {
-      toast.error("Please select a valid industry");
+      // toast.error("Please select a valid industry");
       return false;
     }
 
     if (!data.businessNature || data.businessNature === "") {
-      toast.error("Please select a business nature");
+      // toast.error("Please select a business nature");
       return false;
     }
 
     if (!data.baselineYear) {
-      toast.error("Please select a baseline year");
+      // toast.error("Please select a baseline year");
       return false;
     }
 
@@ -250,8 +250,8 @@ const AddBoundarySection = () => {
       reportingPeriodStartDate: "",
       reportingPeriodEndDate: "",
       reportingPeriod: {
-        startDate: "",
-        endDate: "",
+        start: "",
+        end: "",
       },
       primaryFunctionalCurrency: "",
       numberOfEmployees: "",
@@ -271,6 +271,14 @@ const AddBoundarySection = () => {
 
   const startEdit = (boundary: Boundary) => {
     setEditingBoundary(boundary);
+    
+    // Format dates for form inputs (YYYY-MM-DD format)
+    const formatDateForInput = (dateString: string) => {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    };
+    
     setFormData({
       organizationId: getOrganizationId(),
       industry: boundary.industry,
@@ -284,9 +292,9 @@ const AddBoundarySection = () => {
       facilityCount: boundary.facilityCount,
       hasEquipment: boundary.equipmentCount > 0 ? "Yes" : "No",
       equipmentCount: boundary.equipmentCount,
-      businessFormationDate: boundary.businessFormationDate,
-      reportingPeriodStartDate: boundary.reportingPeriod.startDate,
-      reportingPeriodEndDate: boundary.reportingPeriod.endDate,
+      businessFormationDate: formatDateForInput(boundary.businessFormationDate),
+      reportingPeriodStartDate: formatDateForInput(boundary.reportingPeriod.start),
+      reportingPeriodEndDate: formatDateForInput(boundary.reportingPeriod.end),
       reportingPeriod: boundary.reportingPeriod,
       primaryFunctionalCurrency: boundary.primaryFunctionalCurrency,
       numberOfEmployees: boundary.numberOfEmployees,
@@ -398,12 +406,12 @@ const AddBoundarySection = () => {
       type: "date",
       required: true
     },
-    {
-      name: "reportingPeriodEndDate",
-      label: "Reporting Period End Date",
-      type: "date",
-      required: true
-    },
+    // {
+    //   name: "reportingPeriodEndDate",
+    //   label: "Reporting Period End Date",
+    //   type: "date",
+    //   required: true
+    // },
     {
       name: "primaryFunctionalCurrency",
       label: "Primary Functional Currency",
@@ -468,13 +476,13 @@ const AddBoundarySection = () => {
         );
 
         if (response?.success) {
-          toast.success("Boundary updated successfully");
-          setBoundaryData(response.data.boundary);
+          // toast.success("Boundary updated successfully");
+          setBoundaryData(response.boundary);
           setEditingBoundary(null);
           setShowForm(false);
           checkExistingBoundary(); // Refresh the boundary data
         } else {
-          toast.error(response?.message || "Failed to update boundary");
+          // toast.error(response?.message || "Failed to update boundary");
         }
       } else {
         // Create new boundary
@@ -491,8 +499,8 @@ const AddBoundarySection = () => {
             equipmentCount: data.hasEquipment === "Yes" ? (parseInt(data.equipmentCount) || 0) : 0,
             businessFormationDate: new Date(data.businessFormationDate),
             reportingPeriod: {
-              startDate: data.reportingPeriodStartDate,
-              endDate: data.reportingPeriodEndDate,
+              start: data.reportingPeriodStartDate,
+              end: new Date(),
             },
             primaryFunctionalCurrency: data.primaryFunctionalCurrency,
             numberOfEmployees: data.numberOfEmployees,
@@ -507,7 +515,7 @@ const AddBoundarySection = () => {
         );
 
         if (response?.success) {
-          toast.success(response.message || "Boundary created successfully");
+          // toast.success(response.message || "Boundary created successfully");
           const userData = safeLocalStorage.getItem('user');
           const userDataParsed = JSON.parse(userData || "{}");
           userDataParsed.boundary = response.boundary._id;
@@ -516,12 +524,12 @@ const AddBoundarySection = () => {
           // Redirect to dashboard after successful creation
           router.push("/dashboard");
         } else {
-          toast.error(response?.message || "Failed to create boundary");
+          // toast.error(response?.message || "Failed to create boundary");
         }
       }
     } catch (error) {
       console.error("Error handling boundary:", error);
-      toast.error("An error occurred. Please try again.");
+      // toast.error("An error occurred. Please try again.");
     } finally {
       setSubmitting(false);
     }

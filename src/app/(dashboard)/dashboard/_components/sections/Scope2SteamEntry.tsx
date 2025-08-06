@@ -354,7 +354,7 @@ const Scope2SteamEntry: React.FC = () => {
           ]}
           actions={[
             {
-              label: "Edit",
+              label: "",
               icon: <Edit3 className="w-4 h-4" />,
               onClick: (row) => startEdit(row),
               variant: "primary",

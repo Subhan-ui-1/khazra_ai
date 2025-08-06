@@ -582,7 +582,7 @@ export default function ESGKPIsSection() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
+                      <span className={`px-2 py-1 text-xs rounded-lg ${
                         initiative.priority === 'high' ? 'bg-red-100 text-red-700' :
                         initiative.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-green-100 text-green-700'
@@ -591,7 +591,7 @@ export default function ESGKPIsSection() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
+                      <span className={`px-2 py-1 text-xs rounded-lg ${
                         initiative.feasibility === 'high' ? 'bg-green-100 text-green-700' :
                         initiative.feasibility === 'medium' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-red-100 text-red-700'
@@ -607,16 +607,7 @@ export default function ESGKPIsSection() {
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this initiative?')) {
-                              // Add delete functionality here
-                            }
-                          }}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        
                       </div>
                     </td>
                   </tr>

@@ -452,7 +452,7 @@ const FeedbackSection = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${categoryInfo.color}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium ${categoryInfo.color}`}>
                             <span className="mr-1">{categoryInfo.icon}</span>
                             {categoryInfo.name}
                           </span>

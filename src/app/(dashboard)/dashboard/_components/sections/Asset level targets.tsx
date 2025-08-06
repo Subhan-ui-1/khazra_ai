@@ -511,7 +511,7 @@ const AssetLevelTargetPlatform = () => {
                     %
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 border border-green-800 rounded-lg text-xs font-semibold">
+                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-semibold">
                       On Track
                     </span>
                   </td>
@@ -541,7 +541,7 @@ const AssetLevelTargetPlatform = () => {
                     %
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 border border-green-800 rounded-lg text-xs font-semibold">
+                    <span className="px-2 py-1 bg-green-100 text-green-800  rounded-lg text-xs font-semibold">
                       On Track
                     </span>
                   </td>
@@ -568,7 +568,7 @@ const AssetLevelTargetPlatform = () => {
                     %
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 border border-yellow-800 rounded-lg text-xs font-semibold">
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800  rounded-lg text-xs font-semibold">
                       At Risk
                     </span>
                   </td>

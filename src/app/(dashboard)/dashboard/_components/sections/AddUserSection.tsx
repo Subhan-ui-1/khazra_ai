@@ -7,6 +7,7 @@ import { getRequest, postRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from '@/utils/localStorage';
 import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
+import { Edit3 } from 'lucide-react';
 
 interface UserFormData {
   firstName: string;
@@ -52,6 +53,9 @@ interface User {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  createdBy?: {
+    firstName: string;
+  }
 }
 
 // Country code options for Saudi Arabia and UAE
@@ -121,7 +125,7 @@ const AddUserSection = () => {
     toast.error("Please login to continue");
     router.push('/login');
   }
-
+  console.log(userData,'userData...........................????????????????????????????????????')
   // Check if user has permission to view users
   if (!canView('user')) {
     return (
@@ -694,12 +698,18 @@ const AddUserSection = () => {
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     Department
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                    Role
-                  </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Role
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Created By
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Created At
+                    </th>
+                  {/* <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     Status
-                  </th>
+                  </th> */}
                   
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     Actions
@@ -738,6 +748,13 @@ const AddUserSection = () => {
                       <div className='text-sm text-gray-900'>{user.role?.name || 'N/A'}</div>
                     </td>
                     <td className='px-6 py-4 whitespace-nowrap'>
+                      <div className='text-sm text-gray-900'>{user.createdBy?.firstName || 'N/A'}</div>
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <div className='text-sm text-gray-900'>{formatDate(user.createdAt)}</div>
+                    </td>
+
+                    {/* <td className='px-6 py-4 whitespace-nowrap'>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-[8px] text-xs font-medium ${
                         user.isVerified 
                           ? 'bg-green-100 text-green-800' 
@@ -745,7 +762,7 @@ const AddUserSection = () => {
                       }`}>
                         {!user.isVerified ? 'Verified' : 'Pending'}
                       </span>
-                    </td>
+                    </td> */}
                     
                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                       <div className='flex gap-2'>
@@ -755,12 +772,10 @@ const AddUserSection = () => {
                             className='text-green-600 hover:text-green-900 transition-colors duration-200'
                             title="Edit User"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
+                           <Edit3 className="w-4 h-4" />  
                           </button>
                         </PermissionGuard>
-                        <PermissionGuard permission="user.delete">
+                        {/* <PermissionGuard permission="user.delete">
                           <button
                             onClick={() => handleDelete(user._id)}
                             className='text-red-600 hover:text-red-900 transition-colors duration-200'
@@ -770,7 +785,7 @@ const AddUserSection = () => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
-                        </PermissionGuard>
+                        </PermissionGuard> */}
                       </div>
                     </td>
                   </tr>

@@ -45,6 +45,16 @@ interface MobileFormData {
   total: string;
 }
 
+const getTokens = () => {
+  const token = safeLocalStorage.getItem("tokens");
+  const tokenData = JSON.parse(token || "");
+  return tokenData.accessToken;
+};
+const getOrgId = () => {
+  const id = safeLocalStorage.getItem("user");
+  const userData = JSON.parse(id || "");
+  return userData.organization;
+};
 export default function MobileCombustionSection() {
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [editingMobileData, setEditingMobileData] = useState<any>(null);
@@ -60,6 +70,21 @@ export default function MobileCombustionSection() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [mobileFuelTypes, setMobileFuelTypes] = useState<MobileFuelType[]>([]);
+  const [data, setData] = useState<any>(null);
+  const getDashboard = async () => {
+    try {
+      const response = await getRequest(
+        `dashboard/getDashboardData/${getOrgId()}`,
+        getToken()
+      );
+
+      if (response.success) {
+        setData(response.dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
 
   const [mobileFormData, setMobileFormData] = useState<MobileFormData>({
     month: '',
@@ -159,6 +184,7 @@ export default function MobileCombustionSection() {
       setLoading(true);
       try {
         await Promise.all([
+          getDashboard(),
           fetchFacilities(),
           fetchVehicles(),
           fetchMobileFuelTypes(),
@@ -464,7 +490,7 @@ export default function MobileCombustionSection() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Total Mobile
               </div>
-              <div className="text-3xl font-bold text-black mb-2">985.4</div>
+              <div className="text-3xl font-bold text-black mb-2">{data?.mobileCombustionEmissions}</div>
               <div className="text-sm text-green-800 mb-2">▼ 15.2% vs last year</div>
               <div className="text-xs text-black opacity-60">
                 tonnes CO₂e • 30.3% of Scope 1
@@ -555,12 +581,12 @@ export default function MobileCombustionSection() {
             variant: 'primary'
           },
           
-          {
-            // label: 'Delete',
-            icon: <Trash2 className="w-4 h-4" />,
-            onClick: (row) => console.log('Delete row:', row),
-            variant: 'danger'
-          }
+          // {
+          //   // label: 'Delete',
+          //   icon: <Trash2 className="w-4 h-4" />,
+          //   onClick: (row) => console.log('Delete row:', row),
+          //   variant: 'danger'
+          // }
         ]}
         showAddButton={true}
         addButtonLabel="Add Mobile Combustion"

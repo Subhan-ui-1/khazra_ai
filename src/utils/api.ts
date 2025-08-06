@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
 import axios from "axios";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "./localStorage";
 
 const BASE_URLs =
-  "https://dev-kai-backend-production.up.railway.app/api/";
-  // "http://localhost:4000/api/";
+  // "https://dev-kai-backend-production.up.railway.app/api/";
+  "http://192.168.18.140:4000/api/";
 
 const getHeaders = (token?: string) => {
   const headers = {
@@ -99,6 +99,22 @@ export const postRequest = async (
             totalEmissions: scope
               ? response.data[scope]?.totalEmissions || 0
               : 0,
+            stationaryCombustionEmissions:
+              (scope === "stationary" &&
+                response.data[scope]?.stationaryCombustionEmissions) ||
+              0,
+            mobileCombustionEmissions:
+              (scope === "mobile" &&
+                response.data[scope]?.mobileCombustionEmissions) ||
+              0,
+            previousYearStationaryEmissions: 1746.2,
+            previousYearMobileEmissions: 1746.2,
+            currentEmissionYear: scope
+              ? response.data[scope]?.stationaryCombustionEmissions ||
+                0 + response.data[scope]?.mobileCombustionEmissions ||
+                0
+              : 0,
+            previousEmissionsYear: 1999,
           },
           { headers: getHeaders(token) }
         );
@@ -109,7 +125,7 @@ export const postRequest = async (
     }
   } catch (error: any) {
     // if (endPoint === "auth/login") {
-      handleError(error);
+    handleError(error);
     // }
     throw error;
   }

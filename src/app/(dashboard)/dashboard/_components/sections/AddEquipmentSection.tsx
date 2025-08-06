@@ -555,6 +555,14 @@ const AddEquipmentSection = () => {
       toast.error(error.message || "Failed to update some equipments");
     }
   };
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -676,6 +684,8 @@ const AddEquipmentSection = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manufacturer</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacity</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created By</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
@@ -726,8 +736,10 @@ const AddEquipmentSection = () => {
                         : '-'
                       }
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{equipment.createdBy?.firstName || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{formatDate(equipment.createdAt)}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(equipment.status)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${getStatusColor(equipment.status)}`}>
                         {equipment.status}
                       </span>
                     </td>

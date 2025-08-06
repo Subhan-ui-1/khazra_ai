@@ -40,6 +40,12 @@ interface StationaryFormData {
   useCustomEmissionFactor: boolean;
 }
 
+const getOrgId = () => {
+  const id = safeLocalStorage.getItem("user");
+  const userData = JSON.parse(id || "");
+  return userData.organization;
+};
+
 export default function StationaryCombustionSection() {
   const [isStationaryModalOpen, setIsStationaryModalOpen] = useState(false);
   const [editingStationaryData, setEditingStationaryData] = useState<any>(null);
@@ -59,6 +65,7 @@ export default function StationaryCombustionSection() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [equipments, setEquipments] = useState<EquipmentType[]>([]);
   const [fuelTypes, setFuelTypes] = useState<FuelType[]>([]);
+  const [data, setData] = useState<any>(null);
 
   const [stationaryFormData, setStationaryFormData] =
     useState<StationaryFormData>({
@@ -119,6 +126,22 @@ export default function StationaryCombustionSection() {
     return tokenData.accessToken;
   };
 
+  
+  const getDashboard = async () => {
+    try {
+      const response = await getRequest(
+        `dashboard/getDashboardData/${getOrgId()}`,
+        getToken()
+      );
+
+      if (response.success) {
+        setData(response.dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
+
   useEffect(() => {
     if (isStationaryModalOpen) {
       window.scrollTo({
@@ -131,7 +154,7 @@ export default function StationaryCombustionSection() {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
-      const response = await getRequest("facilities/getFacilities", getToken());
+      const response = await getRequest("facilities/getFacilities?status=Active", getToken());
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
@@ -145,7 +168,7 @@ export default function StationaryCombustionSection() {
   const fetchEquipments = async () => {
     try {
       const response = await getRequest(
-        "equipments/getEquipments",
+        "equipments/getEquipments?status=Active",
         getToken()
       );
       if (response.success) {
@@ -192,6 +215,7 @@ export default function StationaryCombustionSection() {
       setLoading(true);
       try {
         await Promise.all([
+          getDashboard(),
           fetchFacilities(),
           fetchEquipments(),
           fetchFuelTypes(),
@@ -365,7 +389,7 @@ export default function StationaryCombustionSection() {
   const getFacilityName = (facilityId: string) => {
     if (!facilityId) return "N/A";
     const facility = facilities.find((f) => f._id === facilityId);
-    return facility ? facility.facilityName : "Loading...";
+    return facility ? facility.facilityName : "N/A";
   };
 
   // Get equipment type name by ID
@@ -514,7 +538,7 @@ export default function StationaryCombustionSection() {
                 Total Stationary
               </div>
               <div className="text-3xl font-bold text-black mb-2">
-                1,746.2
+                {data?.stationaryCombustionEmissions}
               </div>
               <div className="text-sm text-green-800 mb-2">
                 ▼ 8.5% vs last year
