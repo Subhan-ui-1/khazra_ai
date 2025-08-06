@@ -36,6 +36,7 @@ import AddRoleSection from './_components/sections/AddRoleSection';
 import AddUserSection from './_components/sections/AddUserSection';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import MaterialityAssessmentEngine from './_components/sections/materiality_assessment_demo';
+import ReportGeneration from './_components/sections/ReportGeneration';
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview');
@@ -96,6 +97,7 @@ export default function DashboardPage() {
     // 'equipment-type': <PermissionGuard permission="equipmentType.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view equipment types.</div>}>
     //   <EquipmentTypeSection />
     // </PermissionGuard>
+    'ReportGeneration': <ReportGeneration />,
   };
 
   return (
