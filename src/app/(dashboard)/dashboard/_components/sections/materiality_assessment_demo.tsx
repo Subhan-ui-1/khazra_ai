@@ -1566,10 +1566,8 @@ const MaterialityAssessmentEngine = () => {
             {assessedTopics.length > 0 && (
               <div className="mt-8">
                 <BubbleChart
-                  assessedTopics={topics.filter(t => t.assessmentComplete)}
                   calculateMaterialityLevel={calculateMaterialityLevel}
                 />
-
               </div>
             )}
           </>

@@ -31,25 +31,34 @@ const getToken = ()=>{
 }
 
 export default function BubbleChart({
-    assessedTopics,
     calculateMaterialityLevel,
 }: BubbleChartProps) {
     const [datas, setData] = useState<any>(null);
-    useEffect(()=>{
-        (async()=>{
-            const response = await getRequest('reporting/getReporting',getToken())
-            if(response.success){
-                setData(response.reporting)
+
+    useEffect(() => {
+        (async () => {
+            const response = await getRequest('reporting/getReporting', getToken());
+            if (response.success) {
+                setData(response.reporting);
             }
-        })()
-    },[])
-    console.log(datas)
+        })();
+    }, []);
+
+    const chartTopics = useMemo(() => {
+        if (!datas) return [];
+        return datas.map((item: any) => ({
+            name: item.topicName,
+            impactAssessment: { overallScore: item.impactMateriality?.overallImpactScore ?? 0 },
+            financialAssessment: { overallScore: item.financialMateriality?.overallFinancialScore ?? 0 },
+            // ...add other fields if needed
+        }));
+    }, [datas]);
+
     const data = useMemo(() => {
         return {
-            datasets: assessedTopics.map((topic) => {
+            datasets: chartTopics.map((topic: any) => {
                 const x = topic.impactAssessment?.overallScore || 0;
                 const y = topic.financialAssessment?.overallScore || 0;
-
                 const topicName = topic.name;
                 const materiality = calculateMaterialityLevel(topic);
 
@@ -60,13 +69,13 @@ export default function BubbleChart({
 
                 return {
                     label: topicName,
-                    data: [{ x, y, r:10, topicName }],
+                    data: [{ x, y, r: 10, topicName }],
                     backgroundColor: color,
                     borderColor: color,
                 };
             }),
         };
-    }, [assessedTopics, calculateMaterialityLevel]);
+    }, [chartTopics, calculateMaterialityLevel]);
 
     const options = {
         responsive: true,
