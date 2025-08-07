@@ -83,12 +83,16 @@ const Testimonial = () => {
 
     useEffect(() => {
         const checkScreen = () => {
-            setIsMobile(window.innerWidth < 768);
+            if (typeof window !== 'undefined') {
+                setIsMobile(window.innerWidth < 768);
+            }
         };
 
         checkScreen();
-        window.addEventListener("resize", checkScreen);
-        return () => window.removeEventListener("resize", checkScreen);
+        if (typeof window !== 'undefined') {
+            window.addEventListener("resize", checkScreen);
+            return () => window.removeEventListener("resize", checkScreen);
+        }
     }, []);
 
     const chunkSize = Math.ceil(allTestimonials.length / 3);

@@ -45,6 +45,16 @@ interface MobileFormData {
   total: string;
 }
 
+const getTokens = () => {
+  const token = safeLocalStorage.getItem("tokens");
+  const tokenData = JSON.parse(token || "");
+  return tokenData.accessToken;
+};
+const getOrgId = () => {
+  const id = safeLocalStorage.getItem("user");
+  const userData = JSON.parse(id || "");
+  return userData.organization;
+};
 export default function MobileCombustionSection() {
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [editingMobileData, setEditingMobileData] = useState<any>(null);
@@ -60,6 +70,21 @@ export default function MobileCombustionSection() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [mobileFuelTypes, setMobileFuelTypes] = useState<MobileFuelType[]>([]);
+  const [data, setData] = useState<any>(null);
+  const getDashboard = async () => {
+    try {
+      const response = await getRequest(
+        `dashboard/getDashboardData/${getOrgId()}`,
+        getToken()
+      );
+
+      if (response.success) {
+        setData(response.dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
 
   const [mobileFormData, setMobileFormData] = useState<MobileFormData>({
     month: '',
@@ -90,10 +115,12 @@ export default function MobileCombustionSection() {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        toast.error(response.message || "Failed to fetch facilities");
+        // toast.error(response.message || "Failed to fetch facilities");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch facilities");
+      // toast.error(error.message || "Failed to fetch facilities");
+      console.log(error, 'error')
     }
   };
 
@@ -108,10 +135,12 @@ export default function MobileCombustionSection() {
         // console.log(vehicles, 'vehicles from useEffect.')
         console.log(response.data.vehicles)
       } else {
-        toast.error(response.message || "Failed to fetch vehicles");
+        // toast.error(response.message || "Failed to fetch vehicles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch vehicles");
+      // toast.error(error.message || "Failed to fetch vehicles");
+      console.log(error, 'error')
     }
   };
 
@@ -124,10 +153,12 @@ export default function MobileCombustionSection() {
       if (response.success) {
         setMobileFuelTypes(response.data.mobileFuelTypes || []);
       } else {
-        toast.error(response.message || "Failed to fetch mobile fuel types");
+        // toast.error(response.message || "Failed to fetch mobile fuel types");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch mobile fuel types");
+      // toast.error(error.message || "Failed to fetch mobile fuel types");
+      console.log(error, 'error')
     }
   };
 
@@ -137,10 +168,12 @@ export default function MobileCombustionSection() {
       if (response.success) {
         setMobileCombustionData(response.data.mobile || []);
       } else {
-        toast.error(response.message || "Failed to fetch mobile data");
+        // toast.error(response.message || "Failed to fetch mobile data");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch mobile data");
+      // toast.error(error.message || "Failed to fetch mobile data");
+      console.log(error, 'error')
     }
   };
 
@@ -159,6 +192,7 @@ export default function MobileCombustionSection() {
       setLoading(true);
       try {
         await Promise.all([
+          getDashboard(),
           fetchFacilities(),
           fetchVehicles(),
           fetchMobileFuelTypes(),
@@ -229,11 +263,13 @@ export default function MobileCombustionSection() {
         });
       } else {
         toast.error(
-          response.message || "Failed to add mobile combustion data"
+          // response.message || "Failed to add mobile combustion data"
+          console.log(response, 'response')
         );
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to add mobile combustion data");
+      // toast.error(error.message || "Failed to add mobile combustion data");
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -262,7 +298,8 @@ export default function MobileCombustionSection() {
       const editingId = editingMobileData?._id || editingMobileData?.id;
       
       if (!editingId) {
-        toast.error("No item ID found for editing");
+        //  toast.error("No item ID found for editing");
+        console.log("No item ID found for editing")
         return;
       }
 
@@ -302,12 +339,14 @@ export default function MobileCombustionSection() {
           total: ''
         });
       } else {
-        toast.error(
-          response.message || "Failed to update mobile combustion data"
-        );
+          // toast.error(
+          //   response.message || "Failed to update mobile combustion data"
+          // );
+          console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to update mobile combustion data");
+      // toast.error(error.message || "Failed to update mobile combustion data");
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -464,7 +503,7 @@ export default function MobileCombustionSection() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Total Mobile
               </div>
-              <div className="text-3xl font-bold text-black mb-2">985.4</div>
+              <div className="text-3xl font-bold text-black mb-2">{data?.mobileCombustionEmissions}</div>
               <div className="text-sm text-green-800 mb-2">▼ 15.2% vs last year</div>
               <div className="text-xs text-black opacity-60">
                 tonnes CO₂e • 30.3% of Scope 1
@@ -555,12 +594,12 @@ export default function MobileCombustionSection() {
             variant: 'primary'
           },
           
-          {
-            // label: 'Delete',
-            icon: <Trash2 className="w-4 h-4" />,
-            onClick: (row) => console.log('Delete row:', row),
-            variant: 'danger'
-          }
+          // {
+          //   // label: 'Delete',
+          //   icon: <Trash2 className="w-4 h-4" />,
+          //   onClick: (row) => console.log('Delete row:', row),
+          //   variant: 'danger'
+          // }
         ]}
         showAddButton={true}
         addButtonLabel="Add Mobile Combustion"

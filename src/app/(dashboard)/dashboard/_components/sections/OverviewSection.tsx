@@ -18,6 +18,7 @@ import { Edit3, Trash2, History } from "lucide-react";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { getRequest } from "@/utils/api";
 import LineChart from "./overview/lineChart";
+import { safeQuerySelectorAll } from "@/utils/clientUtils";
 
 type ChartType = "monthly" | "quarterly" | "annual";
 
@@ -363,7 +364,7 @@ export default function OverviewSection() {
   useEffect(() => {
     // Animate progress bars when component mounts
     const animateProgressBars = () => {
-      const progressBars = document.querySelectorAll(".progress-fill");
+      const progressBars = safeQuerySelectorAll(".progress-fill");
       progressBars.forEach((bar) => {
         const width = (bar as HTMLElement).style.width;
         (bar as HTMLElement).style.width = "0%";

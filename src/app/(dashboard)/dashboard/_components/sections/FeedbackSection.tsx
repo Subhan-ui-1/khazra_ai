@@ -106,10 +106,12 @@ const FeedbackSection = () => {
         // Check if current user has already submitted feedback
         checkIfUserHasSubmitted(response.data.feedbacks || []);
       } else {
-        toast.error(response.message || "Failed to fetch feedbacks");
+        // toast.error(response.message || "Failed to fetch feedbacks");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch feedbacks");
+      // toast.error(error.message || "Failed to fetch feedbacks");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -166,10 +168,12 @@ const FeedbackSection = () => {
            fetchFeedbacks();
          }
        } else {
-         toast.error(response.message || 'Failed to submit feedback');
+        //  toast.error(response.message || 'Failed to submit feedback');
+        console.log(response, 'response')
        }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit feedback');
+      // toast.error(error.message || 'Failed to submit feedback');
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -452,7 +456,7 @@ const FeedbackSection = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${categoryInfo.color}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium ${categoryInfo.color}`}>
                             <span className="mr-1">{categoryInfo.icon}</span>
                             {categoryInfo.name}
                           </span>

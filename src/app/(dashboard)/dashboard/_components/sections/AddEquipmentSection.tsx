@@ -163,10 +163,12 @@ const AddEquipmentSection = () => {
             }
         }) || []);
       } else {
-        toast.error(response.message || "Failed to fetch equipments");
+        // toast.error(response.message || "Failed to fetch equipments");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch equipments");
+      // toast.error(error.message || "Failed to fetch equipments");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -179,7 +181,8 @@ const AddEquipmentSection = () => {
         setFacilities(response.data.facilities || []);
       }
     } catch (error: any) {
-      console.error('Failed to fetch facilities:', error);
+      // console.error('Failed to fetch facilities:', error);
+      console.log(error, 'error')
     }
   };
 
@@ -190,7 +193,8 @@ const AddEquipmentSection = () => {
         setEquipmentTypeData(response.data.equipmentTypes || []);
       }
     } catch (error: any) {
-      console.error('Failed to fetch equipment types:', error);
+      // console.error('Failed to fetch equipment types:', error);
+      console.log(error, 'error')
     }
   };
 
@@ -303,7 +307,8 @@ const AddEquipmentSection = () => {
         fetchEquipments();
       }
     } catch (error: any) {
-      toast.error(error.message || (editingItem ? "Failed to update equipment" : "Failed to create equipment"));
+      // toast.error(error.message || (editingItem ? "Failed to update equipment" : "Failed to create equipment"));
+      console.log(error, 'error')
     }
   };
 
@@ -353,10 +358,12 @@ const AddEquipmentSection = () => {
         toast.success("Equipment Deleted Successfully");
         fetchEquipments(); // Refresh the list
       } else {
-        toast.error(response.message || "Failed to delete equipment");
+        // toast.error(response.message || "Failed to delete equipment");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete equipment");
+      // toast.error(error.message || "Failed to delete equipment");
+      console.log(error, 'error')
     }
   };
 
@@ -428,10 +435,12 @@ const AddEquipmentSection = () => {
         });
         fetchEquipments(); // Refresh the list after adding/updating
       } else {
-        toast.error(response.message || "Operation failed");
+        // toast.error(response.message || "Operation failed");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      // toast.error(error.message || "An error occurred");
+      console.log(error, 'error')
     }
   };
 
@@ -531,7 +540,8 @@ const AddEquipmentSection = () => {
       setSelectedEquipments([]);
       fetchEquipments();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete some equipments");
+      // toast.error(error.message || "Failed to delete some equipments");
+      console.log(error, 'error')
     }
   };
 
@@ -552,8 +562,17 @@ const AddEquipmentSection = () => {
       setSelectedEquipments([]);
       fetchEquipments();
     } catch (error: any) {
-      toast.error(error.message || "Failed to update some equipments");
+      // toast.error(error.message || "Failed to update some equipments");
+      console.log(error, 'error')
     }
+  };
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -676,6 +695,8 @@ const AddEquipmentSection = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manufacturer</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacity</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created By</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
@@ -726,8 +747,10 @@ const AddEquipmentSection = () => {
                         : '-'
                       }
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{equipment.createdBy?.firstName || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{formatDate(equipment.createdAt)}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(equipment.status)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${getStatusColor(equipment.status)}`}>
                         {equipment.status}
                       </span>
                     </td>

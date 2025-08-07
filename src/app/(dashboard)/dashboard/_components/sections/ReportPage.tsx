@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from 'react';
 import { Editor } from 'primereact/editor';
-import html2pdf from 'html2pdf.js';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
 
@@ -25,14 +24,19 @@ export default function ReportParagraph({ data, onEdit, onClose, viewMode }: Rep
         // Save to backend if needed
     };
 
-    const handleDownloadPDF = () => {
-        if (reportRef.current) {
-            html2pdf().from(reportRef.current).set({
-                margin: 10,
-                filename: 'sustainability-report.pdf',
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
+    const handleDownloadPDF = async () => {
+        if (reportRef.current && typeof window !== 'undefined') {
+            try {
+                const html2pdf = (await import('html2pdf.js')).default;
+                html2pdf().from(reportRef.current).set({
+                    margin: 10,
+                    filename: 'sustainability-report.pdf',
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                }).save();
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+            }
         }
     };
 

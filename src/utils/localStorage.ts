@@ -18,3 +18,5 @@ export const safeLocalStorage = {
     window.localStorage.clear(); // ✅
   },
 };
+
+

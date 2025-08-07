@@ -1,5 +1,5 @@
 // app/report-generation/page.tsx
-'use client';
+// 'use client';
 
 import { useState } from 'react';
 import ReportModal from './ReportModal';

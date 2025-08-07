@@ -14,66 +14,60 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from "@/utils/localStorage";
-import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
 
+const formatDate=(dateString:string)=>{
+  const date=new Date(dateString)
+  return date.toLocaleDateString('en-US',{
+    year:'numeric',
+    month:'long',
+    day:'numeric'
+  })
+}
 // Define TypeScript interfaces
 interface VehicleFormData {
   vehicleType: string;
-  modelYear: number;
-  purchaseYear: number;
-  fuelConsumptionRate: {
-    value: number;
-    unit: "L/100km" | "gal/mile" | "L/hr";
-  };
-  electricityConsumptionRate: {
-    value: number;
-    unit: "kWh/100km" | "kWh/mile";
-  };
-  annualMileage: {
-    value: number;
-    unit: "km" | "miles";
-  };
-  dataSource:
-    | "Manufacturer Specs"
-    | "Fleet Records"
-    | "VCA Database"
-    | "Estimate";
+  modelYear: string;
+  purchaseYear: string;
   make: string;
   model: string;
   fuelType: string;
   secondaryFuelType: string;
-  emissionFactors: {
-    CO2: number;
-    CH4: number;
-    N2O: number;
-    HFC: number;
-  };
-  emissionStandard:
-    | "Euro 6"
-    | "EPA Tier 3"
-    | "China VI"
-    | "Euro 5"
-    | "EPA Tier 2";
-  averageSpeed: number;
   region: string;
+  fuelConsumptionValue: string;
+  fuelConsumptionUnit: string;
+  electricityConsumptionValue: string;
+  electricityConsumptionUnit: string;
+  annualMileageValue: string;
+  annualMileageUnit: string;
+  emissionCO2: string;
+  emissionCH4: string;
+  emissionN2O: string;
+  emissionStandard: string;
+  averageSpeed: string;
+  dataSource: string;
   notes: string;
 }
 let empty: VehicleFormData = {
   vehicleType: "",
-  modelYear: 0,
-  purchaseYear: 0,
-  fuelConsumptionRate: { value: 0, unit: "L/100km" },
-  electricityConsumptionRate: { value: 0, unit: "kWh/100km" },
-  annualMileage: { value: 0, unit: "km" },
-  dataSource: "Manufacturer Specs",
+  modelYear: "",
+  purchaseYear: "",
   make: "",
   model: "",
   fuelType: "",
   secondaryFuelType: "",
-  emissionFactors: { CO2: 0, CH4: 0, N2O: 0, HFC: 0 },
-  emissionStandard: "Euro 6",
-  averageSpeed: 0,
   region: "",
+  fuelConsumptionValue: "",
+  fuelConsumptionUnit: "L/100km",
+  electricityConsumptionValue: "",
+  electricityConsumptionUnit: "kWh/100km",
+  annualMileageValue: "",
+  annualMileageUnit: "km",
+  emissionCO2: "",
+  emissionCH4: "",
+  emissionN2O: "",
+  emissionStandard: "Euro 6",
+  averageSpeed: "",
+  dataSource: "Manufacturer Specs",
   notes: "",
 };
 
@@ -110,7 +104,7 @@ const modelYears = Array.from({ length: 30 }, (_, i) => currentYear - i);
 // Function to get purchase years based on model year
 function getPurchaseYears(modelYear: number) {
   return Array.from(
-    { length: currentYear - modelYear + 1 },
+    { length: currentYear - modelYear  },
     (_, i) => modelYear + i
   );
 }
@@ -175,7 +169,7 @@ const AddVehicleSection = () => {
   const [loading, setLoading] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
-
+  console.log(canView, 'canView...........................')
   // Check if user has permission to view vehicles
   if (!canView('vehicle')) {
     return (
@@ -184,8 +178,12 @@ const AddVehicleSection = () => {
       </div>
     );
   }
+        const [formData, setFormData] = useState<VehicleFormData>(empty);
+  useEffect(()=>{
+    console.log(formData, 'canView...........................')
+  }, [formData])
 
-  const [formData, setFormData] = useState<VehicleFormData>(empty);
+  console.log(formData, 'formData...........................')
 
   const [filters, setFilters] = useState<FilterState>({
     search: "",
@@ -194,160 +192,48 @@ const AddVehicleSection = () => {
     page: 1,
     limit: 10,
   });
-  const purchaseYears = formData.modelYear
-    ? getPurchaseYears(formData.modelYear)
-    : [];
-
-  // Define form fields for DynamicForm (flattened structure)
-  const vehicleFormFields: FormField[] = [
-    {
-      name: "vehicleType",
-      label: "Vehicle Type",
-      type: "select",
-      required: true,
-      options: vehicleTypes.map(type => ({ value: type, label: type }))
-    },
-    {
-      name: "modelYear",
-      label: "Model Year",
-      type: "select",
-      required: true,
-      options: modelYears.map(year => ({ value: year.toString(), label: year.toString() }))
-    },
-    {
-      name: "make",
-      label: "Make",
-      type: "text",
-      required: true,
-      placeholder: "e.g., Toyota, Ford, Tesla"
-    },
-    {
-      name: "model",
-      label: "Model",
-      type: "text",
-      required: true,
-      placeholder: "e.g., Camry, F-150, Model 3"
-    },
-    {
-      name: "purchaseYear",
-      label: "Purchase Year",
-      type: "select",
-      required: false,
-      options: purchaseYears.map(year => ({ value: year.toString(), label: year.toString() }))
-    },
-    {
-      name: "fuelType",
-      label: "Fuel Type",
-      type: "select",
-      required: true,
-      options: fuelTypes.map(type => ({ value: type, label: type }))
-    },
-    {
-      name: "secondaryFuelType",
-      label: "Secondary Fuel Type",
-      type: "select",
-      required: false,
-      options: fuelTypes.map(type => ({ value: type, label: type }))
-    },
-    {
-      name: "region",
-      label: "Region",
-      type: "select",
-      required: false,
-      options: regions.map(region => ({ value: region, label: region }))
-    },
-    {
-      name: "fuelConsumptionValue",
-      label: "Fuel Consumption Value",
-      type: "text",
-      required: false,
-      placeholder: "Enter value"
-    },
-    {
-      name: "fuelConsumptionUnit",
-      label: "Fuel Consumption Unit",
-      type: "select",
-      required: false,
-      options: fuelCombustionUnits.map(unit => ({ value: unit, label: unit }))
-    },
-    {
-      name: "electricityConsumptionValue",
-      label: "Electricity Consumption Value",
-      type: "text",
-      required: false,
-      placeholder: "Enter value"
-    },
-    {
-      name: "electricityConsumptionUnit",
-      label: "Electricity Consumption Unit",
-      type: "select",
-      required: false,
-      options: electricityConsumptionUnits.map(unit => ({ value: unit, label: unit }))
-    },
-    {
-      name: "annualMileageValue",
-      label: "Annual Mileage Value",
-      type: "text",
-      required: false,
-      placeholder: "Enter value"
-    },
-    {
-      name: "annualMileageUnit",
-      label: "Annual Mileage Unit",
-      type: "select",
-      required: false,
-      options: annualMileageUnits.map(unit => ({ value: unit, label: unit }))
-    },
-    {
-      name: "emissionCO2",
-      label: "CO₂ Emissions (g/km)",
-      type: "text",
-      required: false,
-      placeholder: "CO₂ emissions"
-    },
-    {
-      name: "emissionCH4",
-      label: "CH₄ Emissions (g/km)",
-      type: "text",
-      required: false,
-      placeholder: "CH₄ emissions"
-    },
-    {
-      name: "emissionN2O",
-      label: "N₂O Emissions (g/km)",
-      type: "text",
-      required: false,
-      placeholder: "N₂O emissions"
-    },
-    {
-      name: "emissionStandard",
-      label: "Emission Standard",
-      type: "select",
-      required: false,
-      options: EMISSION_STANDARDS_OPTIONS.map(standard => ({ value: standard, label: standard }))
-    },
-    {
-      name: "averageSpeed",
-      label: "Average Speed (km/h)",
-      type: "text",
-      required: false,
-      placeholder: "Enter average speed"
-    },
-    {
-      name: "dataSource",
-      label: "Data Source",
-      type: "select",
-      required: false,
-      options: dataSources.map(source => ({ value: source, label: source }))
-    },
-    {
-      name: "notes",
-      label: "Notes",
-      type: "textarea",
-      required: false,
-      placeholder: "Enter any additional notes or comments about the vehicle"
+  function getPurchaseYears(modelYear: number) {
+    return Array.from(
+      { length: currentYear - modelYear + 1 }, // +1 to include current year
+      (_, i) => modelYear + i
+    );
+  }
+  
+  // In the component
+  const [purchaseYears, setPurchaseYears] = useState<number[]>([]);
+  
+  // 2. Add useEffect to update purchase years
+  useEffect(() => {
+    if (formData.modelYear) {
+      const modelYearNum = Number(formData.modelYear);
+      setPurchaseYears(getPurchaseYears(modelYearNum));
+    } else {
+      setPurchaseYears([]);
     }
-  ];
+  }, [formData.modelYear]);
+
+  // Handle form field changes
+  const handleFormChange = (field: string, value: string) => {
+    // Handle model year change - update purchase years
+    if (field === 'modelYear') {
+      const modelYearNum = Number(value);
+      const newPurchaseYears = getPurchaseYears(modelYearNum);
+      setPurchaseYears(newPurchaseYears);
+      // Clear purchase year when model year changes
+      setFormData(prev => ({
+        ...prev,
+        modelYear: value,
+        purchaseYear: ""
+      }));
+      return;
+    }
+
+    // Handle all other fields
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   // Fetch vehicles on component mount
   useEffect(() => {
@@ -372,10 +258,12 @@ const AddVehicleSection = () => {
       if (response.success) {
         setVehicleData(response.data.vehicles || []);
       } else {
-        toast.error(response.message || "Failed to fetch vehicles");
+        //toast.error(response.message || "Failed to fetch vehicles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch vehicles");
+      // toast.error(error.message || "Failed to fetch vehicles");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -394,46 +282,50 @@ const AddVehicleSection = () => {
         toast.success("Vehicle Deleted Successfully");
         fetchVehicles(); // Refresh the list
       } else {
-        toast.error(response.message || "Failed to delete vehicle");
+        // toast.error(response.message || "Failed to delete vehicle");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete vehicle");
+      // toast.error(error.message || "Failed to delete vehicle");
+      console.log(error, 'error')
     }
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     // Prepare the request body according to the API specification
     const requestBody = {
-      vehicleType: data.vehicleType,
-      make: data.make,
-      model: data.model,
-      modelYear: Number(data.modelYear),
-      purchaseYear: Number(data.purchaseYear) || 0,
-      fuelType: data.fuelType,
-      secondaryFuelType: data.secondaryFuelType || "",
+      vehicleType: formData.vehicleType,
+      make: formData.make,
+      model: formData.model,
+      modelYear: Number(formData.modelYear),
+      purchaseYear: Number(formData.purchaseYear) || 0,
+      fuelType: formData.fuelType,
+      secondaryFuelType: formData.secondaryFuelType || "",
       fuelConsumptionRate: {
-        value: Number(data.fuelConsumptionValue) || 0,
-        unit: data.fuelConsumptionUnit || "L/100km",
+        value: Number(formData.fuelConsumptionValue) || 0,
+        unit: formData.fuelConsumptionUnit || "L/100km",
       },
       electricityConsumptionRate: {
-        value: Number(data.electricityConsumptionValue) || 0,
-        unit: data.electricityConsumptionUnit || "kWh/100km",
+        value: Number(formData.electricityConsumptionValue) || 0,
+        unit: formData.electricityConsumptionUnit || "kWh/100km",
       },
       annualMileage: {
-        value: Number(data.annualMileageValue) || 0,
-        unit: data.annualMileageUnit || "km",
+        value: Number(formData.annualMileageValue) || 0,
+        unit: formData.annualMileageUnit || "km",
       },
       emissionFactors: {
-        CO2: Number(data.emissionCO2) || 0,
-        CH4: Number(data.emissionCH4) || 0,
-        N2O: Number(data.emissionN2O) || 0,
+        CO2: Number(formData.emissionCO2) || 0,
+        CH4: Number(formData.emissionCH4) || 0,
+        N2O: Number(formData.emissionN2O) || 0,
         HFC: 0, // Default value as per API specification
       },
-      emissionStandard: data.emissionStandard || "Euro 6",
-      averageSpeed: Number(data.averageSpeed) || 0,
-      region: data.region || "",
-      dataSource: data.dataSource || "Manufacturer Specs",
-      notes: data.notes || "",
+      emissionStandard: formData.emissionStandard || "Euro 6",
+      averageSpeed: Number(formData.averageSpeed) || 0,
+      region: formData.region || "",
+      dataSource: formData.dataSource || "Manufacturer Specs",
+      notes: formData.notes || "",
     };
 
     try {
@@ -471,10 +363,12 @@ const AddVehicleSection = () => {
         setFormData(empty);
         fetchVehicles(); // Refresh the list after adding/updating
       } else {
-        toast.error(response.message || "Operation failed");
+        // toast.error(response.message || "Operation failed");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      // toast.error(error.message || "An error occurred");
+      console.log(error, 'error')
     }
   };
 
@@ -594,7 +488,8 @@ const AddVehicleSection = () => {
       setSelectedVehicles([]);
       fetchVehicles();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete some vehicles");
+      // toast.error(error.message || "Failed to delete some vehicles");
+      console.log(error, 'error')
     }
   };
 
@@ -609,7 +504,8 @@ const AddVehicleSection = () => {
       toast.success(`${selectedVehicles.length} vehicles exported successfully`);
       setSelectedVehicles([]);
     } catch (error: any) {
-      toast.error(error.message || "Failed to export vehicles");
+      //  toast.error(error.message || "Failed to export vehicles");
+      console.log(error, 'error')
     }
   };
 
@@ -751,6 +647,12 @@ const AddVehicleSection = () => {
                   CO₂ Emissions
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Created At 
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Created By
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -798,7 +700,7 @@ const AddVehicleSection = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getVehicleTypeColor(
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${getVehicleTypeColor(
                           vehicle.vehicleType
                         )}`}
                       >
@@ -821,6 +723,12 @@ const AddVehicleSection = () => {
                       {vehicle.emissionFactors?.CO2
                         ? `${vehicle.emissionFactors.CO2} g/km`
                         : "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {formatDate(vehicle.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {vehicle.createdBy?.firstName || '-'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
@@ -852,17 +760,373 @@ const AddVehicleSection = () => {
         </div>
       </div>
       {showForm && (
-        <DynamicForm
-          title={editingItem ? 'Edit Vehicle' : 'Add Vehicle'}
-          fields={vehicleFormFields}
-          onSubmit={handleFormSubmit}
-          onCancel={resetForm}
-          initialData={formData}
-          loading={false}
-          submitText={editingItem ? 'Update Vehicle' : 'Save Vehicle'}
-          cancelText="Cancel"
-          onClose={resetForm}
-        />
+        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
+          <div className='flex justify-between items-center mb-4'>
+            <h2 className='text-xl font-semibold text-gray-800'>
+              {editingItem ? 'Edit Vehicle' : 'Add Vehicle'}
+            </h2>
+            <button
+              onClick={resetForm}
+              className='text-gray-500 hover:text-gray-700'
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <form onSubmit={handleFormSubmit} className='space-y-4'>
+            {/* Row 1: Vehicle Type & Model Year */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Vehicle Type *
+                </label>
+                <select
+                  value={formData.vehicleType}
+                  onChange={(e) => handleFormChange('vehicleType', e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select vehicle type</option>
+                  {vehicleTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Model Year *
+                </label>
+                <select
+                  value={formData.modelYear}
+                  onChange={(e) => handleFormChange('modelYear', e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select model year</option>
+                  {modelYears.map(year => (
+                    <option key={year} value={year.toString()}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 2: Make & Model */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Make *
+                </label>
+                <input
+                  type="text"
+                  value={formData.make}
+                  onChange={(e) => handleFormChange('make', e.target.value)}
+                  placeholder="e.g., Toyota, Ford, Tesla"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Model *
+                </label>
+                <input
+                  type="text"
+                  value={formData.model}
+                  onChange={(e) => handleFormChange('model', e.target.value)}
+                  placeholder="e.g., Camry, F-150, Model 3"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Purchase Year & Fuel Type */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Purchase Year
+                </label>
+                <select
+                  value={formData.purchaseYear}
+                  onChange={(e) => handleFormChange('purchaseYear', e.target.value)}
+                  disabled={!formData.modelYear}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
+                >
+                  <option value="">Select purchase year</option>
+                  {purchaseYears.map(year => (
+                    <option key={year} value={year.toString()}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Type *
+                </label>
+                <select
+                  value={formData.fuelType}
+                  onChange={(e) => handleFormChange('fuelType', e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select fuel type</option>
+                  {fuelTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 4: Secondary Fuel Type & Region */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Secondary Fuel Type
+                </label>
+                <select
+                  value={formData.secondaryFuelType}
+                  onChange={(e) => handleFormChange('secondaryFuelType', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select secondary fuel type</option>
+                  {fuelTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Region
+                </label>
+                <select
+                  value={formData.region}
+                  onChange={(e) => handleFormChange('region', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select region</option>
+                  {regions.map(region => (
+                    <option key={region} value={region}>{region}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 5: Fuel Consumption */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Consumption Value
+                </label>
+                <input
+                  type="number"
+                  value={formData.fuelConsumptionValue}
+                  onChange={(e) => handleFormChange('fuelConsumptionValue', e.target.value)}
+                  placeholder="Enter value"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Fuel Consumption Unit
+                </label>
+                <select
+                  value={formData.fuelConsumptionUnit}
+                  onChange={(e) => handleFormChange('fuelConsumptionUnit', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select unit</option>
+                  {fuelCombustionUnits.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 6: Electricity Consumption */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Electricity Consumption Value
+                </label>
+                <input
+                  type="number"
+                  value={formData.electricityConsumptionValue}
+                  onChange={(e) => handleFormChange('electricityConsumptionValue', e.target.value)}
+                  placeholder="Enter value"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Electricity Consumption Unit
+                </label>
+                <select
+                  value={formData.electricityConsumptionUnit}
+                  onChange={(e) => handleFormChange('electricityConsumptionUnit', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select unit</option>
+                  {electricityConsumptionUnits.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 7: Annual Mileage */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Annual Mileage Value
+                </label>
+                <input
+                  type="number"
+                  value={formData.annualMileageValue}
+                  onChange={(e) => handleFormChange('annualMileageValue', e.target.value)}
+                  placeholder="Enter value"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Annual Mileage Unit
+                </label>
+                <select
+                  value={formData.annualMileageUnit}
+                  onChange={(e) => handleFormChange('annualMileageUnit', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select unit</option>
+                  {annualMileageUnits.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 8: Emissions */}
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  CO₂ Emissions (g/km)
+                </label>
+                <input
+                  type="text"
+                  value={formData.emissionCO2}
+                  onChange={(e) => handleFormChange('emissionCO2', e.target.value)}
+                  placeholder="CO₂ emissions"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  CH₄ Emissions (g/km)
+                </label>
+                <input
+                  type="text"
+                  value={formData.emissionCH4}
+                  onChange={(e) => handleFormChange('emissionCH4', e.target.value)}
+                  placeholder="CH₄ emissions"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  N₂O Emissions (g/km)
+                </label>
+                <input
+                  type="text"
+                  value={formData.emissionN2O}
+                  onChange={(e) => handleFormChange('emissionN2O', e.target.value)}
+                  placeholder="N₂O emissions"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            {/* Row 9: Emission Standard & Average Speed */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Emission Standard
+                </label>
+                <select
+                  value={formData.emissionStandard}
+                  onChange={(e) => handleFormChange('emissionStandard', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select emission standard</option>
+                  {EMISSION_STANDARDS_OPTIONS.map(standard => (
+                    <option key={standard} value={standard}>{standard}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Average Speed (km/h)
+                </label>
+                <input
+                  type="text"
+                  value={formData.averageSpeed}
+                  onChange={(e) => handleFormChange('averageSpeed', e.target.value)}
+                  placeholder="Enter average speed"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+            </div>
+
+            {/* Row 10: Data Source & Notes */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Data Source
+                </label>
+                <select
+                  value={formData.dataSource}
+                  onChange={(e) => handleFormChange('dataSource', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                >
+                  <option value="">Select data source</option>
+                  {dataSources.map(source => (
+                    <option key={source} value={source}>{source}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                  Notes
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => handleFormChange('notes', e.target.value)}
+                  placeholder="Enter any additional notes or comments about the vehicle"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+            </div>
+            
+            <div className='flex gap-3 pt-4'>
+              <button
+                type='submit'
+                className='bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                {editingItem ? 'Update Vehicle' : 'Save Vehicle'}
+              </button>
+              <button
+                type='button'
+                onClick={resetForm}
+                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );

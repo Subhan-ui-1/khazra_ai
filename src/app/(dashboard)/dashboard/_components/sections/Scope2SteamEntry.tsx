@@ -68,10 +68,12 @@ const Scope2SteamEntry: React.FC = () => {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        toast.error(response.message || "Failed to fetch facilities");
+        // toast.error(response.message || "Failed to fetch facilities");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch facilities");
+      // toast.error(error.message || "Failed to fetch facilities");
+      console.log(error, 'error')
     }
   };
 
@@ -81,10 +83,12 @@ const Scope2SteamEntry: React.FC = () => {
       if (response.success) {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
-        toast.error(response.message || "Failed to fetch energy types");
+        // toast.error(response.message || "Failed to fetch energy types");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch energy types");
+      // toast.error(error.message || "Failed to fetch energy types");
+      console.log(error, 'error')
     }
   };
 
@@ -94,10 +98,12 @@ const Scope2SteamEntry: React.FC = () => {
       if (response.success) {
         setSteamData(response.data.purchasedElectricity || []);
       } else {
-        toast.error(response.message || "Failed to fetch steam data");
+        // toast.error(response.message || "Failed to fetch steam data");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch steam data");
+      // toast.error(error.message || "Failed to fetch steam data");
+      console.log(error, 'error')
     }
   };
 
@@ -147,7 +153,8 @@ const Scope2SteamEntry: React.FC = () => {
         const editingId = editingItem?._id || editingItem?.id;
         
         if (!editingId) {
-          toast.error("No item ID found for editing");
+          // toast.error("No item ID found for editing");
+          console.log("No item ID found for editing")
           return;
         }
 
@@ -168,7 +175,8 @@ const Scope2SteamEntry: React.FC = () => {
           setEditingItem(null);
           resetForm();
         } else {
-          toast.error(response.message || "Failed to update steam data");
+          // toast.error(response.message || "Failed to update steam data");
+          console.log(response, 'response')
         }
       } else {
         // Add new record
@@ -189,11 +197,13 @@ const Scope2SteamEntry: React.FC = () => {
           setShowForm(false);
           resetForm();
         } else {
-          toast.error(response.message || "Failed to add steam data");
+          // toast.error(response.message || "Failed to add steam data");
+          console.log(response, 'response')
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save steam data");
+      // toast.error(error.message || "Failed to save steam data");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -243,7 +253,8 @@ const Scope2SteamEntry: React.FC = () => {
       const editingId = item?._id || item?.id;
       
       if (!editingId) {
-        toast.error("No item ID found for deletion");
+        // toast.error("No item ID found for deletion");
+        console.log("No item ID found for deletion")
         return;
       }
 
@@ -261,10 +272,12 @@ const Scope2SteamEntry: React.FC = () => {
         toast.success("Steam record deleted successfully");
         await getSteamTotal();
       } else {
-        toast.error(response.message || "Failed to delete steam record");
+        //  toast.error(response.message || "Failed to delete steam record");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete steam record");
+      // toast.error(error.message || "Failed to delete steam record");
+      console.log(error, 'error')
     }
   };
 
@@ -354,7 +367,7 @@ const Scope2SteamEntry: React.FC = () => {
           ]}
           actions={[
             {
-              label: "Edit",
+              label: "",
               icon: <Edit3 className="w-4 h-4" />,
               onClick: (row) => startEdit(row),
               variant: "primary",

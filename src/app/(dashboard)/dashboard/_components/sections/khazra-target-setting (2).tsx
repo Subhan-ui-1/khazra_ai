@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronRight,
   Target,
@@ -30,9 +30,9 @@ import {
   Edit3,
   Trash2,
 } from "lucide-react";
+import { safeLocalStorage } from "@/utils/localStorage";
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
-import { safeLocalStorage } from "@/utils/localStorage";
 
 const FlexibleTargetPlatform = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -97,6 +97,8 @@ const FlexibleTargetPlatform = () => {
     
     // Milestones & Verification
     milestones: [
+      { year: 0, target: 0, description: "" },
+      { year: 0, target: 0, description: "" },
       { year: 0, target: 0, description: "" },
       { year: 0, target: 0, description: "" },
     ],
@@ -349,6 +351,8 @@ const FlexibleTargetPlatform = () => {
       milestones: [
         { year: 0, target: 0, description: "" },
         { year: 0, target: 0, description: "" },
+        { year: 0, target: 0, description: "" },
+        { year: 0, target: 0, description: "" },
       ],
       verificationRequired: false,
       verificationFrequency: "",
@@ -416,28 +420,10 @@ const FlexibleTargetPlatform = () => {
         </div>
       </div>
 
-
-
-      {/* Step Labels */}
-      {/* <div className="flex items-center justify-between mb-8 text-center text-sm">
-        <div className={currentStep >= 1 ? " font-medium" : "text-gray-500"}>
-          Target Strategy
-        </div>
-        <div className={currentStep >= 2 ? " font-medium" : "text-gray-500"}>
-          Scope & Coverage
-        </div>
-        <div className={currentStep >= 3 ? "font-medium" : "text-gray-500"}>
-          Baseline & Targets
-        </div>
-        <div className={currentStep >= 4 ? " font-medium" : "text-gray-500"}>
-          Review & Deploy
-        </div>
-      </div> */}
-
-      {/* Step 2: Target Strategy */}
+      {/* Step 1: Target Strategy */}
       {currentStep === 1 && (
         <div className="space-y-6">
-          <div className="bg-white  rounded-lg p-6">
+          <div className="bg-white rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Target className="w-6 h-6 text-green-600" />
               <h3 className="text-xl font-semibold text-green-900">
@@ -566,7 +552,7 @@ const FlexibleTargetPlatform = () => {
         </div>
       )}
 
-      {/* Step 3: Scope & Coverage */}
+      {/* Step 2: Scope & Coverage */}
       {currentStep === 2 && (
         <div className="space-y-6">
           <div className="bg-white border border-green-200 rounded-lg p-6">
@@ -587,7 +573,7 @@ const FlexibleTargetPlatform = () => {
                     checked={targetData.scopeCoverage.scope1}
                     onChange={(e) =>
                       setTargetData((prev) => ({
-                      ...prev,
+                        ...prev,
                         scopeCoverage: {
                           ...prev.scopeCoverage,
                           scope1: e.target.checked,
@@ -623,7 +609,7 @@ const FlexibleTargetPlatform = () => {
                     checked={targetData.scopeCoverage.scope2}
                     onChange={(e) =>
                       setTargetData((prev) => ({
-                      ...prev,
+                        ...prev,
                         scopeCoverage: {
                           ...prev.scopeCoverage,
                           scope2: e.target.checked,
@@ -675,7 +661,7 @@ const FlexibleTargetPlatform = () => {
         </div>
       )}
 
-      {/* Step 4: Baseline & Targets */}
+      {/* Step 3: Baseline & Targets */}
       {currentStep === 3 && (
         <div className="space-y-6">
           <div className="bg-white border border-green-200 rounded-lg p-6">
@@ -866,7 +852,7 @@ const FlexibleTargetPlatform = () => {
         </div>
       )}
 
-      {/* Step 5: Review & Deploy */}
+      {/* Step 4: Review & Deploy */}
       {currentStep === 4 && (
         <div className="space-y-6">
           <div className="bg-white border border-green-200 rounded-lg p-6">
@@ -1000,7 +986,6 @@ const FlexibleTargetPlatform = () => {
               setCurrentStep(Math.max(1, currentStep - 1));
             }
           }}
-          // disabled={currentStep === 1}
           className="flex items-center space-x-2 px-6 py-3 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span>{currentStep === 1 ? "Back" : "Previous"}</span>
@@ -1107,17 +1092,10 @@ const FlexibleTargetPlatform = () => {
         <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h4 className="text-lg font-semibold text-black">Custom Targets</h4>
-            {/* <button
-              onClick={() => setShowTargetForm(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-              <span>Add Custom Target</span>
-            </button> */}
-      </div>
+          </div>
 
           <div className="overflow-x-auto">
-        <table className="w-full">
+            <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -1138,19 +1116,19 @@ const FlexibleTargetPlatform = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Actions
-                  </th>
-            </tr>
-          </thead>
+                  </th> */}
+                </tr>
+              </thead>
               <tbody className="divide-y divide-gray-200">
                 {customTargets.length === 0 ? (
-              <tr>
+                  <tr>
                     <td
                       colSpan={7}
                       className="px-6 py-12 text-center text-gray-500"
                     >
-                  <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center">
                         <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                         <p className="text-lg font-medium">
                           No custom targets yet
@@ -1159,44 +1137,44 @@ const FlexibleTargetPlatform = () => {
                           Create your first carbon reduction target to get
                           started
                         </p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
                   customTargets.map((target, index) => (
                     <tr key={target._id || index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                      <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
                           {target.targetCategory.name}
                         </div>
                         <div className="text-sm text-gray-500">
                           {target.targetType}
                         </div>
-                  </td>
-                  <td className="px-6 py-4">
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
                           {target.methodology.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
                           {target.scopeCoverage.join(", ")}
                         </div>
-                  </td>
-                  <td className="px-6 py-4">
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
                           {target.targetAnalysis.totalReduction}% reduction
                         </div>
                         <div className="text-xs text-gray-500">
                           {target.baselineYear} → {target.targetYear}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
                           {target.baselineYear} - {target.targetYear}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
                         <span
                           className={`px-2 py-1 text-xs rounded-lg ${
                             target.targetAnalysis.leadingEdge ===
@@ -1211,40 +1189,30 @@ const FlexibleTargetPlatform = () => {
                           }`}
                         >
                           {target.targetAnalysis.leadingEdge}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
+                        </span>
+                      </td>
+                      {/* <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                    <button
+                          <button
                             onClick={() => {
                               setEditingTarget(target);
                               setShowTargetForm(true);
                             }}
                             className="text-green-600 hover:text-green-800"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                          {/* <button
-                            onClick={() => {
-                              if (confirm('Are you sure you want to delete this target?')) {
-                                // Add delete functionality here
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-800"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </button> */}
+                            <Edit3 className="w-4 h-4" />
+                          </button>
                         </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                      </td> */}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
+        </div>
       </div>
-    </div>
-  );
+    );
   };
 
   return (
@@ -1263,20 +1231,6 @@ const FlexibleTargetPlatform = () => {
         </div>
         {/* Navigation Buttons */}
         <div className="flex justify-end items-center">
-          {/* <div className="flex space-x-4">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'dashboard' 
-                  ? 'bg-green-600 text-white shadow-md' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Target Dashboard</span>
-            </button>
-          </div> */}
-
           {activeTab !== "setup" && (
             <button
               onClick={() => setActiveTab("setup")}
@@ -1289,11 +1243,9 @@ const FlexibleTargetPlatform = () => {
         </div>
       </div>
 
-
-
       {/* Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="">
           {activeTab === "setup" && <TargetSetupForm />}
           {activeTab === "dashboard" && <TargetDashboard />}
         </div>
@@ -1326,4 +1278,4 @@ const FlexibleTargetPlatform = () => {
   );
 };
 
-export default FlexibleTargetPlatform;
+export default FlexibleTargetPlatform; 

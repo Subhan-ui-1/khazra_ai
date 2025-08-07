@@ -7,6 +7,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
+import { Edit3 } from "lucide-react";
 
 interface RoleFormData {
   name: string;
@@ -35,6 +36,9 @@ interface Role {
   permissions: Permission[];
   createdAt: string;
   updatedAt: string;
+  createdBy?: {
+    firstName: string;
+  }
 }
 
 const AddRoleSection = () => {
@@ -110,10 +114,12 @@ const AddRoleSection = () => {
           );
         }
       } else {
-        toast.error(response.message || "Failed to fetch roles");
+        // toast.error(response.message || "Failed to fetch roles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch roles");
+      // toast.error(error.message || "Failed to fetch roles");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -137,7 +143,8 @@ const AddRoleSection = () => {
       //   toast.error(response.message || "Failed to fetch permissions");
       // }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch permissions");
+      // toast.error(error.message || "Failed to fetch permissions");
+      console.log(error, 'error')
     } finally {
       setLoadingPermissions(false);
     }
@@ -162,7 +169,7 @@ const AddRoleSection = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error("Role name is required");
+      // toast.error("Role name is required");
       return;
     }
 
@@ -200,7 +207,8 @@ const AddRoleSection = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save role");
+      // toast.error(error.message || "Failed to save role");
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -235,7 +243,8 @@ const AddRoleSection = () => {
         fetchRoles();
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete role");
+      // toast.error(error.message || "Failed to delete role");
+      console.log(error, 'error')
     }
   };
 
@@ -351,10 +360,11 @@ const AddRoleSection = () => {
         fetchRoles();
       }
     } catch (error: any) {
-      toast.error(
-        error.message ||
-          (editingItem ? "Failed to update role" : "Failed to create role")
-      );
+      // toast.error(
+      //   error.message ||
+      //     (editingItem ? "Failed to update role" : "Failed to create role")
+      // );
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -499,7 +509,12 @@ const AddRoleSection = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Permissions
                   </th>
-
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created At
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -548,7 +563,12 @@ const AddRoleSection = () => {
                         )}
                       </div>
                     </td>
-
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{role.createdBy?.firstName || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatDate(role.createdAt)}</div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2">
                         <PermissionGuard permission="role.update">
@@ -556,22 +576,10 @@ const AddRoleSection = () => {
                             onClick={() => handleEdit(role)}
                             className="text-green-600 hover:text-green-900 transition-colors duration-200"
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
+                            <Edit3 className="w-4 h-4" />
                           </button>
                         </PermissionGuard>
-                        <PermissionGuard permission="role.delete">
+                        {/* <PermissionGuard permission="role.delete">
                           <button
                             onClick={() => handleDelete(role._id)}
                             className="text-red-600 hover:text-red-900 transition-colors duration-200"
@@ -590,7 +598,7 @@ const AddRoleSection = () => {
                               />
                             </svg>
                           </button>
-                        </PermissionGuard>
+                        </PermissionGuard> */}
                       </div>
                     </td>
                   </tr>

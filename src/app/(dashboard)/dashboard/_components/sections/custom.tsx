@@ -135,10 +135,12 @@ const FlexibleTargetPlatform = () => {
       if (response.success) {
         setCustomTargets(response.customTargets || []);
       } else {
-        toast.error(response.message || "Failed to fetch custom targets");
+        // toast.error(response.message || "Failed to fetch custom targets");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch custom targets");
+      // toast.error(error.message || "Failed to fetch custom targets");
+      console.log(error, 'error')
     }
   };
 
@@ -205,10 +207,12 @@ const FlexibleTargetPlatform = () => {
         await fetchCustomTargets();
         setActiveTab('dashboard');
       } else {
-        toast.error(response.message || "Failed to add custom target");
+        // toast.error(response.message || "Failed to add custom target");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to add custom target");
+      // toast.error(error.message || "Failed to add custom target");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -221,10 +225,12 @@ const FlexibleTargetPlatform = () => {
       if (response.success) {
         setInitiatives(response.initiatives || []);
       } else {
-        toast.error(response.message || "Failed to fetch initiatives");
+        // toast.error(response.message || "Failed to fetch initiatives");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch initiatives");
+      // toast.error(error.message || "Failed to fetch initiatives");
+      console.log(error, 'error')
     }
   };
 
@@ -232,6 +238,7 @@ const FlexibleTargetPlatform = () => {
   const addInitiative = async () => {
     if (!memoizedFormData.initiative || !memoizedFormData.reduction || !memoizedFormData.investment) {
       toast.error("Please fill in all required fields");
+      console.log('Please fill in all required fields')
       return;
     }
 
@@ -259,10 +266,12 @@ const FlexibleTargetPlatform = () => {
         });
         await fetchInitiatives();
       } else {
-        toast.error(response.message || "Failed to add initiative");
+        //  toast.error(response.message || "Failed to add initiative");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to add initiative");
+      // toast.error(error.message || "Failed to add initiative");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
