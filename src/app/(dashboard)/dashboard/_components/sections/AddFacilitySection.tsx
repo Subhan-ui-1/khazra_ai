@@ -489,8 +489,13 @@ const AddFacilitySection = () => {
     setSelectedCountry(item.country);
     setSelectedState(item.stateProvince);
     setSelectedCity(item.city);
-    
+    console.log(item, 'item')
     setEditingItem(item);
+    let some:string|undefined;
+    if(item.numberOfEmployees){
+      some=NUMBER_OF_EMPLOYEES_OPTIONS.find(p=>p.includes(item.numberOfEmployees.toString()))
+      console.log(some, 'some')
+    }
     setFormData({
       facilityName: item.facilityName || "",
       fullAddress: item.fullAddress || "",
@@ -500,7 +505,7 @@ const AddFacilitySection = () => {
       facilityType: isCustomType ? "Other" : (item.facilityType || ""),
       customFacilityType: isCustomType ? (item.facilityType || "") : (item.customFacilityType || ""),
       floorArea: item.floorArea?.toString() || "",
-      numberOfEmployees: item.numberOfEmployees?.toString() || "",
+      numberOfEmployees: some||"",
       status: item.status || "",
       country: item.country || "",
       stateProvince: item.stateProvince || "",
@@ -650,7 +655,7 @@ const AddFacilitySection = () => {
         <PermissionGuard permission="facilities.create">
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Add Facility</span>
@@ -706,7 +711,7 @@ const AddFacilitySection = () => {
               </span>
             </div>
             <div className='flex gap-2'>
-              <PermissionGuard permission="facilities.update">
+              {/* <PermissionGuard permission="facilities.update">
                 <select
                   onChange={(e) => handleBulkStatusUpdate(e.target.value)}
                   className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 border-0'
@@ -716,7 +721,7 @@ const AddFacilitySection = () => {
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
-              </PermissionGuard>
+              </PermissionGuard> */}
               <button
                 onClick={() => setSelectedFacilities([])}
                 className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
@@ -809,8 +814,8 @@ const AddFacilitySection = () => {
                         className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                       />
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">FC-{i+1}</div>
+                    <td className="px-4 py-4">
+                      <div className="text-xs font-medium text-gray-900">FC-{i+1}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
@@ -847,6 +852,12 @@ const AddFacilitySection = () => {
                         ? facility.numberOfEmployees.toLocaleString()
                         : "-"}
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {formatDate(facility.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {facility.createdBy?.firstName || '-'}
+                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
@@ -855,12 +866,6 @@ const AddFacilitySection = () => {
                       >
                         {facility.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {formatDate(facility.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {facility.createdBy?.firstName || '-'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
@@ -1090,7 +1095,7 @@ const AddFacilitySection = () => {
             <div className='flex gap-3 pt-4'>
               <button
                 type='submit'
-                className='bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                className='bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

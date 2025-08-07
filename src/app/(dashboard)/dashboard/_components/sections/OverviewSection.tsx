@@ -157,10 +157,10 @@ export default function OverviewSection() {
       type: "status" as const,
       render: (value: string, row: any) => (
         <span
-          className={`px-2 py-1 text-xs font-semibold rounded-lg border ${
+          className={`px-2 py-1 text-xs font-semibold rounded-lg  ${
             row.statusType === "success"
-              ? "bg-green-100 text-green-800 border-green-800"
-              : "bg-red-100 text-red-800 border-red-800"
+              ? "bg-green-100 text-green-800 "
+              : "bg-red-100 text-red-800 "
           }`}
         >
           {value}

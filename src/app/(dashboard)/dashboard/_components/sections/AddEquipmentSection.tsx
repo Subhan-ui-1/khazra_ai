@@ -642,7 +642,7 @@ const AddEquipmentSection = () => {
               </span>
             </div>
             <div className='flex gap-2'>
-              <PermissionGuard permission="equipment.update">
+              {/* <PermissionGuard permission="equipment.update">
                 <select
                   onChange={(e) => handleBulkStatusUpdate(e.target.value)}
                   className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 border-0'
@@ -660,7 +660,7 @@ const AddEquipmentSection = () => {
                 >
                   Delete Selected
                 </button>
-              </PermissionGuard>
+              </PermissionGuard> */}
               <button
                 onClick={() => setSelectedEquipments([])}
                 className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'

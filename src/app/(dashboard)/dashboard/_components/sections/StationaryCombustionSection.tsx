@@ -647,7 +647,7 @@ export default function StationaryCombustionSection() {
         actions={[
           {
             // label: 'Edit',
-            icon: <Edit3 className="w-4 h-4" />,
+            icon: <Edit3 className="w-4 h-4 text-green-500" />,
             onClick: (row) => handleEditStationary(row, stationaryCombustionData.findIndex(item => item._id === row._id)),
             variant: 'primary'
           }
@@ -890,7 +890,7 @@ export default function StationaryCombustionSection() {
               <button
                 type='submit'
                 disabled={submitting}
-                className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                className='bg-[#0D5942]  text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
               >
                 {submitting ? (
                   <>

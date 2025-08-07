@@ -2,7 +2,10 @@
 
 import { Bubble } from 'react-chartjs-2';
 import {Chart as ChartJS,Tooltip,Title,Legend,LinearScale,PointElement,} from 'chart.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getRequest } from '@/utils/api';
+import { Wifi } from 'lucide-react';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 ChartJS.register(Tooltip, Title, Legend, LinearScale, PointElement);
 
@@ -22,11 +25,25 @@ interface BubbleChartProps {
     assessedTopics: Topic[];
     calculateMaterialityLevel: (topic: Topic) => { color: string };
 }
+const getToken = ()=>{
+    const token = JSON.parse(safeLocalStorage.getItem('tokens') || '{}')
+    return token?.accessToken
+}
 
 export default function BubbleChart({
     assessedTopics,
     calculateMaterialityLevel,
 }: BubbleChartProps) {
+    const [datas, setData] = useState<any>(null);
+    useEffect(()=>{
+        (async()=>{
+            const response = await getRequest('reporting/getReporting',getToken())
+            if(response.success){
+                setData(response.reporting)
+            }
+        })()
+    },[])
+    console.log(datas)
     const data = useMemo(() => {
         return {
             datasets: assessedTopics.map((topic) => {

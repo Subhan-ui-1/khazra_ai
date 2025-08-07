@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-import { postRequest, getRequest } from '@/utils/api';
-import { usePermissions, PermissionGuard } from '@/utils/permissions';
-import { safeLocalStorage } from '@/utils/localStorage';
-import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { postRequest, getRequest } from "@/utils/api";
+import { usePermissions, PermissionGuard } from "@/utils/permissions";
+import { safeLocalStorage } from "@/utils/localStorage";
+import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 
 // Constants
 const INDUSTRY_OPTIONS = [
@@ -33,9 +33,33 @@ const NUMBER_OF_EMPLOYEES_OPTIONS = [
 ];
 
 const CURRENCY_OPTIONS = [
-  "USD", "EUR", "GBP", "INR", "CAD", "AUD", "CHF", "CNY", "JPY", "KRW",
-  "MXN", "NZD", "RUB", "SAR", "ZAR", "TRY", "BRL", "CLP", "COP", "HKD",
-  "IDR", "MYR", "PHP", "SGD", "THB", "TWD", "VND",
+  "USD",
+  "EUR",
+  "GBP",
+  "INR",
+  "CAD",
+  "AUD",
+  "CHF",
+  "CNY",
+  "JPY",
+  "KRW",
+  "MXN",
+  "NZD",
+  "RUB",
+  "SAR",
+  "ZAR",
+  "TRY",
+  "BRL",
+  "CLP",
+  "COP",
+  "HKD",
+  "IDR",
+  "MYR",
+  "PHP",
+  "SGD",
+  "THB",
+  "TWD",
+  "VND",
 ];
 
 const ANNUAL_REVENUE_OPTIONS = [
@@ -131,15 +155,15 @@ const AddBoundarySection = () => {
   });
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
-  
-  const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
+
+  const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
-    router.push('/login');
+    router.push("/login");
   }
 
   // Check if user has permission to view boundaries
-  if (!canView('boundaries')) {
+  if (!canView("boundaries")) {
     return (
       <div className="p-8 text-center text-gray-500">
         You don't have permission to view boundaries.
@@ -193,15 +217,15 @@ const AddBoundarySection = () => {
   const checkExistingBoundary = async () => {
     try {
       setLoading(true);
-      const userData = JSON.parse(safeLocalStorage.getItem('user') || "{}");
-      
+      const userData = JSON.parse(safeLocalStorage.getItem("user") || "{}");
+
       if (userData.boundary) {
         // Fetch boundary details
         const response = await getRequest(
           `boundaries/getBoundaries`,
           tokenData.accessToken
         );
-        
+
         if (response.success) {
           setBoundaryData(response.data.boundaries[0]);
         }
@@ -271,14 +295,14 @@ const AddBoundarySection = () => {
 
   const startEdit = (boundary: Boundary) => {
     setEditingBoundary(boundary);
-    
+
     // Format dates for form inputs (YYYY-MM-DD format)
     const formatDateForInput = (dateString: string) => {
       if (!dateString) return "";
       const date = new Date(dateString);
-      return date.toISOString().split('T')[0];
+      return date.toISOString().split("T")[0];
     };
-    
+
     setFormData({
       organizationId: getOrganizationId(),
       industry: boundary.industry,
@@ -293,7 +317,9 @@ const AddBoundarySection = () => {
       hasEquipment: boundary.equipmentCount > 0 ? "Yes" : "No",
       equipmentCount: boundary.equipmentCount,
       businessFormationDate: formatDateForInput(boundary.businessFormationDate),
-      reportingPeriodStartDate: formatDateForInput(boundary.reportingPeriod.start),
+      reportingPeriodStartDate: formatDateForInput(
+        boundary.reportingPeriod.start
+      ),
       reportingPeriodEndDate: formatDateForInput(boundary.reportingPeriod.end),
       reportingPeriod: boundary.reportingPeriod,
       primaryFunctionalCurrency: boundary.primaryFunctionalCurrency,
@@ -318,28 +344,37 @@ const AddBoundarySection = () => {
       label: "Industry",
       type: "select",
       required: true,
-      options: INDUSTRY_OPTIONS.map(option => ({ value: option, label: option }))
+      options: INDUSTRY_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "businessNature",
       label: "Business Nature",
       type: "select",
       required: true,
-      options: BUSINESS_NATURE_OPTIONS.map(option => ({ value: option, label: option }))
+      options: BUSINESS_NATURE_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "baselineYear",
       label: "Baseline Year",
       type: "select",
       required: true,
-      options: PAST_YEARS.map(year => ({ value: year, label: year }))
+      options: PAST_YEARS.map((year) => ({ value: year, label: year })),
     },
     {
       name: "hasBaselineEmissions",
       label: "Do you have baseline emissions data?",
       type: "select",
       required: true,
-      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+      options: YES_NO_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "baselineEmissions",
@@ -347,14 +382,17 @@ const AddBoundarySection = () => {
       type: "number",
       required: false,
       placeholder: "Enter baseline emissions",
-      condition: (formData) => formData.hasBaselineEmissions === "Yes"
+      condition: (formData) => formData.hasBaselineEmissions === "Yes",
     },
     {
       name: "hasVehicles",
       label: "Do you have vehicles?",
       type: "select",
       required: true,
-      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+      options: YES_NO_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "vehicleCount",
@@ -362,14 +400,17 @@ const AddBoundarySection = () => {
       type: "number",
       required: true,
       placeholder: "Enter vehicle count",
-      condition: (formData) => formData.hasVehicles === "Yes"
+      condition: (formData) => formData.hasVehicles === "Yes",
     },
     {
       name: "hasFacilities",
       label: "Do you have facilities?",
       type: "select",
       required: true,
-      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+      options: YES_NO_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "facilityCount",
@@ -377,14 +418,17 @@ const AddBoundarySection = () => {
       type: "number",
       required: true,
       placeholder: "Enter facility count",
-      condition: (formData) => formData.hasFacilities === "Yes"
+      condition: (formData) => formData.hasFacilities === "Yes",
     },
     {
       name: "hasEquipment",
       label: "Do you have equipment?",
       type: "select",
       required: true,
-      options: YES_NO_OPTIONS.map(option => ({ value: option, label: option }))
+      options: YES_NO_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "equipmentCount",
@@ -392,19 +436,19 @@ const AddBoundarySection = () => {
       type: "number",
       required: true,
       placeholder: "Enter equipment count",
-      condition: (formData) => formData.hasEquipment === "Yes"
+      condition: (formData) => formData.hasEquipment === "Yes",
     },
     {
       name: "businessFormationDate",
       label: "Business Formation Date",
       type: "date",
-      required: true
+      required: true,
     },
     {
       name: "reportingPeriodStartDate",
       label: "Reporting Period Start Date",
       type: "date",
-      required: true
+      required: true,
     },
     // {
     //   name: "reportingPeriodEndDate",
@@ -417,29 +461,41 @@ const AddBoundarySection = () => {
       label: "Primary Functional Currency",
       type: "select",
       required: true,
-      options: CURRENCY_OPTIONS.map(currency => ({ value: currency, label: currency }))
+      options: CURRENCY_OPTIONS.map((currency) => ({
+        value: currency,
+        label: currency,
+      })),
     },
     {
       name: "numberOfEmployees",
       label: "Number of Employees",
       type: "select",
       required: true,
-      options: NUMBER_OF_EMPLOYEES_OPTIONS.map(option => ({ value: option, label: option }))
+      options: NUMBER_OF_EMPLOYEES_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
     },
     {
       name: "secondaryFunctionalCurrency",
       label: "Secondary Functional Currency",
       type: "select",
       required: false,
-      options: CURRENCY_OPTIONS.map(currency => ({ value: currency, label: currency }))
+      options: CURRENCY_OPTIONS.map((currency) => ({
+        value: currency,
+        label: currency,
+      })),
     },
     {
       name: "annualRevenue",
       label: "Annual Revenue",
       type: "select",
       required: true,
-      options: ANNUAL_REVENUE_OPTIONS.map(option => ({ value: option, label: option }))
-    }
+      options: ANNUAL_REVENUE_OPTIONS.map((option) => ({
+        value: option,
+        label: option,
+      })),
+    },
   ];
 
   const handleFormSubmit = async (data: any) => {
@@ -465,10 +521,20 @@ const AddBoundarySection = () => {
             industry: data.industry,
             businessNature: data.businessNature,
             baselineYear: data.baselineYear,
-            baselineEmissions: data.hasBaselineEmissions === "Yes" ? (data.baselineEmissions || 0) : 0,
-            vehicleCount: data.hasVehicles === "Yes" ? (parseInt(data.vehicleCount) || 0) : 0,
-            facilityCount: data.hasFacilities === "Yes" ? (parseInt(data.facilityCount) || 0) : 0,
-            equipmentCount: data.hasEquipment === "Yes" ? (parseInt(data.equipmentCount) || 0) : 0,
+            baselineEmissions:
+              data.hasBaselineEmissions === "Yes"
+                ? data.baselineEmissions || 0
+                : 0,
+            vehicleCount:
+              data.hasVehicles === "Yes" ? parseInt(data.vehicleCount) || 0 : 0,
+            facilityCount:
+              data.hasFacilities === "Yes"
+                ? parseInt(data.facilityCount) || 0
+                : 0,
+            equipmentCount:
+              data.hasEquipment === "Yes"
+                ? parseInt(data.equipmentCount) || 0
+                : 0,
           },
           "Boundary updated successfully",
           tokenData.accessToken,
@@ -476,7 +542,7 @@ const AddBoundarySection = () => {
         );
 
         if (response?.success) {
-          // toast.success("Boundary updated successfully");
+          toast.success("Boundary updated successfully");
           setBoundaryData(response.boundary);
           setEditingBoundary(null);
           setShowForm(false);
@@ -493,10 +559,20 @@ const AddBoundarySection = () => {
             industry: data.industry,
             businessNature: data.businessNature,
             baselineYear: data.baselineYear,
-            baselineEmissions: data.hasBaselineEmissions === "Yes" ? (data.baselineEmissions || 0) : 0,
-            vehicleCount: data.hasVehicles === "Yes" ? (parseInt(data.vehicleCount) || 0) : 0,
-            facilityCount: data.hasFacilities === "Yes" ? (parseInt(data.facilityCount) || 0) : 0,
-            equipmentCount: data.hasEquipment === "Yes" ? (parseInt(data.equipmentCount) || 0) : 0,
+            baselineEmissions:
+              data.hasBaselineEmissions === "Yes"
+                ? data.baselineEmissions || 0
+                : 0,
+            vehicleCount:
+              data.hasVehicles === "Yes" ? parseInt(data.vehicleCount) || 0 : 0,
+            facilityCount:
+              data.hasFacilities === "Yes"
+                ? parseInt(data.facilityCount) || 0
+                : 0,
+            equipmentCount:
+              data.hasEquipment === "Yes"
+                ? parseInt(data.equipmentCount) || 0
+                : 0,
             businessFormationDate: new Date(data.businessFormationDate),
             reportingPeriod: {
               start: data.reportingPeriodStartDate,
@@ -515,12 +591,12 @@ const AddBoundarySection = () => {
         );
 
         if (response?.success) {
-          // toast.success(response.message || "Boundary created successfully");
-          const userData = safeLocalStorage.getItem('user');
+          toast.success(response.message || "Boundary created successfully");
+          const userData = safeLocalStorage.getItem("user");
           const userDataParsed = JSON.parse(userData || "{}");
           userDataParsed.boundary = response.boundary._id;
-          safeLocalStorage.setItem('user', JSON.stringify(userDataParsed));
-          
+          safeLocalStorage.setItem("user", JSON.stringify(userDataParsed));
+
           // Redirect to dashboard after successful creation
           router.push("/dashboard");
         } else {
@@ -536,60 +612,90 @@ const AddBoundarySection = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   // If boundary exists, show card instead of form
   if (boundaryData && !showForm) {
     return (
-      <div className='flex flex-col gap-6'>
-        <div className='flex justify-between items-center'>
-          <h1 className='text-2xl font-bold text-gray-800'>Boundary Management</h1>
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Boundary Management
+          </h1>
         </div>
 
         {/* Existing Boundary Card */}
-        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-semibold text-gray-800'>Existing Boundary</h2>
-            <div className='flex items-center gap-2'>
-              <span className='px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg'>
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Existing Boundary
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg">
                 Active
               </span>
             </div>
           </div>
-          
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Industry</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.industry}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Industry
+              </h3>
+              <p className="text-sm text-gray-900">{boundaryData.industry}</p>
             </div>
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Business Nature</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.businessNature}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Business Nature
+              </h3>
+              <p className="text-sm text-gray-900">
+                {boundaryData.businessNature}
+              </p>
             </div>
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Baseline Year</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.baselineYear}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Baseline Year
+              </h3>
+              <p className="text-sm text-gray-900">
+                {boundaryData.baselineYear}
+              </p>
             </div>
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Primary Currency</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.primaryFunctionalCurrency}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Primary Currency
+              </h3>
+              <p className="text-sm text-gray-900">
+                {boundaryData.primaryFunctionalCurrency}
+              </p>
             </div>
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Number of Employees</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.numberOfEmployees}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Number of Employees
+              </h3>
+              <p className="text-sm text-gray-900">
+                {boundaryData.numberOfEmployees}
+              </p>
             </div>
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Annual Revenue</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.annualRevenue}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Annual Revenue
+              </h3>
+              <p className="text-sm text-gray-900">
+                {boundaryData.annualRevenue}
+              </p>
             </div>
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>Business Formation Date</h3>
-              <p className='text-sm text-gray-900'>{formatDate(boundaryData.businessFormationDate)}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                Business Formation Date
+              </h3>
+              <p className="text-sm text-gray-900">
+                {formatDate(boundaryData.businessFormationDate)}
+              </p>
             </div>
             {/* <div>
               <h3 className='text-sm font-medium text-gray-500 mb-2'>Reporting Period</h3>
@@ -598,42 +704,65 @@ const AddBoundarySection = () => {
               </p>
             </div> */}
             <div>
-              <h3 className='text-sm font-medium text-gray-500 mb-2'>International Business Travel</h3>
-              <p className='text-sm text-gray-900'>{boundaryData.internationalBusinessTraveling ? 'Yes' : 'No'}</p>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">
+                International Business Travel
+              </h3>
+              <p className="text-sm text-gray-900">
+                {boundaryData.internationalBusinessTraveling ? "Yes" : "No"}
+              </p>
             </div>
           </div>
 
-          <div className='mt-6 pt-6 border-t border-gray-200'>
-            <h3 className='text-sm font-medium text-gray-500 mb-3'>Asset Counts</h3>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-              <div className='bg-gray-50 p-3 rounded-lg'>
-                <p className='text-xs text-gray-500'>Vehicles</p>
-                <p className='text-lg font-semibold text-gray-900'>{boundaryData.vehicleCount}</p>
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500 mb-3">
+              Asset Counts
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs text-gray-500">Vehicles</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {boundaryData.vehicleCount}
+                </p>
               </div>
-              <div className='bg-gray-50 p-3 rounded-lg'>
-                <p className='text-xs text-gray-500'>Facilities</p>
-                <p className='text-lg font-semibold text-gray-900'>{boundaryData.facilityCount}</p>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs text-gray-500">Facilities</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {boundaryData.facilityCount}
+                </p>
               </div>
-              <div className='bg-gray-50 p-3 rounded-lg'>
-                <p className='text-xs text-gray-500'>Equipment</p>
-                <p className='text-lg font-semibold text-gray-900'>{boundaryData.equipmentCount}</p>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs text-gray-500">Equipment</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {boundaryData.equipmentCount}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className='mt-6 pt-6 border-t border-gray-200'>
-            <div className='flex justify-between items-center'>
-              <p className='text-sm text-gray-600'>
-                Your boundary has been successfully created. You can now proceed to add your assets (vehicles, facilities, equipment) 
-                to start tracking your emissions.
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-600">
+                Your boundary has been successfully created. You can now proceed
+                to add your assets (vehicles, facilities, equipment) to start
+                tracking your emissions.
               </p>
               <PermissionGuard permission="boundaries.update">
                 <button
                   onClick={() => startEdit(boundaryData)}
-                  className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                  className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                   Edit Boundary
                 </button>
@@ -646,16 +775,28 @@ const AddBoundarySection = () => {
   }
 
   return (
-    <div className='flex flex-col gap-6'>
-      <div className='flex justify-between items-center'>
-        <h1 className='text-2xl font-bold text-gray-800'>Boundary Management</h1>
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Boundary Management
+        </h1>
         <PermissionGuard permission="boundaries.create">
           <button
             onClick={() => setShowForm(true)}
-            className='bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+            className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add Boundary
           </button>
@@ -665,29 +806,43 @@ const AddBoundarySection = () => {
       {/* Form Section */}
       {showForm && (
         <DynamicForm
-          title={editingBoundary ? 'Edit Boundary' : 'Add New Boundary'}
+          title={editingBoundary ? "Edit Boundary" : "Add New Boundary"}
           fields={boundaryFormFields}
           onSubmit={handleFormSubmit}
           onCancel={resetForm}
           initialData={formData}
           loading={submitting}
-          submitText={editingBoundary ? 'Update Boundary' : 'Create Boundary'}
+          submitText={editingBoundary ? "Update Boundary" : "Create Boundary"}
           cancelText="Cancel"
           onClose={resetForm}
-          confirmationMessage={editingBoundary ? 'Do you really want to update this boundary?' : 'Do you really want to create this boundary?'}
+          confirmationMessage={
+            editingBoundary
+              ? "Do you really want to update this boundary?"
+              : "Do you really want to create this boundary?"
+          }
         />
       )}
 
       {/* Empty State */}
       {!showForm && !boundaryData && !loading && (
-        <div className='bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center'>
-          <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+          <svg
+            className="w-16 h-16 mx-auto text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            />
           </svg>
-          <p className='mt-2 text-gray-600'>No boundary found</p>
+          <p className="mt-2 text-gray-600">No boundary found</p>
           <button
             onClick={() => setShowForm(true)}
-            className='mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200'
+            className="mt-4 bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200"
           >
             Add your first boundary
           </button>
@@ -696,15 +851,30 @@ const AddBoundarySection = () => {
 
       {/* Loading State */}
       {loading && (
-        <div className='bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center'>
-          <svg className="animate-spin h-8 w-8 mx-auto text-green-600" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+          <svg
+            className="animate-spin h-8 w-8 mx-auto text-[#0D5942]"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
-          <p className='mt-2 text-gray-600'>Loading boundary information...</p>
+          <p className="mt-2 text-gray-600">Loading boundary information...</p>
         </div>
       )}
-                </div>
+    </div>
   );
 };
 

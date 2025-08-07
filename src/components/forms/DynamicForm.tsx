@@ -360,7 +360,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             <button
               type='submit'
               disabled={loading}
-              className='bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              className='bg-[#0D5942]  disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
             >
               {loading ? (
                 <>

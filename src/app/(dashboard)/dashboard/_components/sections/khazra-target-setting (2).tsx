@@ -977,7 +977,7 @@ const FlexibleTargetPlatform = () => {
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between pt-6 border-t border-gray-200">
+      <div className="flex justify-between p-4 border-t border-gray-200">
         <button
           onClick={() => {
             if (currentStep === 1) {
@@ -994,7 +994,7 @@ const FlexibleTargetPlatform = () => {
         {currentStep < 4 ? (
           <button
             onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
-            className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="flex items-center space-x-2 px-6 py-3 bg-[#0D5942] text-white rounded-lg "
           >
             <span>Next</span>
             <ChevronRight className="w-4 h-4" />
@@ -1003,7 +1003,7 @@ const FlexibleTargetPlatform = () => {
           <button
             onClick={addCustomTarget}
             disabled={loading}
-            className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            className="flex items-center space-x-2 px-6 py-3 bg-[#0D5942] text-white rounded-lg  disabled:opacity-50"
           >
             <CheckCircle className="w-4 h-4" />
             <span>{loading ? "Deploying..." : "Deploy Target"}</span>
@@ -1198,7 +1198,7 @@ const FlexibleTargetPlatform = () => {
                               setEditingTarget(target);
                               setShowTargetForm(true);
                             }}
-                            className="text-green-600 hover:text-green-800"
+                            className="text-green-600 hover:text-[#0D5942]"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
@@ -1234,7 +1234,7 @@ const FlexibleTargetPlatform = () => {
           {activeTab !== "setup" && (
             <button
               onClick={() => setActiveTab("setup")}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
+              className="bg-[#0D5942]  text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
             >
               <Target className="w-4 h-4" />
               <span>Setup New Target</span>

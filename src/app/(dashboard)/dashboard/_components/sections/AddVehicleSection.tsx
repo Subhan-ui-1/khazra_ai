@@ -521,7 +521,7 @@ const AddVehicleSection = () => {
         <PermissionGuard permission="vehicle.create">
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Add Vehicle</span>
@@ -581,7 +581,7 @@ const AddVehicleSection = () => {
                   </span>
                 </div>
             <div className='flex gap-2'>
-              <PermissionGuard permission="vehicle.update">
+              {/* <PermissionGuard permission="vehicle.update">
                 <button
                   onClick={handleBulkExport}
                   className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
@@ -596,7 +596,7 @@ const AddVehicleSection = () => {
                 >
                   Delete Selected
               </button>
-              </PermissionGuard>
+              </PermissionGuard> */}
               <button
                 onClick={() => setSelectedVehicles([])}
                 className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
@@ -617,7 +617,7 @@ const AddVehicleSection = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   <input
                     type="checkbox"
                     checked={selectedVehicles.length === vehicleData.length && vehicleData.length > 0}
@@ -625,34 +625,34 @@ const AddVehicleSection = () => {
                     className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Vehicle
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Fuel Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Model Year
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Annual Mileage
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   CO₂ Emissions
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Created At 
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Created By
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -679,7 +679,7 @@ const AddVehicleSection = () => {
               ) : (
                 vehicleData.map((vehicle,i) => (
                   <tr key={vehicle.id || vehicle._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <input
                         type="checkbox"
                         checked={selectedVehicles.includes(vehicle.id || vehicle._id)}
@@ -687,10 +687,10 @@ const AddVehicleSection = () => {
                         className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                       />
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="text-sm font-medium text-gray-900">VH-{i+1}</div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="text-sm font-medium text-gray-900">
                         {vehicle.make} {vehicle.model}
                       </div>
@@ -698,7 +698,7 @@ const AddVehicleSection = () => {
                         {vehicle.region}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${getVehicleTypeColor(
                           vehicle.vehicleType
@@ -707,30 +707,30 @@ const AddVehicleSection = () => {
                         {vehicle.vehicleType}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900">
                       {vehicle.fuelType}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900">
                       {vehicle.modelYear}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900">
                       {vehicle.annualMileage?.value &&
                       vehicle.annualMileage?.unit
                         ? `${vehicle.annualMileage.value} ${vehicle.annualMileage.unit}`
                         : "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900">
                       {vehicle.emissionFactors?.CO2
                         ? `${vehicle.emissionFactors.CO2} g/km`
                         : "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900">
                       {formatDate(vehicle.createdAt)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900">
                       {vehicle.createdBy?.firstName || '-'}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 text-center">
                       <div className="flex items-center space-x-2">
                         <PermissionGuard permission="vehicle.update">
                           <button
@@ -1110,7 +1110,7 @@ const AddVehicleSection = () => {
             <div className='flex gap-3 pt-4'>
               <button
                 type='submit'
-                className='bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                className='bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

@@ -64,7 +64,7 @@ const Scope2HeatingEntry: React.FC = () => {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
-      const response = await getRequest("facilities/getFacilities", getToken());
+      const response = await getRequest("facilities/getFacilities?status=Active", getToken());
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
@@ -370,7 +370,7 @@ const Scope2HeatingEntry: React.FC = () => {
           actions={[
             {
               label: "",
-              icon: <Edit3 className="w-4 h-4" />,
+              icon: <Edit3 className="w-4 h-4 text-green-500" />,
               onClick: (row) => startEdit(row),
               variant: "primary",
             },
@@ -385,7 +385,7 @@ const Scope2HeatingEntry: React.FC = () => {
       {showForm && (
         <div className="bg-white border border-orange-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-orange-900">
+            <h4 className="text-lg font-medium text-black">
               {editingItem ? 'Edit' : 'Add'} Heating Consumption
             </h4>
             <button
@@ -562,7 +562,7 @@ const Scope2HeatingEntry: React.FC = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50"
+                className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-md disabled:opacity-50"
               >
                 <span>{loading ? 'Saving...' : 'Save'}</span>
               </button>
