@@ -158,10 +158,12 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        toast.error(response.message || "Failed to fetch facilities");
+        // toast.error(response.message || "Failed to fetch facilities");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch facilities");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch facilities");
     }
   };
 
@@ -174,10 +176,12 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setEquipments(response.data.equipments || []);
       } else {
-        toast.error(response.message || "Failed to fetch equipments");
+        // toast.error(response.message || "Failed to fetch equipments");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch equipments");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch equipments");
     }
   };
 
@@ -190,10 +194,12 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setFuelTypes(response.data.stationaryFuelTypes || []);
       } else {
-        toast.error(response.message || "Failed to fetch fuel types");
+        // toast.error(response.message || "Failed to fetch fuel types");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch fuel types");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch fuel types");
     }
   };
   const getStationaryTotal = async () => {
@@ -202,10 +208,12 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setStationaryCombustionData(response.data.stationary);
       } else {
-        toast.error(response.message || "Failed to fetch stationary total");
+        // toast.error(response.message || "Failed to fetch stationary total");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch stationary total");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch stationary total");
     }
   };
 
@@ -282,12 +290,14 @@ export default function StationaryCombustionSection() {
           useCustomEmissionFactor: false,
         });
       } else {
-        toast.error(
-          response.message || "Failed to add stationary combustion data"
-        );
+        // toast.error(
+        //   response.message || "Failed to add stationary combustion data"
+        // );
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to add stationary combustion data");
+      console.log(error, 'error')
+      //  toast.error(error.message || "Failed to add stationary combustion data");
     } finally {
       setSubmitting(false);
     }
@@ -316,7 +326,8 @@ export default function StationaryCombustionSection() {
       const editingId = editingStationaryData?._id || editingStationaryData?.id;
       
       if (!editingId) {
-        toast.error("No item ID found for editing");
+        // toast.error("No item ID found for editing");
+        console.log("No item ID found for editing")
         return;
       }
 
@@ -355,14 +366,16 @@ export default function StationaryCombustionSection() {
           useCustomEmissionFactor: false,
         });
       } else {
-        toast.error(
-          response.message || "Failed to update stationary combustion data"
-        );
+        // toast.error(
+        //   response.message || "Failed to update stationary combustion data"
+        // );
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(
-        error.message || "Failed to update stationary combustion data"
-      );
+      console.log(error, 'error')
+      // toast.error(
+      //   error.message || "Failed to update stationary combustion data"
+      // );
     } finally {
       setSubmitting(false);
     }

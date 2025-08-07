@@ -68,10 +68,12 @@ const Scope2HeatingEntry: React.FC = () => {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        toast.error(response.message || "Failed to fetch facilities");
+        // toast.error(response.message || "Failed to fetch facilities");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch facilities");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch facilities");
     }
   };
 
@@ -81,10 +83,12 @@ const Scope2HeatingEntry: React.FC = () => {
       if (response.success) {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
-        toast.error(response.message || "Failed to fetch energy types");
+        // toast.error(response.message || "Failed to fetch energy types");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch energy types");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch energy types");
     }
   };
 
@@ -94,10 +98,12 @@ const Scope2HeatingEntry: React.FC = () => {
       if (response.success) {
         setHeatingData(response.data.purchasedElectricity || []);
       } else {
-        toast.error(response.message || "Failed to fetch heating data");
+        // toast.error(response.message || "Failed to fetch heating data");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch heating data");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to fetch heating data");
     }
   };
 
@@ -148,7 +154,8 @@ const Scope2HeatingEntry: React.FC = () => {
         const editingId = editingItem?._id || editingItem?.id;
         
         if (!editingId) {
-          toast.error("No item ID found for editing");
+          // toast.error("No item ID found for editing");
+          console.log("No item ID found for editing")
           return;
         }
 
@@ -169,7 +176,8 @@ const Scope2HeatingEntry: React.FC = () => {
           setEditingItem(null);
           resetForm();
         } else {
-          toast.error(response.message || "Failed to update heating data");
+          // toast.error(response.message || "Failed to update heating data");
+          console.log(response, 'response')
         }
       } else {
         // Add new record
@@ -190,11 +198,13 @@ const Scope2HeatingEntry: React.FC = () => {
           setShowForm(false);
           resetForm();
         } else {
-          toast.error(response.message || "Failed to add heating data");
+          // toast.error(response.message || "Failed to add heating data");
+          console.log(response, 'response')
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save heating data");
+      console.log(error, 'error')
+      // toast.error(error.message || "Failed to save heating data");
     } finally {
       setLoading(false);
     }
@@ -244,7 +254,8 @@ const Scope2HeatingEntry: React.FC = () => {
       const editingId = item?._id || item?.id;
       
       if (!editingId) {
-        toast.error("No item ID found for deletion");
+        // toast.error("No item ID found for deletion");
+        console.log("No item ID found for deletion")
         return;
       }
 
@@ -262,10 +273,12 @@ const Scope2HeatingEntry: React.FC = () => {
         toast.success("Heating record deleted successfully");
         await getHeatingTotal();
       } else {
-        toast.error(response.message || "Failed to delete heating record");
+        // toast.error(response.message || "Failed to delete heating record");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete heating record");
+      // toast.error(error.message || "Failed to delete heating record");
+      console.log(error, 'error')
     }
   };
 

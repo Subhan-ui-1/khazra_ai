@@ -114,10 +114,12 @@ const AddRoleSection = () => {
           );
         }
       } else {
-        toast.error(response.message || "Failed to fetch roles");
+        // toast.error(response.message || "Failed to fetch roles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch roles");
+      // toast.error(error.message || "Failed to fetch roles");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -141,7 +143,8 @@ const AddRoleSection = () => {
       //   toast.error(response.message || "Failed to fetch permissions");
       // }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch permissions");
+      // toast.error(error.message || "Failed to fetch permissions");
+      console.log(error, 'error')
     } finally {
       setLoadingPermissions(false);
     }
@@ -166,7 +169,7 @@ const AddRoleSection = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error("Role name is required");
+      // toast.error("Role name is required");
       return;
     }
 
@@ -204,7 +207,8 @@ const AddRoleSection = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to save role");
+      // toast.error(error.message || "Failed to save role");
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -239,7 +243,8 @@ const AddRoleSection = () => {
         fetchRoles();
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete role");
+      // toast.error(error.message || "Failed to delete role");
+      console.log(error, 'error')
     }
   };
 
@@ -355,10 +360,11 @@ const AddRoleSection = () => {
         fetchRoles();
       }
     } catch (error: any) {
-      toast.error(
-        error.message ||
-          (editingItem ? "Failed to update role" : "Failed to create role")
-      );
+      // toast.error(
+      //   error.message ||
+      //     (editingItem ? "Failed to update role" : "Failed to create role")
+      // );
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }

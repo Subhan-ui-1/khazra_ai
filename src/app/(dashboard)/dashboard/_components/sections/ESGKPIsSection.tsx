@@ -72,10 +72,12 @@ export default function ESGKPIsSection() {
         });
         await fetchInitiatives();
       } else {
-        toast.error(response.message || "Failed to add initiative");
+        // toast.error(response.message || "Failed to add initiative");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to add initiative");
+      // toast.error(error.message || "Failed to add initiative");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -541,9 +543,9 @@ export default function ESGKPIsSection() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Feasibility
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
-                </th>
+                </th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -599,7 +601,7 @@ export default function ESGKPIsSection() {
                         {initiative.feasibility}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => startEditInitiative(initiative)}
@@ -609,7 +611,7 @@ export default function ESGKPIsSection() {
                         </button>
                         
                       </div>
-                    </td>
+                    </td> */}
                   </tr>
                 ))
               )}
@@ -620,7 +622,7 @@ export default function ESGKPIsSection() {
 
       {/* Initiative Form Modal */}
       {showInitiativeForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-gray-900">

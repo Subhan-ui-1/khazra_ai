@@ -189,7 +189,7 @@ const AddFacilitySection = () => {
   // Get user location and organization ID on component mount
   useEffect(() => {
     // Get user location
-    if (navigator.geolocation) {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -219,7 +219,7 @@ const AddFacilitySection = () => {
         }
       );
     } else {
-      console.log("Geolocation is not supported by this browser");
+      console.log("Geolocation is not supported by this browser or running on server");
       // Set default coordinates
       const defaultLat = 40.28;
       const defaultLng = 74.6;
@@ -354,10 +354,12 @@ const AddFacilitySection = () => {
       if (response.success) {
         setFacilityData(response.data.facilities || []);
       } else {
-        toast.error(response.message || "Failed to fetch facilities");
+        // toast.error(response.message || "Failed to fetch facilities");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch facilities");
+      // toast.error(error.message || "Failed to fetch facilities");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -376,10 +378,12 @@ const AddFacilitySection = () => {
         toast.success("Facility Deleted Successfully");
         fetchFacilities(); // Refresh the list
       } else {
-        toast.error(response.message || "Failed to delete facility");
+        // toast.error(response.message || "Failed to delete facility");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete facility");
+      // toast.error(error.message || "Failed to delete facility");
+      console.log(error, 'error')
     }
   };
 
@@ -438,10 +442,12 @@ const AddFacilitySection = () => {
         resetForm();
         fetchFacilities(); // Refresh the list after adding/updating
       } else {
-        toast.error(response.message || "Operation failed");
+        // toast.error(response.message || "Operation failed");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      // toast.error(error.message || "An error occurred");
+      console.log(error, 'error')
     }
   };
 
@@ -539,7 +545,7 @@ const AddFacilitySection = () => {
   };
 
   useEffect(() => {
-    if (showForm) {
+    if (showForm && typeof window !== 'undefined') {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: 'smooth'
@@ -596,7 +602,8 @@ const AddFacilitySection = () => {
       setSelectedFacilities([]);
       fetchFacilities();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete some facilities");
+      // toast.error(error.message || "Failed to delete some facilities");
+      console.log(error, 'error')
     }
   };
 
@@ -617,7 +624,8 @@ const AddFacilitySection = () => {
       setSelectedFacilities([]);
       fetchFacilities();
     } catch (error: any) {
-      toast.error(error.message || "Failed to update some facilities");
+      //  toast.error(error.message || "Failed to update some facilities");
+      console.log(error, 'error')
     }
   };
 

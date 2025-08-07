@@ -32,6 +32,7 @@ import {
 import { getRequest, postRequest } from "../../../../../utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
+import BubbleChart from "./BubbleChart";
 
 // TypeScript interfaces
 interface Report {
@@ -1564,7 +1565,11 @@ const MaterialityAssessmentEngine = () => {
             <TopicOverview />
             {assessedTopics.length > 0 && (
               <div className="mt-8">
-                <MaterialityMatrix />
+                <BubbleChart
+                  assessedTopics={topics.filter(t => t.assessmentComplete)}
+                  calculateMaterialityLevel={calculateMaterialityLevel}
+                />
+
               </div>
             )}
           </>

@@ -106,10 +106,12 @@ const FeedbackSection = () => {
         // Check if current user has already submitted feedback
         checkIfUserHasSubmitted(response.data.feedbacks || []);
       } else {
-        toast.error(response.message || "Failed to fetch feedbacks");
+        // toast.error(response.message || "Failed to fetch feedbacks");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch feedbacks");
+      // toast.error(error.message || "Failed to fetch feedbacks");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -166,10 +168,12 @@ const FeedbackSection = () => {
            fetchFeedbacks();
          }
        } else {
-         toast.error(response.message || 'Failed to submit feedback');
+        //  toast.error(response.message || 'Failed to submit feedback');
+        console.log(response, 'response')
        }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit feedback');
+      // toast.error(error.message || 'Failed to submit feedback');
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }

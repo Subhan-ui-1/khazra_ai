@@ -205,10 +205,12 @@ const AddUserSection = () => {
       if (response.success) {
         setUserData(response.data.users || []);
       } else {
-        toast.error(response.message || "Failed to fetch users");
+        // toast.error(response.message || "Failed to fetch users");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch users");
+      // toast.error(error.message || "Failed to fetch users");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -230,10 +232,12 @@ const AddUserSection = () => {
           setDepartments(response.data.departments.filter((e:any)=>e.name !== 'Administration') || []);
         }
       } else {
-        toast.error(response.message || "Failed to fetch departments");
+        // toast.error(response.message || "Failed to fetch departments");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch departments");
+      // toast.error(error.message || "Failed to fetch departments");
+      console.log(error, 'error')
     } finally {
       setLoadingDepartments(false);
     }
@@ -255,10 +259,12 @@ const AddUserSection = () => {
           setRoles(response.data.roles.filter((e:any)=>e.name !== 'superadmin') || []);
         }
       } else {
-        toast.error(response.message || "Failed to fetch roles");
+        // toast.error(response.message || "Failed to fetch roles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch roles");
+      // toast.error(error.message || "Failed to fetch roles");
+      console.log(error, 'error')
     } finally {
       setLoadingRoles(false);
     }
@@ -308,7 +314,8 @@ const AddUserSection = () => {
         fetchUsers();
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete user");
+      // toast.error(error.message || "Failed to delete user");
+      console.log(error, 'error')
     }
   };
 
@@ -448,7 +455,8 @@ const AddUserSection = () => {
         fetchUsers();
       }
     } catch (error: any) {
-      toast.error(error.message || (editingUser ? "Failed to update user" : "Failed to create user"));
+      // toast.error(error.message || (editingUser ? "Failed to update user" : "Failed to create user"));
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -492,7 +500,8 @@ const AddUserSection = () => {
       setSelectedUsers([]);
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete some users");
+      // toast.error(error.message || "Failed to delete some users");
+      console.log(error, 'error')
     }
   };
 
@@ -513,7 +522,8 @@ const AddUserSection = () => {
       setSelectedUsers([]);
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.message || "Failed to verify some users");
+      //  toast.error(error.message || "Failed to verify some users");
+      console.log(error, 'error')
     }
   };
 

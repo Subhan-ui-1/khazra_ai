@@ -154,11 +154,13 @@ export default function LoginPage() {
         //   router.replace("/dashboard?section=add-boundary");
         // }
       } else {
-        toast.error(response.message);
+        // toast.error(response.message);
+        console.log(response, 'response')
       }
     } catch (error: any) {
       console.log(error.response.message);
-      toast.error(error.response.message);
+      console.log(error, 'error')
+      // toast.error(error.response.message);
     } finally {
       setLoadingBtn(false);
     }

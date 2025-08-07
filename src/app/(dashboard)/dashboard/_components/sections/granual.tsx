@@ -142,7 +142,8 @@ const AssetLevelTargetPlatform = () => {
             }));
         }
         } catch (error: any) {
-        toast.error(error.message || "Failed to fetch asset data");
+        // toast.error(error.message || "Failed to fetch asset data");
+        console.log(error, 'error')
         } finally {
         setLoading(false);
         }
@@ -187,7 +188,8 @@ const AssetLevelTargetPlatform = () => {
         toast.error(response.message || 'Failed to save target');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save target');
+      // toast.error(error.message || 'Failed to save target');
+      console.log(error, 'error')
     }
   };
 

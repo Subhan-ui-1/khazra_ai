@@ -100,10 +100,10 @@ const AddDepartmentSection = () => {
           setDepartmentData(response.data.departments.filter((e:any)=>e.name !== 'Administration') || []);
         }
       } else {
-        toast.error(response.message || "Failed to fetch departments");
+        // toast.error(response.message || "Failed to fetch departments");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch departments");
+      //  toast.error(error.message || "Failed to fetch departments");
     } finally {
       setLoading(false);
     }
@@ -141,11 +141,12 @@ const AddDepartmentSection = () => {
       );
       
       if (response.success) {
-        toast.success("Department deleted successfully");
+        // toast.success("Department deleted successfully");
         fetchDepartments();
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete department");
+      // toast.error(error.message || "Failed to delete department");
+      console.log(error, 'error')
     }
   };
 
@@ -213,7 +214,8 @@ const AddDepartmentSection = () => {
         fetchDepartments();
       }
     } catch (error: any) {
-      toast.error(error.message || (editingItem ? "Failed to update department" : "Failed to create department"));
+      // toast.error(error.message || (editingItem ? "Failed to update department" : "Failed to create department"));
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -257,7 +259,8 @@ const AddDepartmentSection = () => {
       setSelectedDepartments([]);
       fetchDepartments();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete some departments");
+      // toast.error(error.message || "Failed to delete some departments");
+      console.log(error, 'error')
     }
   };
 

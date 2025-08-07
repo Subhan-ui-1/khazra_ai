@@ -258,10 +258,12 @@ const AddVehicleSection = () => {
       if (response.success) {
         setVehicleData(response.data.vehicles || []);
       } else {
-        toast.error(response.message || "Failed to fetch vehicles");
+        //toast.error(response.message || "Failed to fetch vehicles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch vehicles");
+      // toast.error(error.message || "Failed to fetch vehicles");
+      console.log(error, 'error')
     } finally {
       setLoading(false);
     }
@@ -280,10 +282,12 @@ const AddVehicleSection = () => {
         toast.success("Vehicle Deleted Successfully");
         fetchVehicles(); // Refresh the list
       } else {
-        toast.error(response.message || "Failed to delete vehicle");
+        // toast.error(response.message || "Failed to delete vehicle");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete vehicle");
+      // toast.error(error.message || "Failed to delete vehicle");
+      console.log(error, 'error')
     }
   };
 
@@ -359,10 +363,12 @@ const AddVehicleSection = () => {
         setFormData(empty);
         fetchVehicles(); // Refresh the list after adding/updating
       } else {
-        toast.error(response.message || "Operation failed");
+        // toast.error(response.message || "Operation failed");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      // toast.error(error.message || "An error occurred");
+      console.log(error, 'error')
     }
   };
 
@@ -482,7 +488,8 @@ const AddVehicleSection = () => {
       setSelectedVehicles([]);
       fetchVehicles();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete some vehicles");
+      // toast.error(error.message || "Failed to delete some vehicles");
+      console.log(error, 'error')
     }
   };
 
@@ -497,7 +504,8 @@ const AddVehicleSection = () => {
       toast.success(`${selectedVehicles.length} vehicles exported successfully`);
       setSelectedVehicles([]);
     } catch (error: any) {
-      toast.error(error.message || "Failed to export vehicles");
+      //  toast.error(error.message || "Failed to export vehicles");
+      console.log(error, 'error')
     }
   };
 

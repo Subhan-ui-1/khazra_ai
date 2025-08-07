@@ -115,10 +115,12 @@ export default function MobileCombustionSection() {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        toast.error(response.message || "Failed to fetch facilities");
+        // toast.error(response.message || "Failed to fetch facilities");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch facilities");
+      // toast.error(error.message || "Failed to fetch facilities");
+      console.log(error, 'error')
     }
   };
 
@@ -133,10 +135,12 @@ export default function MobileCombustionSection() {
         // console.log(vehicles, 'vehicles from useEffect.')
         console.log(response.data.vehicles)
       } else {
-        toast.error(response.message || "Failed to fetch vehicles");
+        // toast.error(response.message || "Failed to fetch vehicles");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch vehicles");
+      // toast.error(error.message || "Failed to fetch vehicles");
+      console.log(error, 'error')
     }
   };
 
@@ -149,10 +153,12 @@ export default function MobileCombustionSection() {
       if (response.success) {
         setMobileFuelTypes(response.data.mobileFuelTypes || []);
       } else {
-        toast.error(response.message || "Failed to fetch mobile fuel types");
+        // toast.error(response.message || "Failed to fetch mobile fuel types");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch mobile fuel types");
+      // toast.error(error.message || "Failed to fetch mobile fuel types");
+      console.log(error, 'error')
     }
   };
 
@@ -162,10 +168,12 @@ export default function MobileCombustionSection() {
       if (response.success) {
         setMobileCombustionData(response.data.mobile || []);
       } else {
-        toast.error(response.message || "Failed to fetch mobile data");
+        // toast.error(response.message || "Failed to fetch mobile data");
+        console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch mobile data");
+      // toast.error(error.message || "Failed to fetch mobile data");
+      console.log(error, 'error')
     }
   };
 
@@ -255,11 +263,13 @@ export default function MobileCombustionSection() {
         });
       } else {
         toast.error(
-          response.message || "Failed to add mobile combustion data"
+          // response.message || "Failed to add mobile combustion data"
+          console.log(response, 'response')
         );
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to add mobile combustion data");
+      // toast.error(error.message || "Failed to add mobile combustion data");
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
@@ -288,7 +298,8 @@ export default function MobileCombustionSection() {
       const editingId = editingMobileData?._id || editingMobileData?.id;
       
       if (!editingId) {
-        toast.error("No item ID found for editing");
+        //  toast.error("No item ID found for editing");
+        console.log("No item ID found for editing")
         return;
       }
 
@@ -328,12 +339,14 @@ export default function MobileCombustionSection() {
           total: ''
         });
       } else {
-        toast.error(
-          response.message || "Failed to update mobile combustion data"
-        );
+          // toast.error(
+          //   response.message || "Failed to update mobile combustion data"
+          // );
+          console.log(response, 'response')
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to update mobile combustion data");
+      // toast.error(error.message || "Failed to update mobile combustion data");
+      console.log(error, 'error')
     } finally {
       setSubmitting(false);
     }
