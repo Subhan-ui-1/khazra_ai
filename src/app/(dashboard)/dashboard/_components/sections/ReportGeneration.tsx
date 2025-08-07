@@ -25,8 +25,8 @@ export default function ReportGeneration() {
             <h1 className="text-3xl font-bold mb-6">Report Generation</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-2">SBTi</h2>
+                <div className="bg-white p-6 rounded-lg shadow-md border-t border-gray-100">
+                    <h2 className="text-xl font-semibold mb-2">GRI</h2>
                     <p className="text-sm text-gray-600">
                         Science Based Targets initiative helps companies to set emission reduction targets in line with climate science.
                     </p>
@@ -37,8 +37,8 @@ export default function ReportGeneration() {
                         Generate Report
                     </button>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-2">IFRSSi</h2>
+                <div className="bg-white p-6 rounded-lg shadow-md border-t border-gray-100">
+                    <h2 className="text-xl font-semibold mb-2">IFRS</h2>
                     <p className="text-sm text-gray-600">
                         International Financial Reporting Sustainability Standards Initiative provides sustainability disclosure guidance.
                     </p>
@@ -49,6 +49,9 @@ export default function ReportGeneration() {
                         Generate Report
                     </button>
                 </div>
+            </div>
+            <div className='border-t border-gray-100 my-8 shadow-lg p-4 rounded-lg'>
+                <p className='font-bold'>Recent Reports</p>
             </div>
 
             {type && (
@@ -63,7 +66,11 @@ export default function ReportGeneration() {
 
             {reportData && (
                 <div className="mt-10">
-                    <Report data={reportData} />
+                    <Report data={reportData} onEdit={function (): void {
+                        throw new Error('Function not implemented.');
+                    } } onClose={function (): void {
+                        throw new Error('Function not implemented.');
+                    } } viewMode={'full'} />
                 </div>
             )}
         </div>
