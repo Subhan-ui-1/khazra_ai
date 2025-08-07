@@ -4,6 +4,8 @@ import React, { useState, useRef } from 'react';
 import { Editor } from 'primereact/editor';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
+import { generateGRIReport } from '@/constants/griReportTemplate';
+import { generateIFRSReport } from '@/constants/ifrsReportTemplate';
 
 interface ReportProps {
     data: any; // Replace with actual data type
@@ -87,7 +89,35 @@ export default function ReportParagraph({ data, onEdit, onClose, viewMode }: Rep
                 ) : (
                     <div
                         className="prose max-w-none"
-                        dangerouslySetInnerHTML={{ __html: customText }}
+                        dangerouslySetInnerHTML={{ __html: generateGRIReport({
+                            companyName: 'Milestone',
+                            periodFrequency: 'Annual',
+                            inauguralOrSubsequent: 'Subsequent',
+                            reportingPeriod: '2024',
+                            reportingStandards: 'GRI 4.1',
+                            externalAuditorAppointed: 'Yes',
+                            contactDetails: 'info@milestone.com',
+                            leadershipTitle: 'CEO',
+                            departmentsNames: 'Marketing, Sales, Finance',
+                            board: 'Board of Directors',
+                            committeeName: 'Sustainability Committee',
+                            specificTrainingsProvided: 'Yes',
+                            policiesName: 'Sustainability Policy',
+                            workshopsConducted: 'Yes',
+                            sustainabilityRisksAndOpportunities: 'Yes',
+                            energySource: 'Electricity',
+                            sectorIndustryName: 'Technology',
+                            externalConsultants: 'Yes',
+                            benchmarkDetail: 'Yes',
+                            kpis: 'Yes',
+                            dataMonitoringSystems: 'Yes',
+                            ipccAndIea: 'Yes',
+                            physicalRisksScenarios: 'Yes',
+                            selectedBusinessSite: 'Yes',
+                            transitionRiskScenarios: 'Yes',
+                            innovativeFacility: 'Yes',
+                            toolsUsed: 'Yes',
+                        }) }}
                     />
                 )}
             </div>
