@@ -72,6 +72,7 @@ export default function DashboardPage() {
     analytics: <AnalyticsSection />,
     chatbot: <ChatbotSection />,
     reporting: <MaterialityAssessmentEngine />,
+    'ReportGeneration': <ReportGeneration />,
     feedback: <FeedbackSection />,
     'add-facility': <PermissionGuard permission="facilities.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view facilities.</div>}>
       <AddFacilitySection />
@@ -97,7 +98,6 @@ export default function DashboardPage() {
     // 'equipment-type': <PermissionGuard permission="equipmentType.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view equipment types.</div>}>
     //   <EquipmentTypeSection />
     // </PermissionGuard>
-    'ReportGeneration': <ReportGeneration />,
   };
 
   return (

@@ -169,7 +169,7 @@ export default function DashboardSidebar({
           // { id: 'analytics', icon: '📊', label: 'Analytics & Insights' },
           { id: "reporting", icon: "📊", label: "Materiality Engine" },
           { id: "ReportGeneration", icon: "📝", label: "Report Generation"},
-          { id: "NewReport", icon: "📝", label: "New Report Generation"},
+          // { id: "NewReport", icon: "📝", label: "New Report Generation"},
         ],
       },
       {

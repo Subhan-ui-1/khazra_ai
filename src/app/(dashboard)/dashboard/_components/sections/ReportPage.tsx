@@ -7,17 +7,7 @@ import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
 
 interface ReportProps {
-    data: {
-        name: string;
-        industry: string;
-        location: string;
-        year: string;
-        revenue: number;
-        emissions: number;
-        goal: string;
-        contact: string;
-        type: string;
-    };
+    data: any; // Replace with actual data type
     onEdit: () => void;
     onClose: () => void;
     viewMode: 'full' | 'half';
@@ -52,14 +42,14 @@ export default function ReportParagraph({ data, onEdit, onClose, viewMode }: Rep
             <div className="absolute top-4 left-4 z-10">
                 {editMode ? (
                     <button
-                        className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+                        className="bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700 outline-0 cursor-pointer"
                         onClick={handleSave}
                     >
                         Save
                     </button>
                 ) : (
                     <button
-                        className="bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-100"
+                        className="bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-100 outline-0 cursor-pointer"
                         onClick={() => setEditMode(true)}
                     >
                         Edit
@@ -101,7 +91,7 @@ export default function ReportParagraph({ data, onEdit, onClose, viewMode }: Rep
             {/* Bottom Left - Save & Download PDF */}
             <div className="absolute bottom-4 left-4 z-10">
                 <button
-                    className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    className="bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700 outline-0 cursor-pointer"
                     onClick={handleDownloadPDF}
                 >
                     Save & Download

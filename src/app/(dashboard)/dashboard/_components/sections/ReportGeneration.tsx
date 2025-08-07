@@ -63,7 +63,11 @@ export default function ReportGeneration() {
 
             {reportData && (
                 <div className="mt-10">
-                    <Report data={reportData} />
+                    <Report data={reportData} onEdit={function (): void {
+                        throw new Error('Function not implemented.');
+                    } } onClose={function (): void {
+                        throw new Error('Function not implemented.');
+                    } } viewMode={'full'} />
                 </div>
             )}
         </div>
