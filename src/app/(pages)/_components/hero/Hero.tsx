@@ -27,7 +27,7 @@ const Page = () => {
             hoverTextColor: 'var(--Heading)',
             action: () => {
                 setLoadingScreen(true);
-                router.push('/tool/dashboard.html');
+                router.push('/contactUs');
             },
         },
         {
