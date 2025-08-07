@@ -254,7 +254,7 @@ const FeedbackSection = () => {
         ) : (
           <button
             onClick={showMOdalFeedback}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Submit Feedback</span>
@@ -408,7 +408,7 @@ const FeedbackSection = () => {
               <button
                 onClick={handleSubmit}
                 disabled={formData.rating === 0 || !formData.content.trim() || loading}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -439,7 +439,7 @@ const FeedbackSection = () => {
           <div className="divide-y divide-gray-200">
             {loading ? (
               <div className="px-6 py-12 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D5942] mx-auto mb-4"></div>
                 <p className="text-gray-500">Loading feedback...</p>
               </div>
             ) : feedbackData.length === 0 ? (

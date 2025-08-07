@@ -272,7 +272,7 @@ const AddDepartmentSection = () => {
         <PermissionGuard permission="department.create">
           <button
             onClick={() => setShowForm(true)}
-            className='bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+            className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -283,7 +283,7 @@ const AddDepartmentSection = () => {
       </div>
 
       {/* Search and Filter Section */}
-      <div className='bg-white p-4 rounded-lg shadow-sm border border-gray-200'>
+      <div className='bg-white p-4 w-1/2 rounded-lg shadow-sm border border-gray-200'>
         <div className='flex flex-col md:flex-row gap-4'>
           <div className='flex-1'>
             <input
@@ -328,14 +328,14 @@ const AddDepartmentSection = () => {
               </span>
             </div>
             <div className='flex gap-2'>
-              <PermissionGuard permission="department.delete">
+              {/* <PermissionGuard permission="department.delete">
                 <button
                   onClick={handleBulkDelete}
                   className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
                 >
                   Delete Selected
                 </button>
-              </PermissionGuard>
+              </PermissionGuard> */}
               <button
                 onClick={() => setSelectedDepartments([])}
                 className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
