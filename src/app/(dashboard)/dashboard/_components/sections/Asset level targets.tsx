@@ -181,7 +181,7 @@ const AssetLevelTargetPlatform = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch asset data");
-      console.log(error, 'error')
+      console.log(error, "error");
     } finally {
       setLoading(false);
     }
@@ -199,7 +199,7 @@ const AssetLevelTargetPlatform = () => {
       }
     } catch (error: any) {
       // console.error("Failed to fetch granular targets:", error);
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
@@ -228,11 +228,11 @@ const AssetLevelTargetPlatform = () => {
         setEditingItem(null);
       } else {
         //  toast.error(response.message || "Failed to save target");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to save target");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
@@ -1018,50 +1018,57 @@ const AssetLevelTargetPlatform = () => {
 
   return (
     <div className="space-y-10">
-       {activeTab === "assets" && (
+      {activeTab && (
         <div className="flex space-x-1 mb-6 p-1 rounded-lg justify-center">
           {[
+            { key: "overview", label: "Overview", icon: BarChart3 },
             { key: "facilities", label: "Facilities", icon: Building },
             { key: "equipment", label: "Equipment", icon: Wrench },
             { key: "fleet", label: "Fleet", icon: Car },
           ].map((category) => (
             <button
               key={category.key}
-              onClick={() => setSelectedCategory(category.key)}
+              onClick={() => {
+                setSelectedCategory(category.key);
+                setActiveTab(
+                  category.key === "overview" ? "overview" : "assets"
+                );
+              }}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all  ${
-                selectedCategory === category.key
+                (
+                  activeTab === "overview"
+                    ? activeTab === category.key
+                    : selectedCategory === category.key
+                )
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
               <category.icon className="w-4 h-4" />
               <span>{category.label}</span>
-              <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                {assetData[category.key as keyof AssetData]?.length || 0}
-              </span>
+              {category.key !== "overview" && (
+                <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                  {assetData[category.key as keyof AssetData]?.length || 0}
+                </span>
+              )}
             </button>
           ))}
         </div>
       )}
 
       {/* Header - Updated to match dashboard design */}
-      <div className={`flex ${activeTab!=='assets'?"justify-between":"justify-end"} items-center`}>
-       {activeTab !=='assets'&& <div className="border-b border-green-100 pb-6">
-          <h1 className="text-3xl font-bold text-black mb-4">
-            Asset-Level Target Management
-          </h1>
-          <p className="text-black opacity-70 max-w-4xl leading-relaxed">
-            Set and manage granular carbon reduction targets for individual
-            assets across facilities, equipment, and fleet.
-          </p>
-        </div>}
-        <button
-          onClick={() => setActiveTab(prev=>prev==='assets'?"overview":"assets")}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all`}
-        >
-          {activeTab!=='assets'?<Layers className="w-4 h-4" />:<BarChart3 className="w-4 h-4" />}
-          <span>{activeTab!=='assets'?"Asset Details":"Overview"}</span>
-        </button>
+      <div className={`flex justify-start items-center`}>
+        {activeTab && (
+          <div className="border-b border-green-100 pb-6">
+            <h1 className="text-3xl font-bold text-black mb-4">
+              Asset-Level Target Management
+            </h1>
+            <p className="text-black opacity-70 max-w-4xl leading-relaxed">
+              Set and manage granular carbon reduction targets for individual
+              assets across facilities, equipment, and fleet.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navigation - Updated styling */}
@@ -1093,10 +1100,10 @@ const AssetLevelTargetPlatform = () => {
       </div> */}
 
       {/* Category Selection for Asset Details - Updated styling */}
-     
+
       {/* Content - Updated styling */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
+      <div className="bg-white rounded-lg shadow-sm0">
+        <div className="">
           {activeTab === "overview" && <OverviewDashboard />}
           {activeTab === "assets" && <AssetDetailView />}
         </div>

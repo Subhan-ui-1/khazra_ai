@@ -19,6 +19,7 @@ export interface ReportFormData  {
 export default function ReportGeneration() {
     const [type, setType] = useState<'SBTi' | 'IFRSSi' | null>(null);
     const [reportData, setReportData] = useState<FormData | null>(null);
+    const [isVisible, setIsVisible] = useState(false);
 
     return (
         <div className="h-screen p-4 relative">
@@ -61,16 +62,15 @@ export default function ReportGeneration() {
                     onSubmit={(data) => {
                         setReportData(data);
                         setType(null);
-                    } } isVisible={false}                />
+                        setIsVisible(true);
+                    } } isVisible={isVisible}                />
             )}
 
-            {reportData && (
+            {isVisible && (
                 <div className="mt-10">
                     <Report data={reportData} onEdit={function (): void {
                         throw new Error('Function not implemented.');
-                    } } onClose={function (): void {
-                        throw new Error('Function not implemented.');
-                    } } viewMode={'full'} />
+                    } } onClose={() => setIsVisible(false)} viewMode={'full'} />
                 </div>
             )}
         </div>
