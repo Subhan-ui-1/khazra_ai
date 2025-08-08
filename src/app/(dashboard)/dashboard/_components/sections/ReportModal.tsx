@@ -36,6 +36,10 @@ export interface ReportFormData {
     transitionRiskScenarios: string;
     innovativeFacility: string;
     toolsUsed: string;
+    reportingPeriod: string;
+    companyName: string;
+    departmentsNames: string;
+    contactDetails: string;
 }
 
 interface ReportModalProps {
@@ -174,6 +178,10 @@ export default function ReportModal({ type, onClose, onSubmit, data, handleChang
                         <TextInput label="Transition Risk Scenarios" name="transitionRiskScenarios" value={data.transitionRiskScenarios} onChange={handleChange} required />
                         <TextInput label="Innovative Facility" name="innovativeFacility" value={data.innovativeFacility} onChange={handleChange} required />
                         <TextInput label="Tools Used" name="toolsUsed" value={data.toolsUsed} onChange={handleChange} required />
+                        <TextInput label="Reporting Period" name="reportingPeriod" value={data.reportingPeriod} onChange={handleChange} required />
+                        <TextInput label="Company Name" name="companyName" value={data.companyName} onChange={handleChange} required />
+                        <TextInput label="Departments Names" name="departmentsNames" value={data.departmentsNames} onChange={handleChange} required />
+                        <TextInput label="Contact Details" name="contactDetails" value={data.contactDetails} onChange={handleChange} required />
                         <SelectInput label="Industry" name="industry" value={data.industry} onChange={handleChange} options={industries} required />
                     </div>
 

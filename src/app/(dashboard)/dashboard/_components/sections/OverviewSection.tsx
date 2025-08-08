@@ -455,7 +455,7 @@ export default function OverviewSection() {
 
       <div className="h-[500px]">
         {/* <StackedBarWithLineChart title="🥇overall Target" /> */}
-        <LineChart title="🥇 Compliance Status"/>
+        <LineChart title="🥇 Compliance Status" />
       </div>
 
       <Table
@@ -463,11 +463,11 @@ export default function OverviewSection() {
         columns={tableColumns}
         data={transformActivitiesData()}
         // actions={tableActions}
-        showSearch={true}
-        showAddButton={true}
-        addButtonLabel="Add Sustainability Activity"
-        onAddClick={() => console.log("Add new activity")}
-        onSearch={(query) => console.log("Search:", query)}
+        showSearch={false}
+        showAddButton={false}
+        // addButtonLabel="Add Sustainability Activity"
+        // onAddClick={() => console.log("Add new activity")}
+        // onSearch={(query) => console.log("Search:", query)}
         rowKey="_id"
         emptyMessage="No recent activities found"
       />

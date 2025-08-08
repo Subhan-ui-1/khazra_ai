@@ -37,52 +37,52 @@ export function generateIFRSReport(data: IFRSReportData): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IFRS Sustainability Report</title>
     <style>
-        body {
-            font-family: 'Calibri', sans-serif;
-            line-height: 1.6;
-            margin: 40px;
-            color: #333;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-        .content {
-            text-align: justify;
-            margin-bottom: 15px;
-        }
-        .highlight {
-            font-weight: bold;
-            color: #e74c3c;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-        ul {
-            margin-left: 20px;
-        }
-        li {
-            margin-bottom: 8px;
-        }
-    </style>
+                body {
+                    font-family: 'Calibri', sans-serif;
+                    line-height: 1.6;
+                    margin: 40px;
+                    color: #333;
+                }
+                .section {
+                    margin-bottom: 30px;
+                }
+                .section-title {
+                    font-size: 36px;
+                    font-weight: bold;
+                    margin-bottom: 15px;
+                    color: black;
+                    // border-bottom: 2px solid #3498db;
+                    padding-bottom: 5px;
+                }
+                .content {
+                    text-align: justify;
+                    margin-bottom: 15px;
+                }
+                .highlight {
+                    font-weight: bold;
+                    color: black;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 12px;
+                    text-align: left;
+                }
+                th {
+                    background-color: #f8f9fa;
+                    font-weight: bold;
+                }
+                ul {
+                    margin-left: 20px;
+                }
+                li {
+                    margin-bottom: 8px;
+                }
+            </style>
 </head>
 <body>
     <div class="section">
