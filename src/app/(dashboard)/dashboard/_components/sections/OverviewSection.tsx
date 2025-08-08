@@ -301,7 +301,7 @@ export default function OverviewSection() {
       value: data.scope1Emissions.toFixed(1),
       percentage:
         data.scope1Emissions > 0
-          ? (data.scope1Emissions / data.totalEmissions) * 100
+          ? ((data.scope1Emissions / data.totalEmissions) * 100).toFixed(2)
           : 0,
       icon: "🔥",
       trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265],
@@ -329,7 +329,7 @@ export default function OverviewSection() {
       value: data.scope2Emissions.toFixed(1),
       percentage:
         data.scope2Emissions > 0
-          ? (data.scope2Emissions / data.totalEmissions) * 100
+          ? ((data.scope2Emissions / data.totalEmissions) * 100).toFixed(2)
           : 0,
       icon: "⚡",
       trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258],

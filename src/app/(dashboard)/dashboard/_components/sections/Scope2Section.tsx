@@ -562,7 +562,7 @@ export default function Scope2Section() {
       id: 'purchased-electricity',
       name: 'Purchased Electricity',
       value: dashboardData.scope2Emissions * 0.8,
-      percentage: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions * 0.8) / dashboardData.totalEmissions) * 100 : 0,
+      percentage: dashboardData.totalEmissions > 0 ? (((dashboardData.scope2Emissions * 0.8) / dashboardData.totalEmissions) * 100).toFixed(2) : 0,
       color: '#0f5744',
       opacity: 1,
       description: 'Grid electricity consumption'
@@ -571,7 +571,7 @@ export default function Scope2Section() {
       id: 'steam',
       name: 'Steam',
       value: dashboardData.scope2Emissions * 0.15,
-      percentage: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions * 0.15) / dashboardData.totalEmissions) * 100 : 0,
+      percentage: dashboardData.totalEmissions > 0 ? (((dashboardData.scope2Emissions * 0.15) / dashboardData.totalEmissions) * 100).toFixed(2) : 0,
       color: '#0f5744',
       opacity: 0.8,
       description: 'Industrial steam consumption'
@@ -580,7 +580,7 @@ export default function Scope2Section() {
       id: 'heating-cooling',
       name: 'Heating & Cooling',
       value: dashboardData.scope2Emissions * 0.05,
-      percentage: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions * 0.05) / dashboardData.totalEmissions) * 100 : 0,
+      percentage: dashboardData.totalEmissions > 0 ? (((dashboardData.scope2Emissions * 0.05) / dashboardData.totalEmissions) * 100).toFixed(2) : 0,
       color: '#0f5744',
       opacity: 0.6,
       description: 'HVAC and thermal systems'
