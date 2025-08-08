@@ -1,26 +1,50 @@
-// 'use client'
+'use client';
 
-import { useState, ChangeEvent, FormEvent } from 'react'
+import { ChangeEvent, FormEvent } from 'react';
 
-type ReportType = 'SBTi' | 'IFRSSi'
+type ReportType = 'GRI' | 'IFRS';
 
-interface ReportModalProps {
-    type: ReportType
-    onClose: () => void
-    onSubmit: (data: any) => void;
-    defaultData?: FormData;
-    isVisible: boolean;
+export interface ReportFormData {
+    name: string;
+    industry: string;
+    location: string;
+    year: string;
+    revenue: number | string;
+    emissions: number | string;
+    goal: string;
+    contact: string;
+    periodFrequency: string;
+    inauguralOrSubsequent: string;
+    reportingStandards: string;
+    externalAuditorAppointed: string;
+    leadershipTitle: string;
+    board: string;
+    committeeName: string;
+    specificTrainingsProvided: string;
+    policiesName: string;
+    workshopsConducted: string;
+    sustainabilityRisksAndOpportunities: string;
+    energySource: string;
+    sectorIndustryName: string;
+    externalConsultants: string;
+    benchmarkDetail: string;
+    kpis: string;
+    dataMonitoringSystems: string;
+    ipccAndIea: string;
+    physicalRisksScenarios: string;
+    selectedBusinessSite: string;
+    transitionRiskScenarios: string;
+    innovativeFacility: string;
+    toolsUsed: string;
 }
 
-interface FormData {
-    name: string
-    industry: string
-    location: string
-    year: string
-    revenue: number | string
-    emissions: number | string
-    goal: string
-    contact: string
+interface ReportModalProps {
+    type: ReportType;
+    onClose: () => void;
+    onSubmit: (data: ReportFormData & { type: ReportType }) => void;
+    data: ReportFormData;
+    handleChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    isVisible: boolean;
 }
 
 const industries = [
@@ -32,226 +56,137 @@ const industries = [
     'Retail',
     'Healthcare',
     'Agriculture',
-]
+];
 
-const generateYearOptions = (start = 2010, end = new Date().getFullYear() + 5) => {
-    const years: string[] = []
-    for (let y = end; y >= start; y--) {
-        years.push(y.toString())
-    }
-    return years
-}
+const TextInput = ({
+    label,
+    name,
+    value,
+    onChange,
+    required = false,
+    type = 'text',
+    placeholder = ''
+}: {
+    label: string,
+    name: string,
+    value: string | number,
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void,
+    required?: boolean,
+    type?: string,
+    placeholder?: string
+}) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
+            {label} {required && '*'}
+        </label>
+        <input
+            type={type}
+            id={name}
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
+            required={required}
+            placeholder={placeholder}
+        />
+    </div>
+);
 
-export default function ReportModal({ type, onClose, onSubmit }: ReportModalProps) {
-    const [formData, setFormData] = useState<FormData>({
-        name: '',
-        industry: '',
-        location: '',
-        year: '',
-        revenue: '',
-        emissions: '',
-        goal: '',
-        contact: '',
-    })
+const SelectInput = ({
+    label,
+    name,
+    value,
+    onChange,
+    options,
+    required = false,
+    placeholder = ''
+}: {
+    label: string,
+    name: string,
+    value: string,
+    onChange: (e: ChangeEvent<HTMLSelectElement>) => void,
+    options: string[],
+    required?: boolean,
+    placeholder?: string
+}) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
+            {label} {required && '*'}
+        </label>
+        <select
+            id={name}
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
+            required={required}
+        >
+            <option value="">{placeholder || `Select ${label}`}</option>
+            {options.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+            ))}
+        </select>
+    </div>
+);
 
-    const [submitting, setSubmitting] = useState(false)
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target
-        const parsedValue = type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
-        setFormData((prev) => ({ ...prev, [name]: parsedValue }))
-    }
-
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault()
-        setSubmitting(true)
-        onSubmit({ ...formData, type })
-        setSubmitting(false)
-    }
+export default function ReportModal({ type, onClose, onSubmit, data, handleChange }: ReportModalProps) {
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        onSubmit({ ...data, type });
+    };
 
     return (
-        <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 md:p-8 overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl p-6 md:p-8 overflow-y-auto max-h-[90vh] relative no-scrollbar">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-2xl font-bold"
+                    aria-label="Close"
+                >
+                    &times;
+                </button>
+
                 <h2 className="text-2xl font-bold mb-6">Generate {type} Report</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Name */}
-                        <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                            Name *
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        />
-                        </div>
-
-                        {/* Industry */}
-                        <div>
-                        <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-2">
-                            Industry *
-                        </label>
-                        <select
-                            id="industry"
-                            name="industry"
-                            value={formData.industry}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        >
-                            <option value="">Select Industry</option>
-                            {industries.map((ind) => (
-                            <option key={ind} value={ind}>
-                                {ind}
-                            </option>
-                            ))}
-                        </select>
-                        </div>
-
-                        {/* Location */}
-                        <div>
-                        <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                            Location *
-                        </label>
-                        <input
-                            type="text"
-                            id="location"
-                            name="location"
-                            value={formData.location}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        />
-                        </div>
-
-                        {/* Year */}
-                        <div>
-                        <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
-                            Year *
-                        </label>
-                        <select
-                            id="year"
-                            name="year"
-                            value={formData.year}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        >
-                            <option value="">Select Year</option>
-                            {generateYearOptions().map((y) => (
-                            <option key={y} value={y}>
-                                {y}
-                            </option>
-                            ))}
-                        </select>
-                        </div>
-
-                        {/* Revenue */}
-                        <div>
-                        <label htmlFor="revenue" className="block text-sm font-medium text-gray-700 mb-2">
-                            Annual Revenue (in millions) *
-                        </label>
-                        <input
-                            type="number"
-                            id="revenue"
-                            name="revenue"
-                            value={formData.revenue}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        />
-                        </div>
-
-                        {/* Emissions */}
-                        <div>
-                        <label htmlFor="emissions" className="block text-sm font-medium text-gray-700 mb-2">
-                            Emissions (in tons CO₂) *
-                        </label>
-                        <input
-                            type="number"
-                            id="emissions"
-                            name="emissions"
-                            value={formData.emissions}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        />
-                        </div>
-
-                        {/* Goal */}
-                        <div>
-                        <label htmlFor="goal" className="block text-sm font-medium text-gray-700 mb-2">
-                            Sustainability Goal *
-                        </label>
-                        <input
-                            type="text"
-                            id="goal"
-                            name="goal"
-                            value={formData.goal}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        />
-                        </div>
-
-                        {/* Contact */}
-                        <div>
-                        <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-2">
-                            Contact Number *
-                        </label>
-                        <input
-                            type="number"
-                            id="contact"
-                            name="contact"
-                            value={formData.contact}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 outline-0"
-                            required
-                        />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <TextInput label="Period Frequency" name="periodFrequency" value={data.periodFrequency} onChange={handleChange} required />
+                        <TextInput label="Inaugural or Subsequent" name="inauguralOrSubsequent" value={data.inauguralOrSubsequent} onChange={handleChange} required />
+                        <TextInput label="Reporting Standards" name="reportingStandards" value={data.reportingStandards} onChange={handleChange} required />
+                        <TextInput label="External Auditor Appointed" name="externalAuditorAppointed" value={data.externalAuditorAppointed} onChange={handleChange} required />
+                        <TextInput label="Leadership Title" name="leadershipTitle" value={data.leadershipTitle} onChange={handleChange} required />
+                        <TextInput label="Board" name="board" value={data.board} onChange={handleChange} required />
+                        <TextInput label="Committee Name" name="committeeName" value={data.committeeName} onChange={handleChange} required />
+                        <TextInput label="Specific Trainings Provided" name="specificTrainingsProvided" value={data.specificTrainingsProvided} onChange={handleChange} required />
+                        <TextInput label="Policies Name" name="policiesName" value={data.policiesName} onChange={handleChange} required />
+                        <TextInput label="Workshops Conducted" name="workshopsConducted" value={data.workshopsConducted} onChange={handleChange} required />
+                        <TextInput label="Sustainability Risks And Opportunities" name="sustainabilityRisksAndOpportunities" value={data.sustainabilityRisksAndOpportunities} onChange={handleChange} required />
+                        <TextInput label="Energy Source" name="energySource" value={data.energySource} onChange={handleChange} required />
+                        <TextInput label="Sector Industry Name" name="sectorIndustryName" value={data.sectorIndustryName} onChange={handleChange} required />
+                        <TextInput label="External Consultants" name="externalConsultants" value={data.externalConsultants} onChange={handleChange} required />
+                        <TextInput label="Benchmark Detail" name="benchmarkDetail" value={data.benchmarkDetail} onChange={handleChange} required />
+                        <TextInput label="KPIs" name="kpis" value={data.kpis} onChange={handleChange} required />
+                        <TextInput label="Data Monitoring Systems" name="dataMonitoringSystems" value={data.dataMonitoringSystems} onChange={handleChange} required />
+                        <TextInput label="IPCC and IEA" name="ipccAndIea" value={data.ipccAndIea} onChange={handleChange} required />
+                        <TextInput label="Physical Risks Scenarios" name="physicalRisksScenarios" value={data.physicalRisksScenarios} onChange={handleChange} required />
+                        <TextInput label="Selected Business Site" name="selectedBusinessSite" value={data.selectedBusinessSite} onChange={handleChange} required />
+                        <TextInput label="Transition Risk Scenarios" name="transitionRiskScenarios" value={data.transitionRiskScenarios} onChange={handleChange} required />
+                        <TextInput label="Innovative Facility" name="innovativeFacility" value={data.innovativeFacility} onChange={handleChange} required />
+                        <TextInput label="Tools Used" name="toolsUsed" value={data.toolsUsed} onChange={handleChange} required />
+                        <SelectInput label="Industry" name="industry" value={data.industry} onChange={handleChange} options={industries} required />
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex justify-end gap-4 pt-2">
-                        <button
-                        type="button"
-                        onClick={onClose}
-                        className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
-                        >
-                        Cancel
+                        <button type="button" onClick={onClose} className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md">
+                            Cancel
                         </button>
-
-                        <button
-                        type="submit"
-                        disabled={submitting}
-                        className="bg-green-800 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-md flex items-center gap-2"
-                        >
-                        {submitting ? (
-                            <>
-                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                            Submitting...
-                            </>
-                        ) : (
-                            <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                        <button type="submit" className="bg-green-800 hover:bg-green-700 text-white px-6 py-2 rounded-md">
                             Generate Report
-                            </>
-                        )}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-    )
+    );
 }

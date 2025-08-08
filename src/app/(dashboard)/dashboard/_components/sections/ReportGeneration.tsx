@@ -1,25 +1,95 @@
-// app/report-generation/page.tsx
-// 'use client';
+'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import ReportModal from './ReportModal';
 import Report from './ReportPage';
 
-export interface ReportFormData  {
+export interface ReportFormData {
+    type: "GRI" | "IFRS";
+    name: string;
     industry: string;
+    location: string;
     year: string;
-    value1: number;
-    value2: number;
-    value3: number;
-    value4: number;
-    value5: number;
-    value6: number;
+    revenue: number | string;
+    emissions: number | string;
+    goal: string;
+    contact: string;
+    periodFrequency: string;
+    inauguralOrSubsequent: string;
+    reportingStandards: string;
+    externalAuditorAppointed: string;
+    leadershipTitle: string;
+    board: string;
+    committeeName: string;
+    specificTrainingsProvided: string;
+    policiesName: string;
+    workshopsConducted: string;
+    sustainabilityRisksAndOpportunities: string;
+    energySource: string;
+    sectorIndustryName: string;
+    externalConsultants: string;
+    benchmarkDetail: string;
+    kpis: string;
+    dataMonitoringSystems: string;
+    ipccAndIea: string;
+    physicalRisksScenarios: string;
+    selectedBusinessSite: string;
+    transitionRiskScenarios: string;
+    innovativeFacility: string;
+    toolsUsed: string;
+    reportingPeriod: string;
+    companyName: string;
+    departmentsNames: string;
 }
 
 export default function ReportGeneration() {
-    const [type, setType] = useState<'SBTi' | 'IFRSSi' | null>(null);
-    const [reportData, setReportData] = useState<FormData | null>(null);
-    const [isVisible, setIsVisible] = useState(false);
+    const [type, setType] = useState<'GRI' | 'IFRS' | null>(null);
+    const [reportData, setReportData] = useState<ReportFormData | null>(null);
+    const [formData, setFormData] = useState<ReportFormData>({
+        name: '',
+        industry: '',
+        location: '',
+        year: '',
+        revenue: '',
+        emissions: '',
+        goal: '',
+        contact: '',
+        periodFrequency: '',
+        inauguralOrSubsequent: '',
+        reportingPeriod: '',
+        reportingStandards: '',
+        externalAuditorAppointed: '',
+        leadershipTitle: '',
+        board: '',
+        committeeName: '',
+        specificTrainingsProvided: '',
+        policiesName: '',
+        workshopsConducted: '',
+        sustainabilityRisksAndOpportunities: '',
+        energySource: '',
+        sectorIndustryName: '',
+        externalConsultants: '',
+        benchmarkDetail: '',
+        kpis: '',
+        dataMonitoringSystems: '',
+        ipccAndIea: '',
+        physicalRisksScenarios: '',
+        selectedBusinessSite: '',
+        transitionRiskScenarios: '',
+        innovativeFacility: '',
+        toolsUsed: '',
+        companyName: '',
+        departmentsNames: '',
+        contactDetails: ''
+    });
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     return (
         <div className="h-screen p-4 relative">
@@ -33,7 +103,7 @@ export default function ReportGeneration() {
                     </p>
                     <button
                         className="mt-4 bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700"
-                        onClick={() => setType('SBTi')}
+                        onClick={() => setType('GRI')}
                     >
                         Generate Report
                     </button>
@@ -45,32 +115,44 @@ export default function ReportGeneration() {
                     </p>
                     <button
                         className="mt-4 bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700"
-                        onClick={() => setType('IFRSSi')}
+                        onClick={() => setType('IFRS')}
                     >
                         Generate Report
                     </button>
                 </div>
             </div>
+
+            {/* Report History */}
             <div className='border-t border-gray-100 my-8 shadow-lg p-4 rounded-lg'>
                 <p className='font-bold'>Recent Reports</p>
             </div>
 
             {type && (
                 <ReportModal
+                    data={formData}
+                    handleChange={handleChange}
                     type={type}
                     onClose={() => setType(null)}
                     onSubmit={(data) => {
                         setReportData(data);
                         setType(null);
-                        setIsVisible(true);
-                    } } isVisible={isVisible}                />
+                    }}
+                    isVisible={true}
+                />
             )}
 
-            {isVisible && (
+
+            {reportData && (
                 <div className="mt-10">
-                    <Report data={reportData} onEdit={function (): void {
-                        throw new Error('Function not implemented.');
-                    } } onClose={() => setIsVisible(false)} viewMode={'full'} />
+                    <Report 
+                        data={reportData} 
+                        onEdit={() => {
+                            setFormData(reportData);
+                            setType(reportData.type as 'GRI' | 'IFRS');
+                        }} 
+                        onClose={() => setReportData(null)} 
+                        viewMode={'full'} 
+                    />
                 </div>
             )}
         </div>
