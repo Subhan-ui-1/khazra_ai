@@ -34,6 +34,7 @@ export default function Scope2Section() {
     emissionByFacility: 0,
     emissionByEquipment: 0,
     emissionByVehicle: 0,
+    recentActivities: [],
   });
 
   const getTokens = () => {
@@ -446,15 +447,42 @@ export default function Scope2Section() {
 
   // Table configuration for Scope 2
   const tableColumns = [
-    { key: 'month', label: 'Month', type: 'text' as const },
-    { key: 'year', label: 'Year', type: 'text' as const },
-    { key: 'facilityId', label: 'Facility ID', type: 'text' as const },
-    { key: 'energyType', label: 'Energy Type', type: 'text' as const },
-    { key: 'gridLocation', label: 'Grid Location', type: 'text' as const },
-    { key: 'consumedUnits', label: 'Consumed Units', type: 'text' as const },
-    { key: 'amountOfConsumption', label: 'Amount of Consumption', type: 'text' as const },
-    { key: 'customEmissionFactor', label: 'Custom Emission Factor', type: 'text' as const },
-    { key: 'emissions', label: 'Emissions (tCO₂e)', type: 'text' as const }
+    {
+      key: "date",
+      label: "Date",
+      type: "text" as const,
+    },
+    {
+      key: "activity",
+      label: "Activity",
+      type: "text" as const,
+    },
+    {
+      key: "scope",
+      label: "Scope",
+      type: "text" as const,
+    },
+    {
+      key: "impact",
+      label: "Impact",
+      type: "text" as const,
+    },
+    {
+      key: "status",
+      label: "Status",
+      type: "status" as const,
+      render: (value: string, row: any) => (
+        <span
+          className={`px-2 py-1 text-xs font-semibold rounded-lg  ${
+            row.statusType === "success"
+              ? "bg-green-100 text-green-800 "
+              : "bg-red-100 text-red-800 "
+          }`}
+        >
+          {value}
+        </span>
+      ),
+    },
   ];
 
   const tableActions = [
@@ -499,6 +527,33 @@ export default function Scope2Section() {
   const handleFilter = () => {
     console.log('Filter purchased electricity');
     // Add filter functionality here
+  };
+
+  // Transform recent activities data for Scope 2 display
+  const transformScope2ActivitiesData = () => {
+    if (!dashboardData.recentActivities) return [];
+
+    return dashboardData.recentActivities
+      .filter((activity: any) => activity.scope === 'scope2')
+      .map((activity: any, index: number) => ({
+        _id: activity._id || `activity-${index}`,
+        date: new Date(activity.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        activity: `${activity.scopeType} ${activity.scope} emissions`,
+        scope: activity.scope || "Scope 2",
+        impact:
+          activity.totalEmissions > 1000
+            ? "High"
+            : activity.totalEmissions > 100
+            ? "Medium"
+            : "Low",
+        status: "Completed",
+        statusType: "success",
+        originalData: activity,
+      }));
   };
 
   // Dynamic data arrays for Scope 2 charts
@@ -583,8 +638,8 @@ export default function Scope2Section() {
       id: 'total-scope2',
       title: 'Total Scope 2',
       value: dashboardData.scope2Emissions.toFixed(1),
-      change: '▼ 15.8%',
-      changeType: 'decrease',
+      // change: '▼ 15.8%',
+      // changeType: 'decrease',
       subtitle: `tonnes CO₂e • ${dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions / dashboardData.totalEmissions) * 100).toFixed(1) : 0}% of total emissions`,
       icon: '⚡',
       progress: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions / dashboardData.totalEmissions) * 100) : 0
@@ -593,31 +648,31 @@ export default function Scope2Section() {
       id: 'purchased-electricity',
       title: 'Purchased Electricity',
       value: (dashboardData.scope2Emissions * 0.8).toFixed(1),
-      change: '▼ 12.3%',
-      changeType: 'decrease',
-      subtitle: 'Largest source • 74.4% of Scope 2',
+      // change: '▼ 12.3%',
+      // changeType: 'decrease',
+      subtitle: 'Largest source',
       icon: '🔌',
-      progress: 74.4
+      // progress: 74.4
     },
     {
       id: 'renewable-energy',
       title: 'Renewable Energy',
-      value: '89.7%',
-      change: '▲ 15.2%',
+      value: '0%',
+      change: '▲ 0%',
       changeType: 'increase',
       subtitle: 'Clean energy usage • Target: 100%',
       icon: '🌞',
-      progress: 89.7
+      progress: 0
     },
     {
       id: 'energy-intensity',
       title: 'Energy Intensity',
-      value: '0.187',
-      change: '▼ 8.9%',
+      value: '0',
+      change: '▼ 0%',
       changeType: 'decrease',
       subtitle: 'kWh per unit • Efficiency metric',
       icon: '📊',
-      progress: 94.4
+      progress: 0
     }
   ];
 
@@ -647,7 +702,7 @@ export default function Scope2Section() {
                 </div>
                 <div className="text-3xl font-bold text-black mb-2">{metric.value}</div>
                 <div className={`text-sm text-green-800 mb-2 ${metric.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
-                  {metric.change} vs baseline
+                  {metric.change} 
                 </div>
                 <div className="text-xs text-black opacity-60">
                   {metric.subtitle}
@@ -777,11 +832,11 @@ export default function Scope2Section() {
         </div>
       </div> */}
 
-      {/* Purchased Electricity Table */}
+      {/* Recent Scope 2 Activities Table */}
       <Table
-        title="Purchased Electricity"
+        title="Recent Scope 2 Activities"
         columns={tableColumns}
-        data={purchasedElectricityData}
+        data={transformScope2ActivitiesData()}
         // actions={tableActions}
         showSearch={false}
         showFilter={false}
@@ -790,8 +845,8 @@ export default function Scope2Section() {
         onAddClick={handleAddPurchasedElectricity}
         onSearch={handleSearch}
         onFilter={handleFilter}
-        emptyMessage="No purchased electricity data found"
-        rowKey="id"
+        emptyMessage="No recent Scope 2 activities found"
+        rowKey="_id"
       />
 
       {/* Add Purchased Electricity Modal */}

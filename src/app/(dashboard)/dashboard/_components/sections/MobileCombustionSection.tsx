@@ -71,6 +71,7 @@ export default function MobileCombustionSection() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [mobileFuelTypes, setMobileFuelTypes] = useState<MobileFuelType[]>([]);
   const [data, setData] = useState<any>(null);
+  const [dataEmissions, setDataEmissions] = useState<any>(null);
   const getDashboard = async () => {
     try {
       const response = await getRequest(
@@ -80,6 +81,12 @@ export default function MobileCombustionSection() {
 
       if (response.success) {
         setData(response.dashboardData);
+        setDataEmissions({
+          emission: response.dashboardData.mobileCombustionEmissions,
+          vehicleCOunt: response.dashboardData.totalVehicles,
+          totalCount:
+            response.dashboardData.totalVehicles,
+        });
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -524,8 +531,8 @@ export default function MobileCombustionSection() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Fleet Size
               </div>
-              <div className="text-3xl font-bold text-black mb-2">45</div>
-              <div className="text-sm text-green-800 mb-2">Active vehicles</div>
+              <div className="text-3xl font-bold text-black mb-2">{dataEmissions?.totalCount?.toString()}</div>
+              <div className="text-sm text-green-800 mb-2">Active {dataEmissions?.vehicleCOunt?.toString()} vehicles</div>
               <div className="text-xs text-black opacity-60">
                 Delivery trucks, forklifts, cars
               </div>

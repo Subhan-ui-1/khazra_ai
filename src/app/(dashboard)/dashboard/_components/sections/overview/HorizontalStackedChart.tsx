@@ -17,34 +17,87 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const durations = ['Monthly', 'Quarterly', 'Yearly'] as const;
 type DurationType = typeof durations[number];
 
-const rawData: Record<DurationType, { labels: string[]; scope1: number[]; scope2: number[];}> = {
-    Monthly: {
-        labels: ['Jan', 'Feb', 'Mar', 'April', 'May', 'June'],
-        scope1: [100, 150, 130, 20, 50, 70, 100, 120, 180, 30, 150, 60],
-        scope2: [70, 90, 85, 60, 75, 150, 162, 112, 96, 138, 56, 45],
-        // scope3: [50, 60, 70, 120, 20, 35, 65, 85, 180, 90, 58, 75],
-    },
-    Quarterly: {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-        scope1: [270, 280, 260, 150],
-        scope2: [190, 170, 160, 50],
-        // scope3: [150, 140, 130, 250],
-    },
-    Yearly: {
-        labels: [ '2023', '2024', '2025'],
-        scope1: [1100, 1200, 1300, 1400, 1000, 900, 800, 1500, 1600, 200, 500],
-        scope2: [900, 950, 750, 1200, 1500, 1600, 350, 960, 450, 1200, 1300],
-        // scope3: [700, 750, 900, 950, 750, 1200, 1500, 1600, 350, 500, 900],
-    },
-};
-
 interface HorizontalGroupedBarChartProps {
     title: string;
+    emissionData?: number;
+    createdAt?: string;
 }
+const getLastSixMonths = (): string[] => {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push(date.toLocaleString('default', { month: 'short' }));
+    }
+    return months;
+};
+const getQuarter = (month: number) => Math.floor(month / 3) + 1;
 
-export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBarChartProps) {
+const getLastFourQuarters = (): string[] => {
+    const now = new Date();
+    const quarters = [];
+    let year = now.getFullYear();
+    let quarter = getQuarter(now.getMonth());
+
+    for (let i = 0; i < 4; i++) {
+        quarters.unshift(`Q${quarter} ${year}`);
+        quarter--;
+        if (quarter < 1) {
+            quarter = 4;
+            year--;
+        }
+    }
+    return quarters;
+};
+
+export default function HorizontalGroupedBarChart({ title, emissionData = 0, createdAt }: HorizontalGroupedBarChartProps) {
     const [duration, setDuration] = useState<DurationType>('Yearly');
-    const { labels, scope1, scope2 } = rawData[duration];
+
+    // Generate chart data based on API data
+    const generateChartData = (durationType: DurationType) => {
+        const currentYear = new Date().getFullYear();
+        const previousYear = currentYear - 1;
+        
+        let labels: string[];
+        let scope1Data: number[];
+        let scope2Data: number[];
+
+        switch (durationType) {
+            case 'Monthly':
+                labels = getLastSixMonths();
+                // Distribute current year data across months, previous year as 0
+                scope1Data = Array(12).fill(0).map((_, index) => 
+                    index === 5 ?  emissionData : 0
+                );
+                scope2Data = Array(12).fill(0).map((_, index) => 
+                    index < 6 ? 0 : 0 // 10% of main data for scope 2
+                );
+                break;
+            case 'Quarterly':
+                labels = getLastFourQuarters();
+                // Distribute current year data across quarters, previous year as 0
+                scope1Data = [0, 0, 0, emissionData];
+                scope2Data = [0, 0, 0, 0];
+                break;
+            case 'Yearly':
+                labels = [previousYear.toString(), currentYear.toString()];
+                scope1Data = [0, emissionData]; // Previous year as 0
+                scope2Data = [0, 0]; // Previous year as 0, 10% of main data
+                break;
+            default:
+                labels = [];
+                scope1Data = [];
+                scope2Data = [];
+        }
+
+        return {
+            labels,
+            scope1: scope1Data,
+            scope2: scope2Data,
+        };
+    };
+
+    const { labels, scope1, scope2 } = generateChartData(duration);
 
     const data = {
         labels,
@@ -65,12 +118,6 @@ export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBa
                 borderColor: '#ffffff',
                 borderWidth: 1,
             },
-            // {
-            //     label: 'Scope 3',
-            //     data: scope3,
-            //     backgroundColor: '#35896d',
-            //     barThickness: 5,
-            // },
         ],
     };
 
@@ -87,7 +134,7 @@ export default function HorizontalGroupedBarChart({ title }: HorizontalGroupedBa
         scales: {
             x: {
                 beginAtZero: true,
-                max: 1800,
+                max: emissionData * 1.2 || 1800,
                 grid: {
                     display: false,
                 },

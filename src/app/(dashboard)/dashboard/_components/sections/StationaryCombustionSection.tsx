@@ -60,6 +60,7 @@ export default function StationaryCombustionSection() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [dataEmissions, setDataEmissions] = useState<any>(null);
 
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -81,7 +82,9 @@ export default function StationaryCombustionSection() {
     });
 
   // State for Stationary Combustion table data array
-  const [stationaryCombustionData, setStationaryCombustionData] = useState<any[]>([
+  const [stationaryCombustionData, setStationaryCombustionData] = useState<
+    any[]
+  >([
     // {
     //   id: 1,
     //   month: "January",
@@ -126,7 +129,6 @@ export default function StationaryCombustionSection() {
     return tokenData.accessToken;
   };
 
-  
   const getDashboard = async () => {
     try {
       const response = await getRequest(
@@ -136,6 +138,15 @@ export default function StationaryCombustionSection() {
 
       if (response.success) {
         setData(response.dashboardData);
+        setDataEmissions({
+          emission: response.dashboardData.stationaryCombustionEmissions,
+          facilityCount: response.dashboardData.totalFacilities,
+          totalCount:
+            response.dashboardData.totalFacilities +
+            response.dashboardData.totalEquipment +
+            response.dashboardData.totalVehicles,
+        });
+        console.log(facilities, "facilities");
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -146,7 +157,7 @@ export default function StationaryCombustionSection() {
     if (isStationaryModalOpen) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [isStationaryModalOpen]);
@@ -154,15 +165,18 @@ export default function StationaryCombustionSection() {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
-      const response = await getRequest("facilities/getFacilities?status=Active", getToken());
+      const response = await getRequest(
+        "facilities/getFacilities?status=Active",
+        getToken()
+      );
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
-      console.log(error, 'error')
+      console.log(error, "error");
       // toast.error(error.message || "Failed to fetch facilities");
     }
   };
@@ -177,10 +191,10 @@ export default function StationaryCombustionSection() {
         setEquipments(response.data.equipments || []);
       } else {
         // toast.error(response.message || "Failed to fetch equipments");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
-      console.log(error, 'error')
+      console.log(error, "error");
       // toast.error(error.message || "Failed to fetch equipments");
     }
   };
@@ -195,10 +209,10 @@ export default function StationaryCombustionSection() {
         setFuelTypes(response.data.stationaryFuelTypes || []);
       } else {
         // toast.error(response.message || "Failed to fetch fuel types");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
-      console.log(error, 'error')
+      console.log(error, "error");
       // toast.error(error.message || "Failed to fetch fuel types");
     }
   };
@@ -209,10 +223,10 @@ export default function StationaryCombustionSection() {
         setStationaryCombustionData(response.data.stationary);
       } else {
         // toast.error(response.message || "Failed to fetch stationary total");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
-      console.log(error, 'error')
+      console.log(error, "error");
       // toast.error(error.message || "Failed to fetch stationary total");
     }
   };
@@ -223,20 +237,20 @@ export default function StationaryCombustionSection() {
       setLoading(true);
       try {
         await Promise.all([
-          getDashboard(),
           fetchFacilities(),
           fetchEquipments(),
           fetchFuelTypes(),
-          getStationaryTotal()
+          getStationaryTotal(),
+          getDashboard(),
         ]);
         setDataLoaded(true);
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
 
@@ -252,7 +266,7 @@ export default function StationaryCombustionSection() {
         month: stationaryFormData.month,
         year: parseInt(stationaryFormData.year),
         facility: stationaryFormData.facility,
-        facilityDescription:stationaryFormData.facilityDescription,
+        facilityDescription: stationaryFormData.facilityDescription,
         equipment: stationaryFormData.equipment,
         fuelType: stationaryFormData.fuelType,
         quantityOfFuelUsed: parseFloat(stationaryFormData.quantityOfFuelUsed),
@@ -265,16 +279,16 @@ export default function StationaryCombustionSection() {
         "Stationary combustion data added successfully",
         getToken(),
         "post",
-        true, 
-        'stationary'
+        true,
+        "stationary"
       );
 
       if (response.success) {
         toast.success("Stationary combustion data added successfully");
-        
+
         // Refresh the data from the server
         await getStationaryTotal();
-        
+
         setIsStationaryModalOpen(false);
 
         // Reset form
@@ -293,10 +307,10 @@ export default function StationaryCombustionSection() {
         // toast.error(
         //   response.message || "Failed to add stationary combustion data"
         // );
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
-      console.log(error, 'error')
+      console.log(error, "error");
       //  toast.error(error.message || "Failed to add stationary combustion data");
     } finally {
       setSubmitting(false);
@@ -324,10 +338,10 @@ export default function StationaryCombustionSection() {
 
       // Get the ID of the item being edited
       const editingId = editingStationaryData?._id || editingStationaryData?.id;
-      
+
       if (!editingId) {
         // toast.error("No item ID found for editing");
-        console.log("No item ID found for editing")
+        console.log("No item ID found for editing");
         return;
       }
 
@@ -337,22 +351,22 @@ export default function StationaryCombustionSection() {
         "Stationary combustion data updated successfully",
         getToken(),
         "put",
-        true, 
-        'stationary'
+        true,
+        "stationary"
       );
 
       if (response.success) {
         toast.success("Stationary combustion data updated successfully");
-        
+
         // Refresh the data from the server
         await getStationaryTotal();
-        
+
         setIsStationaryModalOpen(false);
-        
+
         // Reset editing states
         setEditingStationaryData(null);
         setEditingStationaryIndex(null);
-        
+
         // Reset form
         setStationaryFormData({
           month: "",
@@ -369,10 +383,10 @@ export default function StationaryCombustionSection() {
         // toast.error(
         //   response.message || "Failed to update stationary combustion data"
         // );
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
-      console.log(error, 'error')
+      console.log(error, "error");
       // toast.error(
       //   error.message || "Failed to update stationary combustion data"
       // );
@@ -408,7 +422,7 @@ export default function StationaryCombustionSection() {
   // Get equipment type name by ID
   const getEquipmentTypeName = (equipmentTypeId: string) => {
     if (!equipmentTypeId) return "N/A";
-    console.log('equipmentTypeId', equipmentTypeId, equipments)
+    console.log("equipmentTypeId", equipmentTypeId, equipments);
     const equipment = equipments.find((e) => e._id === equipmentTypeId);
     return equipment ? equipment.equipmentName : "Loading...";
   };
@@ -538,7 +552,8 @@ export default function StationaryCombustionSection() {
           Stationary Combustion Emissions
         </h1>
         <p className="text-black opacity-70 max-w-4xl leading-relaxed">
-          Direct greenhouse gas emissions from stationary combustion sources owned or controlled by your organization.
+          Direct greenhouse gas emissions from stationary combustion sources
+          owned or controlled by your organization.
         </p>
       </div>
 
@@ -551,7 +566,7 @@ export default function StationaryCombustionSection() {
                 Total Stationary
               </div>
               <div className="text-3xl font-bold text-black mb-2">
-                {data?.stationaryCombustionEmissions}
+                {(dataEmissions?.emission || 0).toFixed(2)}
               </div>
               <div className="text-sm text-green-800 mb-2">
                 ▼ 8.5% vs last year
@@ -578,9 +593,11 @@ export default function StationaryCombustionSection() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Active Sources
               </div>
-              <div className="text-3xl font-bold text-black mb-2">23</div>
+              <div className="text-3xl font-bold text-black mb-2">
+                {dataEmissions?.facilityCount?.toString()}
+              </div>
               <div className="text-sm text-green-800 mb-2">
-                Across 5 facilities
+                Across {dataEmissions?.facilityCount?.toString()} facilities
               </div>
               <div className="text-xs text-black opacity-60">
                 Boilers, furnaces, generators
@@ -617,40 +634,49 @@ export default function StationaryCombustionSection() {
       <Table
         title="Stationary Combustion Data"
         columns={[
-          { key: 'month', label: 'Month' },
-          { key: 'year', label: 'Year' },
-          { 
-            key: 'facility', 
-            label: 'Facility',
-            render: (value, row) => getFacilityName(row.facility || row.facilityId)
+          { key: "month", label: "Month" },
+          { key: "year", label: "Year" },
+          {
+            key: "facility",
+            label: "Facility",
+            render: (value, row) =>
+              getFacilityName(row.facility || row.facilityId),
           },
-          { 
-            key: 'equipment', 
-            label: 'Equipment',
-            render: (value, row) => getEquipmentTypeName(row.equipment || row.equipmentId)
+          {
+            key: "equipment",
+            label: "Equipment",
+            render: (value, row) =>
+              getEquipmentTypeName(row.equipment || row.equipmentId),
           },
-          { 
-            key: 'fuelType', 
-            label: 'Fuel Type',
-            render: (value, row) => getFuelTypeName(row.fuelType || row.fuelTypeId)
+          {
+            key: "fuelType",
+            label: "Fuel Type",
+            render: (value, row) =>
+              getFuelTypeName(row.fuelType || row.fuelTypeId),
           },
-          { key: 'quantityOfFuelUsed', label: 'Quantity of Fuel Used' },
-          { key: 'emissionFactor', label: 'Emissions Factor' },
-          { 
-            key: 'totalEmissions', 
-            label: 'Total Emissions',
-            type: 'number',
-            align: 'right'
-          }
+          { key: "quantityOfFuelUsed", label: "Quantity of Fuel Used" },
+          { key: "emissionFactor", label: "Emissions Factor" },
+          {
+            key: "totalEmissions",
+            label: "Total Emissions",
+            type: "number",
+            align: "right",
+          },
         ]}
         data={stationaryCombustionData}
         actions={[
           {
             // label: 'Edit',
             icon: <Edit3 className="w-4 h-4 text-green-500" />,
-            onClick: (row) => handleEditStationary(row, stationaryCombustionData.findIndex(item => item._id === row._id)),
-            variant: 'primary'
-          }
+            onClick: (row) =>
+              handleEditStationary(
+                row,
+                stationaryCombustionData.findIndex(
+                  (item) => item._id === row._id
+                )
+              ),
+            variant: "primary",
+          },
         ]}
         showAddButton={true}
         addButtonLabel="Add Stationary Combustion"
@@ -659,34 +685,58 @@ export default function StationaryCombustionSection() {
         // showFilter={true}
         rowKey="_id"
         loading={loading}
-        emptyMessage={dataLoaded ? "No stationary combustion data found" : "Loading data..."}
+        emptyMessage={
+          dataLoaded ? "No stationary combustion data found" : "Loading data..."
+        }
       />
 
       {/* Stationary Combustion Form */}
       {isStationaryModalOpen && (
-        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-semibold text-gray-800'>
-              {editingStationaryData ? 'Edit Stationary Combustion' : 'Add New Stationary Combustion'}
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {editingStationaryData
+                ? "Edit Stationary Combustion"
+                : "Add New Stationary Combustion"}
             </h2>
             <button
               onClick={resetForm}
-              className='text-gray-500 hover:text-gray-700'
+              className="text-gray-500 hover:text-gray-700"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
 
-          <form onSubmit={editingStationaryData ? handleEditStationarySubmit : handleStationarySubmit} className='space-y-4'>
+          <form
+            onSubmit={
+              editingStationaryData
+                ? handleEditStationarySubmit
+                : handleStationarySubmit
+            }
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor='month' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="month"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Month *
                 </label>
                 <select
-                  id='month'
+                  id="month"
                   value={stationaryFormData.month}
                   onChange={(e) =>
                     setStationaryFormData({
@@ -694,7 +744,7 @@ export default function StationaryCombustionSection() {
                       month: e.target.value,
                     })
                   }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Month</option>
@@ -714,11 +764,14 @@ export default function StationaryCombustionSection() {
               </div>
 
               <div>
-                <label htmlFor='year' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="year"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Year *
                 </label>
                 <select
-                  id='year'
+                  id="year"
                   value={stationaryFormData.year}
                   onChange={(e) =>
                     setStationaryFormData({
@@ -726,7 +779,7 @@ export default function StationaryCombustionSection() {
                       year: e.target.value,
                     })
                   }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Year</option>
@@ -739,21 +792,26 @@ export default function StationaryCombustionSection() {
               </div>
 
               <div>
-                <label htmlFor='facility' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="facility"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Facility *
                 </label>
                 <select
-                  id='facility'
+                  id="facility"
                   value={stationaryFormData.facility}
-                  onChange={(e) =>{
-                    const desc = facilities.find(f => f._id === e.target.value)
+                  onChange={(e) => {
+                    const desc = facilities.find(
+                      (f) => f._id === e.target.value
+                    );
                     setStationaryFormData({
                       ...stationaryFormData,
                       facility: e.target.value,
                       facilityDescription: desc?.facilityName || "",
-                    })}
-                  }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Facility</option>
@@ -766,11 +824,14 @@ export default function StationaryCombustionSection() {
               </div>
 
               <div>
-                <label htmlFor='equipment' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="equipment"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Equipment *
                 </label>
                 <select
-                  id='equipment'
+                  id="equipment"
                   value={stationaryFormData.equipment}
                   onChange={(e) =>
                     setStationaryFormData({
@@ -778,7 +839,7 @@ export default function StationaryCombustionSection() {
                       equipment: e.target.value,
                     })
                   }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Equipment</option>
@@ -795,22 +856,26 @@ export default function StationaryCombustionSection() {
               </div>
 
               <div>
-                <label htmlFor='fuelType' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="fuelType"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Fuel Type *
                 </label>
                 <select
-                  id='fuelType'
+                  id="fuelType"
                   value={stationaryFormData.fuelType}
-                  onChange={(e) =>{
-                    const desc = fuelTypes.find(f => f._id === e.target.value)
+                  onChange={(e) => {
+                    const desc = fuelTypes.find(
+                      (f) => f._id === e.target.value
+                    );
                     setStationaryFormData({
                       ...stationaryFormData,
                       fuelType: e.target.value,
-                      emissionFactor: desc?.emissionFactorC02||0,
-                    })
-                  }
-                  }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                      emissionFactor: desc?.emissionFactorC02 || 0,
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   required
                 >
                   <option value="">Select Fuel Type</option>
@@ -823,11 +888,14 @@ export default function StationaryCombustionSection() {
               </div>
 
               <div>
-                <label htmlFor='quantityOfFuelUsed' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="quantityOfFuelUsed"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Quantity of Fuel Used *
                 </label>
                 <input
-                  id='quantityOfFuelUsed'
+                  id="quantityOfFuelUsed"
                   type="text"
                   value={stationaryFormData.quantityOfFuelUsed}
                   onChange={(e) =>
@@ -836,7 +904,7 @@ export default function StationaryCombustionSection() {
                       quantityOfFuelUsed: e.target.value,
                     })
                   }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   placeholder="1,250 m³"
                   required
                 />
@@ -866,11 +934,14 @@ export default function StationaryCombustionSection() {
 
             {stationaryFormData.useCustomEmissionFactor && (
               <div>
-                <label htmlFor='customEmissionFactor' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor="customEmissionFactor"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Custom Emission Factor *
                 </label>
                 <input
-                  id='customEmissionFactor'
+                  id="customEmissionFactor"
                   type="number"
                   value={stationaryFormData.emissionFactor}
                   onChange={(e) =>
@@ -879,40 +950,67 @@ export default function StationaryCombustionSection() {
                       emissionFactor: parseFloat(e.target.value),
                     })
                   }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                   placeholder="2.162 kg CO₂e/m³"
                   required
                 />
               </div>
             )}
 
-            <div className='flex gap-3 pt-4'>
+            <div className="flex gap-3 pt-4">
               <button
-                type='submit'
+                type="submit"
                 disabled={submitting}
-                className='bg-[#0D5942]  text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                className="bg-[#0D5942]  text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
-                    {editingStationaryData ? 'Updating...' : 'Creating...'}
+                    {editingStationaryData ? "Updating..." : "Creating..."}
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
-                    {editingStationaryData ? 'Update Stationary Combustion' : 'Create Stationary Combustion'}
+                    {editingStationaryData
+                      ? "Update Stationary Combustion"
+                      : "Create Stationary Combustion"}
                   </>
                 )}
               </button>
               <button
-                type='button'
+                type="button"
                 onClick={resetForm}
-                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
               >
                 Cancel
               </button>
@@ -1077,7 +1175,8 @@ export default function StationaryCombustionSection() {
                           Total Emissions
                         </span>
                         <span className="text-gray-900 font-semibold">
-                          {reviewData.totalEmissions.toFixed(2) || "Not specified"}
+                          {reviewData.totalEmissions.toFixed(2) ||
+                            "Not specified"}
                         </span>
                       </div>
                       {/* <div className="flex items-center justify-between py-2">

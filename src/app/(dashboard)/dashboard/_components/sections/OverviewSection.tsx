@@ -58,6 +58,7 @@ export default function OverviewSection() {
     recentActivities: any[];
     stationaryCombustionEmissions: number;
     mobileCombustionEmissions: number;
+    createdAt?: string;
   }>({
     dataQuality: 0,
     emissionByEquipment: 0,
@@ -75,6 +76,7 @@ export default function OverviewSection() {
     recentActivities: [],
     stationaryCombustionEmissions: 0,
     mobileCombustionEmissions: 0,
+    createdAt: "",
   });
 
   const getDashboard = async () => {
@@ -426,7 +428,12 @@ export default function OverviewSection() {
 
       <div className="xl:flex gap-5 space-y-3 items-center w-full">
         <div className="xl:w-2/3 h-[580px]">
-          <ScopeChartData title="📊 Emission Trends by Scope" />
+          <ScopeChartData 
+            title="📊 Emission Trends by Scope" 
+            scope1Emissions={data.scope1Emissions}
+            scope2Emissions={data.scope2Emissions}
+            createdAt={data.createdAt}
+          />
         </div>
         <div className="xl:w-1/3 h-[590px]">
           <ProgressChart overallProgressValue={overallProgressValue} />
@@ -443,15 +450,28 @@ export default function OverviewSection() {
         ))}
       </div>
       <div className="w-full xl:flex space-y-5 justify-between gap-5">
-        <HorizontalStackedChart title="🔥 Emissions by Vehicle" />
-        <HorizontalStackedChart title="🔥 Emissions by Equipments" />
+        <HorizontalStackedChart 
+          title="🔥 Emissions by Vehicle" 
+          emissionData={data.emissionByVehicle}
+          createdAt={data.createdAt}
+        />
+        <HorizontalStackedChart 
+          title="🔥 Emissions by Equipments" 
+          emissionData={data.emissionByEquipment}
+          createdAt={data.createdAt}
+        />
       </div>
       <div className="xl:flex gap-5 space-y-5 w-full">
         <div className="xl:w-1/3 h-full">
           <ProgressChart overallProgressValue={overallProgressValue} />
         </div>
         <div className="h-[580px] flex xl:w-2/3 w-full">
-          <ScopeChartData title="📊 Emissions by Facility" />
+          <ScopeChartData 
+            title="📊 Emissions by Facility" 
+            scope1Emissions={data.emissionByFacility}
+            scope2Emissions={data.emissionByFacility * 0.1}
+            createdAt={data.createdAt}
+          />
         </div>
       </div>
 
