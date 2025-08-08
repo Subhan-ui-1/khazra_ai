@@ -130,7 +130,7 @@ export default function StationaryCombustionSection() {
   const getDashboard = async () => {
     try {
       const response = await getRequest(
-        `dashboard/getDashboardData/${getOrgId()}`,
+        `dashboard/getDashboardData`,
         getToken()
       );
 

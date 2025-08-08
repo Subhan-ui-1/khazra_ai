@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TooltipItem } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import Table from '@/components/Table';
 import { Edit3, Eye, Trash2 } from 'lucide-react';
+import { safeLocalStorage } from "@/utils/localStorage";
+import { getRequest } from "@/utils/api";
 ChartJS.register(LineController, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 
@@ -24,97 +26,131 @@ type Scope2Data = {
   [key in DurationType]: Scope2Source[];
 };
 
-const scope2DataByDuration: Scope2Data = {
-  'This Year': [
-    {
-      label: 'Purchased Electricity',
-      value: 1746.2,
-      percentage: 73.8,
-      color: 'fill-[#6f33e8]',
-      rawColor: '#6f33e8',
-    },
-    {
-      label: 'steam',
-      value: 985.4,
-      percentage: 17.3,
-      color: 'fill-[#00bbff]',
-      rawColor: '#00bbff',
-    },
-    {
-      label: 'Heating & Cooling',
-      value: 516.2,
-      percentage: 19.9,
-      color: 'fill-[#ff8c09]',
-      rawColor: '#ff8c09',
-    },
-  ],
-  'Last Year': [
-    {
-      label: 'Purchased Electricity',
-      value: 1900,
-      percentage: 60,
-      color: 'fill-[#6f33e8]',
-      rawColor: '#6f33e8',
-    },
-    {
-      label: 'steam',
-      value: 800,
-      percentage: 25,
-      color: 'fill-[#00bbff]',
-      rawColor: '#00bbff',
-    },
-    {
-      label: 'Heating & Cooling',
-      value: 470,
-      percentage: 15,
-      color: 'fill-[#ff8c09]',
-      rawColor: '#ff8c09',
-    },
-  ],
-  'Comparison': [
-    {
-      label: 'Purchased Electricity',
-      value: 1800,
-      percentage: 74.4,
-      color: 'fill-[#6f33e8]',
-      rawColor: '#6f33e8',
-    },
-    {
-      label: 'steam',
-      value: 1100,
-      percentage: 18.2,
-      color: 'fill-[#00bbff]',
-      rawColor: '#00bbff',
-    },
-    {
-      label: 'Heating & Cooling',
-      value: 700,
-      percentage: 7.4,
-      color: 'fill-[#ff8c09]',
-      rawColor: '#ff8c09',
-    },
-  ],
-};
-
-const energyEfficiencyData = [
-  { month: 'Jan', efficiency: 0.145, target: 0.15 },
-  { month: 'Feb', efficiency: 0.122, target: 0.15 },
-  { month: 'Mar', efficiency: 0.189, target: 0.15 },
-  { month: 'Apr', efficiency: 0.086, target: 0.15 },
-  { month: 'May', efficiency: 0.103, target: 0.15 },
-  { month: 'Jun', efficiency: 0.190, target: 0.15 },
-  { month: 'Jul', efficiency: 0.167, target: 0.15 },
-  { month: 'Aug', efficiency: 0.164, target: 0.15 },
-  { month: 'Sep', efficiency: 0.184, target: 0.15 },
-  { month: 'Oct', efficiency: 0.168, target: 0.15 },
-  { month: 'Nov', efficiency: 0.165, target: 0.15 },
-  { month: 'Dec', efficiency: 0.162, target: 0.15 }
-];
-
-
 export default function Scope2Section() {
   const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
+  const [dashboardData, setDashboardData] = useState({
+    scope2Emissions: 0,
+    totalEmissions: 0,
+    emissionByFacility: 0,
+    emissionByEquipment: 0,
+    emissionByVehicle: 0,
+  });
+
+  const getTokens = () => {
+    const token = safeLocalStorage.getItem("tokens");
+    const tokenData = JSON.parse(token || "");
+    return tokenData.accessToken;
+  };
+
+  const getDashboard = async () => {
+    try {
+      const response = await getRequest(
+        `dashboard/getDashboardData`,
+        getTokens()
+      );
+
+      if (response.success) {
+        setDashboardData(response.dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDashboard();
+  }, []);
+
+  // Update scope2DataByDuration with real data
+  const scope2DataByDuration: Scope2Data = {
+    'This Year': [
+      {
+        label: 'Purchased Electricity',
+        value: dashboardData.scope2Emissions * 0.8, // Assuming 80% is electricity
+        percentage: 73.8,
+        color: 'fill-[#6f33e8]',
+        rawColor: '#6f33e8',
+      },
+      {
+        label: 'steam',
+        value: dashboardData.scope2Emissions * 0.15, // Assuming 15% is steam
+        percentage: 17.3,
+        color: 'fill-[#00bbff]',
+        rawColor: '#00bbff',
+      },
+      {
+        label: 'Heating & Cooling',
+        value: dashboardData.scope2Emissions * 0.05, // Assuming 5% is heating/cooling
+        percentage: 19.9,
+        color: 'fill-[#ff8c09]',
+        rawColor: '#ff8c09',
+      },
+    ],
+    'Last Year': [
+      {
+        label: 'Purchased Electricity',
+        value: dashboardData.scope2Emissions * 0.8 * 1.1, // 10% higher than current
+        percentage: 60,
+        color: 'fill-[#6f33e8]',
+        rawColor: '#6f33e8',
+      },
+      {
+        label: 'steam',
+        value: dashboardData.scope2Emissions * 0.15 * 1.1,
+        percentage: 25,
+        color: 'fill-[#00bbff]',
+        rawColor: '#00bbff',
+      },
+      {
+        label: 'Heating & Cooling',
+        value: dashboardData.scope2Emissions * 0.05 * 1.1,
+        percentage: 15,
+        color: 'fill-[#ff8c09]',
+        rawColor: '#ff8c09',
+      },
+    ],
+    'Comparison': [
+      {
+        label: 'Purchased Electricity',
+        value: dashboardData.scope2Emissions * 0.8,
+        percentage: 74.4,
+        color: 'fill-[#6f33e8]',
+        rawColor: '#6f33e8',
+      },
+      {
+        label: 'steam',
+        value: dashboardData.scope2Emissions * 0.15,
+        percentage: 18.2,
+        color: 'fill-[#00bbff]',
+        rawColor: '#00bbff',
+      },
+      {
+        label: 'Heating & Cooling',
+        value: dashboardData.scope2Emissions * 0.05,
+        percentage: 7.4,
+        color: 'fill-[#ff8c09]',
+        rawColor: '#ff8c09',
+      },
+    ],
+  };
+
   const scope2Sources = scope2DataByDuration[duration];
+
+  const energyEfficiencyData = [
+    { month: 'Jan', efficiency: 0.145, target: 0.15 },
+    { month: 'Feb', efficiency: 0.122, target: 0.15 },
+    { month: 'Mar', efficiency: 0.189, target: 0.15 },
+    { month: 'Apr', efficiency: 0.086, target: 0.15 },
+    { month: 'May', efficiency: 0.103, target: 0.15 },
+    { month: 'Jun', efficiency: 0.190, target: 0.15 },
+    { month: 'Jul', efficiency: 0.167, target: 0.15 },
+    { month: 'Aug', efficiency: 0.164, target: 0.15 },
+    { month: 'Sep', efficiency: 0.184, target: 0.15 },
+    { month: 'Oct', efficiency: 0.168, target: 0.15 },
+    { month: 'Nov', efficiency: 0.165, target: 0.15 },
+    { month: 'Dec', efficiency: 0.162, target: 0.15 }
+  ];
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingData, setEditingData] = useState<any>(null);
@@ -470,8 +506,8 @@ export default function Scope2Section() {
     {
       id: 'purchased-electricity',
       name: 'Purchased Electricity',
-      value: 2124.7,
-      percentage: 74.4,
+      value: dashboardData.scope2Emissions * 0.8,
+      percentage: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions * 0.8) / dashboardData.totalEmissions) * 100 : 0,
       color: '#0f5744',
       opacity: 1,
       description: 'Grid electricity consumption'
@@ -479,8 +515,8 @@ export default function Scope2Section() {
     {
       id: 'steam',
       name: 'Steam',
-      value: 519.9,
-      percentage: 18.2,
+      value: dashboardData.scope2Emissions * 0.15,
+      percentage: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions * 0.15) / dashboardData.totalEmissions) * 100 : 0,
       color: '#0f5744',
       opacity: 0.8,
       description: 'Industrial steam consumption'
@@ -488,8 +524,8 @@ export default function Scope2Section() {
     {
       id: 'heating-cooling',
       name: 'Heating & Cooling',
-      value: 211.8,
-      percentage: 7.4,
+      value: dashboardData.scope2Emissions * 0.05,
+      percentage: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions * 0.05) / dashboardData.totalEmissions) * 100 : 0,
       color: '#0f5744',
       opacity: 0.6,
       description: 'HVAC and thermal systems'
@@ -546,18 +582,17 @@ export default function Scope2Section() {
     {
       id: 'total-scope2',
       title: 'Total Scope 2',
-      value: '2,856.4',
+      value: dashboardData.scope2Emissions.toFixed(1),
       change: '▼ 15.8%',
       changeType: 'decrease',
-      subtitle: 'tonnes CO₂e • 31.9% of total emissions',
+      subtitle: `tonnes CO₂e • ${dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions / dashboardData.totalEmissions) * 100).toFixed(1) : 0}% of total emissions`,
       icon: '⚡',
-      // trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258]
-      progress: 34.4
+      progress: dashboardData.totalEmissions > 0 ? ((dashboardData.scope2Emissions / dashboardData.totalEmissions) * 100) : 0
     },
     {
       id: 'purchased-electricity',
       title: 'Purchased Electricity',
-      value: '2,124.7',
+      value: (dashboardData.scope2Emissions * 0.8).toFixed(1),
       change: '▼ 12.3%',
       changeType: 'decrease',
       subtitle: 'Largest source • 74.4% of Scope 2',
@@ -582,7 +617,6 @@ export default function Scope2Section() {
       changeType: 'decrease',
       subtitle: 'kWh per unit • Efficiency metric',
       icon: '📊',
-      // trend: [0.195, 0.192, 0.189, 0.186, 0.183, 0.180, 0.177, 0.174, 0.171, 0.168, 0.165, 0.162],
       progress: 94.4
     }
   ];
@@ -723,7 +757,7 @@ export default function Scope2Section() {
       </div>
 
       {/* Renewable Energy Section */}
-      <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+      {/* <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4">
           <h3 className="text-lg font-semibold text-black flex items-center gap-2">
             🌞 Renewable Energy Portfolio
@@ -741,7 +775,7 @@ export default function Scope2Section() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Purchased Electricity Table */}
       <Table

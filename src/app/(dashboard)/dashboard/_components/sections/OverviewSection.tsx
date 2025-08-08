@@ -56,6 +56,8 @@ export default function OverviewSection() {
     totalFacilities: number;
     totalVehicles: number;
     recentActivities: any[];
+    stationaryCombustionEmissions: number;
+    mobileCombustionEmissions: number;
   }>({
     dataQuality: 0,
     emissionByEquipment: 0,
@@ -71,12 +73,14 @@ export default function OverviewSection() {
     totalFacilities: 0,
     totalVehicles: 0,
     recentActivities: [],
+    stationaryCombustionEmissions: 0,
+    mobileCombustionEmissions: 0,
   });
 
   const getDashboard = async () => {
     try {
       const response = await getRequest(
-        `dashboard/getDashboardData/${getOrgId()}`,
+        `dashboard/getDashboardData`,
         getTokens()
       );
 
@@ -97,24 +101,22 @@ export default function OverviewSection() {
     if (!data.recentActivities) return [];
 
     return data.recentActivities.map((activity, index) => ({
-      _id: activity.stationary?._id || `activity-${index}`,
-      date: new Date(
-        activity.stationary?.updatedAt || activity.stationary?.createdAt
-      ).toLocaleDateString("en-US", {
+      _id: activity._id || `activity-${index}`,
+      date: new Date(activity.createdAt).toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       }),
-      activity: `${activity.stationary?.scopeType} ${activity.message}`,
-      scope: activity.stationary?.scope || "Scope 1",
+      activity: `${activity.scopeType} ${activity.scope} emissions`,
+      scope: activity.scope || "Scope 1",
       impact:
-        activity.stationary?.totalEmissions > 100
+        activity.totalEmissions > 1000
           ? "High"
-          : activity.stationary?.totalEmissions > 50
+          : activity.totalEmissions > 100
           ? "Medium"
           : "Low",
-      status: activity.success ? "Completed" : "Failed",
-      statusType: activity.success ? "success" : "error",
+      status: "Completed",
+      statusType: "success",
       originalData: activity,
     }));
   };
@@ -185,11 +187,11 @@ export default function OverviewSection() {
           sources: [
             {
               name: "Stationary Combustion",
-              amount: `${data.scope1Emissions.toFixed(1)} t CO₂e`,
+              amount: `${data.stationaryCombustionEmissions.toFixed(1)} t CO₂e`,
             },
             {
               name: "Mobile Combustion",
-              amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e`,
+              amount: `${data.mobileCombustionEmissions.toFixed(1)} t CO₂e`,
             },
             // { name: "Fugitive Emissions", amount: "0.0 t CO₂e" },
             // { name: "Process Emissions", amount: "0.0 t CO₂e" },
@@ -306,11 +308,11 @@ export default function OverviewSection() {
           sources: [
             {
               name: "Stationary Combustion",
-              amount: `${data.emissionByFacility.toFixed(1)} t CO₂e`,
+              amount: `${data.stationaryCombustionEmissions.toFixed(1)} t CO₂e`,
             },
             {
               name: "Mobile Combustion",
-              amount: `${data.emissionByVehicle.toFixed(1)} t CO₂e`,
+              amount: `${data.mobileCombustionEmissions.toFixed(1)} t CO₂e`,
             },
             { name: "Fugitive Emissions", amount: "0.0 t CO₂e" },
             { name: "Process Emissions", amount: "0.0 t CO₂e" },

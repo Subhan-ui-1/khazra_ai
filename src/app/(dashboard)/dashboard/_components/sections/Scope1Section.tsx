@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Line, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -13,6 +13,8 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 import Table from "../../../../../components/Table";
 import { Edit3, Trash2, Eye } from 'lucide-react';
+import { safeLocalStorage } from "@/utils/localStorage";
+import { getRequest } from "@/utils/api";
 
 
 type Source = {
@@ -99,137 +101,117 @@ const scope1EmissionData = [
   }
 ];
 
-const scope1DataByDuration: Scope1Data = {
-  'This Year': [
-    {
-      label: 'Stationary Combustion',
-      value: 1746.2,
-      percentage: 43.8,
-      color: 'fill-[#6f33e8]',
-      rawColor: '#6f33e8',
-    },
-    {
-      label: 'Mobile Combustion',
-      value: 985.4,
-      percentage: 30.3,
-      color: 'fill-[#00bbff]',
-      rawColor: '#00bbff',
-    },
-    {
-      label: 'Process Emissions',
-      value: 516.2,
-      percentage: 15.9,
-      color: 'fill-[#ff8c09]',
-      rawColor: '#ff8c09',
-    },
-    {
-      label: 'Emissions',
-      value: 416.2,
-      percentage: 10.9,
-      color: 'fill-[#ffd900]',
-      rawColor: '#ffd900',
-    },
-  ],
-  'Last Year': [
-    {
-      label: 'Stationary Combustion',
-      value: 1900,
-      percentage: 50,
-      color: 'fill-[#6f33e8]',
-      rawColor: '#6f33e8',
-    },
-    {
-      label: 'Mobile Combustion',
-      value: 800,
-      percentage: 25,
-      color: 'fill-[#00bbff]',
-      rawColor: '#00bbff',
-    },
-    {
-      label: 'Process Emissions',
-      value: 470,
-      percentage: 15,
-      color: 'fill-[#ff8c09]',
-      rawColor: '#ff8c09',
-    },
-    {
-      label: 'Emissions',
-      value: 870,
-      percentage: 10,
-      color: 'fill-[#ffd900]',
-      rawColor: '#ffd900',
-    },
-  ],
-  'Comparison': [
-    {
-      label: 'Stationary Combustion',
-      value: 1800,
-      percentage: 40,
-      color: 'fill-[#6f33e8]',
-      rawColor: '#6f33e8',
-    },
-    {
-      label: 'Mobile Combustion',
-      value: 1100,
-      percentage: 25,
-      color: 'fill-[#00bbff]',
-      rawColor: '#00bbff',
-    },
-    {
-      label: 'Process Emissions',
-      value: 700,
-      percentage: 15,
-      color: 'fill-[#ff8c09]',
-      rawColor: '#ff8c09',
-    },
-    {
-      label: ' Emissions',
-      value: 600,
-      percentage: 10,
-      color: 'fill-[#ffd900]',
-      rawColor: '#ffd900',
-    },
-  ],
-};
-
-const sourceData: Source[] = [
-  {
-    icon: '🔥',
-    title: 'Stationary Combustion',
-    subtitle: 'Boilers, furnaces, generators',
-    value: 1746.2,
-    percentage: 53.8,
-    description: '23 sources • Natural gas, heating oil',
-  },
-  {
-    icon: '🚗',
-    title: 'Mobile Combustion',
-    subtitle: 'Fleet vehicles, equipment',
-    value: 985.4,
-    percentage: 30.3,
-    description: '45 vehicles • Diesel, gasoline, hybrid',
-  },
-  // {
-  //   icon: '🏭',
-  //   title: 'Process Emissions',
-  //   subtitle: 'Industrial manufacturing',
-  //   value: 516.2,
-  //   percentage: 15.9,
-  //   description: 'Chemical processes • Manufacturing',
-  // },
-  // {
-  //   icon: '🏭',
-  //   title: 'Process Emissions',
-  //   subtitle: 'Industrial manufacturing',
-  //   value: 516.2,
-  //   percentage: 15.9,
-  //   description: 'Chemical processes • Manufacturing',
-  // },
-];
-
 export default function Scope1Section() {
   const [duration, setDuration] = useState<'This Year' | 'Last Year' | 'Comparison'>('This Year');
+  const [dashboardData, setDashboardData] = useState({
+    scope1Emissions: 0,
+    stationaryCombustionEmissions: 0,
+    mobileCombustionEmissions: 0,
+    totalEmissions: 0,
+    stationaryEmissionsPercentageChange: 0,
+    mobileEmissionsPercentageChange: 0,
+    currentEmissionsYear: 0,
+    previousEmissionsYear: 0,
+  });
+
+  const getTokens = () => {
+    const token = safeLocalStorage.getItem("tokens");
+    const tokenData = JSON.parse(token || "");
+    return tokenData.accessToken;
+  };
+
+  const getDashboard = async () => {
+    try {
+      const response = await getRequest(
+        `dashboard/getDashboardData`,
+        getTokens()
+      );
+
+      if (response.success) {
+        setDashboardData(response.dashboardData);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDashboard();
+  }, []);
+
+  // Update scope1DataByDuration with real data
+  const scope1DataByDuration: Scope1Data = {
+    'This Year': [
+      {
+        label: 'Stationary Combustion',
+        value: dashboardData.stationaryCombustionEmissions,
+        percentage: dashboardData.totalEmissions > 0 ? (dashboardData.stationaryCombustionEmissions / dashboardData.scope1Emissions) * 100 : 0,
+        color: 'fill-[#6f33e8]',
+        rawColor: '#6f33e8',
+      },
+      {
+        label: 'Mobile Combustion',
+        value: dashboardData.mobileCombustionEmissions,
+        percentage: dashboardData.totalEmissions > 0 ? (dashboardData.mobileCombustionEmissions / dashboardData.scope1Emissions) * 100 : 0,
+        color: 'fill-[#00bbff]',
+        rawColor: '#00bbff',
+      },
+    ],
+    'Last Year': [
+      {
+        label: 'Stationary Combustion',
+        value: dashboardData.stationaryCombustionEmissions * (1 + Math.abs(dashboardData.stationaryEmissionsPercentageChange) / 100),
+        percentage: 50,
+        color: 'fill-[#6f33e8]',
+        rawColor: '#6f33e8',
+      },
+      {
+        label: 'Mobile Combustion',
+        value: dashboardData.mobileCombustionEmissions * (1 + Math.abs(dashboardData.mobileEmissionsPercentageChange) / 100),
+        percentage: 25,
+        color: 'fill-[#00bbff]',
+        rawColor: '#00bbff',
+      },
+    ],
+    'Comparison': [
+      {
+        label: 'Stationary Combustion',
+        value: dashboardData.stationaryCombustionEmissions,
+        percentage: 40,
+        color: 'fill-[#6f33e8]',
+        rawColor: '#6f33e8',
+      },
+      {
+        label: 'Mobile Combustion',
+        value: dashboardData.mobileCombustionEmissions,
+        percentage: 25,
+        color: 'fill-[#00bbff]',
+        rawColor: '#00bbff',
+      },
+    ],
+  };
+
   const scope1Sources = scope1DataByDuration[duration];
+
+  // Update sourceData with real data
+  const sourceData: Source[] = [
+    {
+      icon: '🔥',
+      title: 'Stationary Combustion',
+      subtitle: 'Boilers, furnaces, generators',
+      value: dashboardData.stationaryCombustionEmissions,
+      percentage: dashboardData.scope1Emissions > 0 ? (dashboardData.stationaryCombustionEmissions / dashboardData.scope1Emissions) * 100 : 0,
+      description: '23 sources • Natural gas, heating oil',
+    },
+    {
+      icon: '🚗',
+      title: 'Mobile Combustion',
+      subtitle: 'Fleet vehicles, equipment',
+      value: dashboardData.mobileCombustionEmissions,
+      percentage: dashboardData.scope1Emissions > 0 ? (dashboardData.mobileCombustionEmissions / dashboardData.scope1Emissions) * 100 : 0,
+      description: '45 vehicles • Diesel, gasoline, hybrid',
+    },
+  ];
 
   const pieData = {
     labels: [
@@ -366,10 +348,10 @@ export default function Scope1Section() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Total Scope 1
               </div>
-              <div className="text-3xl font-bold text-black mb-2">3,247.8</div>
+              <div className="text-3xl font-bold text-black mb-2">{dashboardData.scope1Emissions.toFixed(1)}</div>
               <div className="text-sm text-green-800 mb-2">▼ 12.4% vs baseline</div>
               <div className="text-xs text-black opacity-60">
-                tonnes CO₂e • 36.3% of total emissions
+                tonnes CO₂e • {dashboardData.totalEmissions > 0 ? ((dashboardData.scope1Emissions / dashboardData.totalEmissions) * 100).toFixed(1) : 0}% of total emissions
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
@@ -387,10 +369,10 @@ export default function Scope1Section() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Stationary Combustion
               </div>
-              <div className="text-3xl font-bold text-black mb-2">1,746.2</div>
-              <div className="text-sm text-green-800 mb-2">▼ 8.5% vs last year</div>
+              <div className="text-3xl font-bold text-black mb-2">{dashboardData.stationaryCombustionEmissions.toFixed(1)}</div>
+              <div className="text-sm text-green-800 mb-2">▼ {Math.abs(dashboardData.stationaryEmissionsPercentageChange).toFixed(1)}% vs last year</div>
               <div className="text-xs text-black opacity-60">
-                Largest source • 53.8% of Scope 1
+                Largest source • {dashboardData.scope1Emissions > 0 ? ((dashboardData.stationaryCombustionEmissions / dashboardData.scope1Emissions) * 100).toFixed(1) : 0}% of Scope 1
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
@@ -398,7 +380,7 @@ export default function Scope1Section() {
             </div>
           </div>
           <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
-            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '53.8%' }}></div>
+            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: `${dashboardData.scope1Emissions > 0 ? (dashboardData.stationaryCombustionEmissions / dashboardData.scope1Emissions) * 100 : 0}%` }}></div>
           </div>
         </div>
 
@@ -408,10 +390,10 @@ export default function Scope1Section() {
               <div className="text-xs font-semibold text-black opacity-70 uppercase tracking-wider mb-2">
                 Mobile Combustion
               </div>
-              <div className="text-3xl font-bold text-black mb-2">985.4</div>
-              <div className="text-sm text-green-800 mb-2">▼ 15.2% vs last year</div>
+              <div className="text-3xl font-bold text-black mb-2">{dashboardData.mobileCombustionEmissions.toFixed(1)}</div>
+              <div className="text-sm text-green-800 mb-2">▼ {Math.abs(dashboardData.mobileEmissionsPercentageChange).toFixed(1)}% vs last year</div>
               <div className="text-xs text-black opacity-60">
-                Fleet optimization • 30.3% of Scope 1
+                Fleet optimization • {dashboardData.scope1Emissions > 0 ? ((dashboardData.mobileCombustionEmissions / dashboardData.scope1Emissions) * 100).toFixed(1) : 0}% of Scope 1
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
@@ -419,7 +401,7 @@ export default function Scope1Section() {
             </div>
           </div>
           <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
-            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: '30.3%' }}></div>
+            <div className="h-full bg-green-800 transition-all duration-1000" style={{ width: `${dashboardData.scope1Emissions > 0 ? (dashboardData.mobileCombustionEmissions / dashboardData.scope1Emissions) * 100 : 0}%` }}></div>
           </div>
         </div>
 
