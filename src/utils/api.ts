@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import toast from "react-hot-toast";
-import { safeLocalStorage } from "./localStorage";
+// import { safeLocalStorage } from "./localStorage";
 
 const BASE_URLs =
   "https://dev-kai-backend-production.up.railway.app/api/";

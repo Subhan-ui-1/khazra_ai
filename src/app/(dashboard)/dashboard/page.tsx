@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardHeader from './_components/DashboardHeader';
 import DashboardSidebar from './_components/DashboardSidebar';
 import OverviewSection from './_components/sections/OverviewSection';
@@ -19,7 +20,6 @@ import AnalyticsSection from './_components/sections/AnalyticsSection';
 import ChatbotSection from './_components/sections/ChatbotSection';
 import AddFacilitySection from './_components/sections/AddFacilitySection';
 import AddBoundarySection from './_components/sections/AddBoundarySection';
-import { useSearchParams } from 'next/navigation';
 import AddVehicleSection from './_components/sections/AddVehicleSection';
 import AddEquipmentSection from './_components/sections/AddEquipmentSection';
 import FlexibleTargetPlatform from './_components/sections/khazra-target-setting (2)'; 
@@ -37,18 +37,137 @@ import AddUserSection from './_components/sections/AddUserSection';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import MaterialityAssessmentEngine from './_components/sections/materiality_assessment_demo';
 import ReportGeneration from './_components/sections/ReportGeneration';
+import { getRequest } from '@/utils/api';
+import { safeLocalStorage } from '@/utils/localStorage';
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview');
+  const [setupComplete, setSetupComplete] = useState(false);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const section = searchParams.get('section');
   const { canView, canCreate, canManage } = usePermissions();
+  const router = useRouter();
   
   useEffect(()=>{
     if(section){
       setActiveSection(section)
     }
   }, [section])
+
+  // Check if setup is complete
+  useEffect(() => {
+    const checkSetupStatus = async () => {
+      try {
+        setLoading(true);
+        
+        // Get tokens
+        const token = safeLocalStorage.getItem("tokens");
+        const tokenData = JSON.parse(token || "{}");
+        
+        if (!tokenData.accessToken) {
+          router.push('/login');
+          return;
+        }
+
+        // Check dashboard data to see what's already configured
+        const dashboardResponse = await getRequest(
+          'dashboard/getDashboardData',
+          tokenData.accessToken
+        );
+
+        if (dashboardResponse.success) {
+          const dashboardData = dashboardResponse.dashboardData;
+          
+          // Check if boundary exists by calling the boundaries API directly
+          let hasBoundary = false;
+          let hasFacilities = false;
+          let hasVehicles = false;
+          let hasEquipment = false;
+          
+          try {
+            const boundaryResponse = await getRequest(
+              'boundaries/getBoundaries',
+              tokenData.accessToken
+            );
+            
+            if (boundaryResponse.success && boundaryResponse.data?.boundaries?.length > 0) {
+              hasBoundary = true;
+              const boundary = boundaryResponse.data.boundaries[0];
+              hasFacilities = boundary.facilityCount > 0;
+              hasVehicles = boundary.vehicleCount > 0;
+              hasEquipment = boundary.equipmentCount > 0;
+            }
+          } catch (error) {
+            console.error('Error fetching boundary details:', error);
+            hasBoundary = false;
+          }
+          
+          // Check if departments exist
+          let hasDepartments = false;
+          try {
+            const departmentsResponse = await getRequest(
+              'departments/getDepartments?limit=1',
+              tokenData.accessToken
+            );
+            hasDepartments = departmentsResponse.success && departmentsResponse.data?.departments?.length > 0;
+          } catch (error) {
+            console.error('Error checking departments:', error);
+            hasDepartments = false;
+          }
+          
+          // Check if facilities exist (only if user said they have facilities)
+          const facilitiesExist = dashboardData.totalFacilities > 0;
+          const facilitiesComplete = !hasFacilities || (hasFacilities && facilitiesExist);
+          
+          // Check if vehicles exist (only if user said they have vehicles)
+          const vehiclesExist = dashboardData.totalVehicles > 0;
+          const vehiclesComplete = !hasVehicles || (hasVehicles && vehiclesExist);
+          
+          // Check if equipment exists (only if user said they have equipment)
+          const equipmentExist = dashboardData.totalEquipment > 0;
+          const equipmentComplete = !hasEquipment || (hasEquipment && equipmentExist);
+
+          // Setup is complete if boundary, departments, and all applicable steps are done
+          const isSetupComplete = hasBoundary && hasDepartments && facilitiesComplete && vehiclesComplete && equipmentComplete;
+          
+          // if (!isSetupComplete) {
+          //   // Redirect to steps page if setup is not complete
+          //   router.push('/dashboard/steps');
+          //   return;
+          // }
+          
+          setSetupComplete(true);
+        }
+      } catch (error) {
+        console.error('Error checking setup status:', error);
+        // If there's an error, assume setup is not complete and redirect to steps
+        router.push('/dashboard/steps');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSetupStatus();
+  }, [router]);
+
+  // Show loading while checking setup status
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if setup is not complete
+  if (!setupComplete) {
+    return null;
+  }
 
   const sections = {
     overview: <OverviewSection />, // decarbonization

@@ -141,7 +141,11 @@ interface Boundary {
   updatedAt: string;
 }
 
-const AddBoundarySection = () => {
+interface AddBoundarySectionProps {
+  onComplete?: () => void;
+}
+
+const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
   const [boundaryData, setBoundaryData] = useState<Boundary | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingBoundary, setEditingBoundary] = useState<Boundary | null>(null);
@@ -597,8 +601,13 @@ const AddBoundarySection = () => {
           userDataParsed.boundary = response.boundary._id;
           safeLocalStorage.setItem("user", JSON.stringify(userDataParsed));
 
-          // Redirect to dashboard after successful creation
-          router.push("/dashboard");
+          // Call onComplete callback if provided (for steps page)
+          if (onComplete) {
+            onComplete();
+          } else {
+            // Redirect to dashboard after successful creation (for regular dashboard)
+            router.push("/dashboard");
+          }
         } else {
           // toast.error(response?.message || "Failed to create boundary");
         }

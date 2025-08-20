@@ -86,7 +86,11 @@ const statusOptions = [
 //   'Standby'
 ];
 
-const AddEquipmentSection = () => {
+interface AddEquipmentSectionProps {
+  onComplete?: () => void;
+}
+
+const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
   const [equipmentData, setEquipmentData] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
   const [equipmentTypeData, setEquipmentTypeData] = useState<any[]>([]);
@@ -305,6 +309,11 @@ const AddEquipmentSection = () => {
         toast.success(editingItem ? "Equipment updated successfully" : "Equipment created successfully");
         resetForm();
         fetchEquipments();
+        
+        // Call onComplete callback if provided (for steps page) and this is new equipment
+        if (onComplete && !editingItem) {
+          onComplete();
+        }
       }
     } catch (error: any) {
       // toast.error(error.message || (editingItem ? "Failed to update equipment" : "Failed to create equipment"));

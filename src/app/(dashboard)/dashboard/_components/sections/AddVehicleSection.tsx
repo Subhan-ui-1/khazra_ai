@@ -156,7 +156,11 @@ const regions = [
   "Australia",
 ];
 
-const AddVehicleSection = () => {
+interface AddVehicleSectionProps {
+  onComplete?: () => void;
+}
+
+const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
   const [vehicleData, setVehicleData] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
@@ -362,6 +366,11 @@ const AddVehicleSection = () => {
         setEditingItem(null);
         setFormData(empty);
         fetchVehicles(); // Refresh the list after adding/updating
+        
+        // Call onComplete callback if provided (for steps page) and this is a new vehicle
+        if (onComplete && !editingItem) {
+          onComplete();
+        }
       } else {
         // toast.error(response.message || "Operation failed");
         console.log(response, 'response')

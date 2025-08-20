@@ -33,7 +33,11 @@ interface Department {
   };
 }
 
-const AddDepartmentSection = () => {
+interface AddDepartmentSectionProps {
+  onComplete?: () => void;
+}
+
+const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
   const [departmentData, setDepartmentData] = useState<Department[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Department | null>(null);
@@ -212,6 +216,11 @@ const AddDepartmentSection = () => {
         toast.success(editingItem ? "Department updated successfully" : "Department created successfully");
         resetForm();
         fetchDepartments();
+        
+        // Call onComplete callback if provided (for steps page) and this is a new department
+        if (onComplete && !editingItem) {
+          onComplete();
+        }
       }
     } catch (error: any) {
       // toast.error(error.message || (editingItem ? "Failed to update department" : "Failed to create department"));

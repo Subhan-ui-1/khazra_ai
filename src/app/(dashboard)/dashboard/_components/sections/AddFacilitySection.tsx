@@ -132,7 +132,11 @@ const NUMBER_OF_EMPLOYEES_OPTIONS = [
   "500001-1000000",
 ];
 
-const AddFacilitySection = () => {
+interface AddFacilitySectionProps {
+  onComplete?: () => void;
+}
+
+const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const [facilityData, setFacilityData] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -441,6 +445,11 @@ const AddFacilitySection = () => {
         setEditingItem(null);
         resetForm();
         fetchFacilities(); // Refresh the list after adding/updating
+        
+        // Call onComplete callback if provided (for steps page) and this is a new facility
+        if (onComplete && !editingItem) {
+          onComplete();
+        }
       } else {
         // toast.error(response.message || "Operation failed");
         console.log(response, 'response')
