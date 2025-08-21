@@ -103,21 +103,21 @@ export default function HorizontalGroupedBarChart({ title, emissionData = 0, cre
         labels,
         datasets: [
             {
-                label: 'Scope 1',
+                // label: 'Scope 1',
                 data: scope1,
                 backgroundColor: '#0a1c10',
                 barThickness: 8,
                 borderColor: '#ffffff',
                 borderWidth: 1,
             },
-            {
-                label: 'Scope 2',
-                data: scope2,
-                backgroundColor: '#34d399',
-                barThickness: 8,
-                borderColor: '#ffffff',
-                borderWidth: 1,
-            },
+            // {
+            //     label: 'Scope 2',
+            //     data: scope2,
+            //     backgroundColor: '#34d399',
+            //     barThickness: 8,
+            //     borderColor: '#ffffff',
+            //     borderWidth: 1,
+            // },
         ],
     };
 

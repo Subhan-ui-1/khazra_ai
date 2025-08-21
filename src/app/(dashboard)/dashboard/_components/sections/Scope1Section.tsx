@@ -107,6 +107,8 @@ export default function Scope1Section() {
     stationaryEmissionsPercentageChange: 0,
     mobileEmissionsPercentageChange: 0,
     currentEmissionsYear: 0,
+    totalFacilities: 0,
+    totalVehicles: 0,
     previousEmissionsYear: 0,
     recentActivities: [],
   });
@@ -177,35 +179,37 @@ export default function Scope1Section() {
       {
         label: "Stationary Combustion",
         value:
-          dashboardData.stationaryCombustionEmissions *
-          (1 +
-            Math.abs(dashboardData.stationaryEmissionsPercentageChange) / 100),
-        percentage: 50,
+          // dashboardData.stationaryCombustionEmissions *
+          // (1 +
+          //   Math.abs(dashboardData.stationaryEmissionsPercentageChange) / 100),
+          0,
+        percentage: 0,
         color: "fill-[#6f33e8]",
         rawColor: "#6f33e8",
       },
       {
         label: "Mobile Combustion",
         value:
-          dashboardData.mobileCombustionEmissions *
-          (1 + Math.abs(dashboardData.mobileEmissionsPercentageChange) / 100),
-        percentage: 25,
+          // dashboardData.mobileCombustionEmissions *
+          // (1 + Math.abs(dashboardData.mobileEmissionsPercentageChange) / 100),
+          0,
+        percentage: 0,
         color: "fill-[#00bbff]",
         rawColor: "#00bbff",
       },
     ],
     Comparison: [
       {
-        label: "Stationary Combustion",
-        value: dashboardData.stationaryCombustionEmissions,
-        percentage: 40,
+        label: "This Year",
+        value: dashboardData.scope1Emissions,
+        percentage: 100,
         color: "fill-[#6f33e8]",
         rawColor: "#6f33e8",
       },
       {
-        label: "Mobile Combustion",
-        value: dashboardData.mobileCombustionEmissions,
-        percentage: 25,
+        label: "Last Year",
+        value: 0,
+        percentage: 0,
         color: "fill-[#00bbff]",
         rawColor: "#00bbff",
       },
@@ -227,7 +231,7 @@ export default function Scope1Section() {
               dashboardData.scope1Emissions) *
             100
           : 0,
-      description: "23 sources • Natural gas, heating oil",
+      description: `${dashboardData.totalFacilities} sources`,
     },
     {
       icon: "🚗",
@@ -240,12 +244,12 @@ export default function Scope1Section() {
               dashboardData.scope1Emissions) *
             100
           : 0,
-      description: "45 vehicles • Diesel, gasoline, hybrid",
+      description: `${dashboardData.totalVehicles} vehicles`,
     },
   ];
 
   const pieData = {
-    labels: [scope1Sources.map((item) => item.label)],
+    labels: [...scope1Sources.map((item) => item.label)],
     datasets: [
       {
         data: scope1Sources.map((item) => item.value),
@@ -421,7 +425,7 @@ export default function Scope1Section() {
                 {dashboardData.scope1Emissions.toFixed(1)}
               </div>
               <div className="text-sm text-green-800 mb-2">
-                ▼ 12.4% vs baseline
+                ▼ {dashboardData.scope1Emissions.toFixed(1)}% vs baseline
               </div>
               <div className="text-xs text-black opacity-60">
                 tonnes CO₂e •{" "}
@@ -566,8 +570,8 @@ export default function Scope1Section() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+        <div className="lg:col-span-1 bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6 border-b border-green-100 pb-4 w-full">
             <h3 className="text-lg font-semibold text-black flex items-center gap-2">
               📊 Scope 1 Breakdown by Source
@@ -610,7 +614,7 @@ export default function Scope1Section() {
           </div>
         </div>
 
-        <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
+        {/* <div className="bg-white border border-green-100 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-green-100 pb-4">
             <h3 className="text-lg font-semibold text-gblack flex items-center gap-2">
               📈 Monthly Trends
@@ -624,11 +628,11 @@ export default function Scope1Section() {
               Continuous reduction trend • Target: -15% by Dec 2025
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Sources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {sourceData.map((item, index) => (
           <div
             key={index}
@@ -664,7 +668,7 @@ export default function Scope1Section() {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Data Table */}
       <Table

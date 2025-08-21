@@ -159,7 +159,7 @@ export default function DashboardSidebar({
         items: [
           { id: "customTargets", icon: "🎯", label: "Custom Targets" },
           { id: "granularTargets", icon: "🎯", label: "Granular Targets" },
-          { id: "esg-kpis", icon: "🏆", label: "Initiative Management" },
+          // { id: "esg-kpis", icon: "🏆", label: "Initiative Management" },
         ],
       },
       {
@@ -168,7 +168,7 @@ export default function DashboardSidebar({
           // { id: 'sustainability-reporting', icon: '📋', label: 'Sustainability Reporting' },
           // { id: 'analytics', icon: '📊', label: 'Analytics & Insights' },
           { id: "reporting", icon: "📊", label: "Materiality Engine" },
-          { id: "ReportGeneration", icon: "📝", label: "Report Generation"},
+          // { id: "ReportGeneration", icon: "📝", label: "Report Generation"},
           // { id: "NewReport", icon: "📝", label: "New Report Generation"},
         ],
       },

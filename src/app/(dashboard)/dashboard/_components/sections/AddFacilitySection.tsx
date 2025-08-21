@@ -14,7 +14,7 @@ import {
 import { postRequest, getRequest } from "@/utils/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { usePermissions, PermissionGuard } from '@/utils/permissions';
+import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 
 // Define TypeScript interfaces
@@ -54,15 +54,12 @@ const facilityTypes = [
 const statusOptions = [
   "Active",
   "Inactive",
-    'Archived',
+  "Archived",
   //   'Under Construction',
   //   'Planned'
 ];
 
-const countries = [
-  "United Arab Emirates",
-  "Saudi Arabia",
-];
+const countries = ["United Arab Emirates", "Saudi Arabia"];
 
 // States/Emirates for UAE
 const uaeStates = [
@@ -72,7 +69,7 @@ const uaeStates = [
   "Ajman",
   "Umm Al Quwain",
   "Ras Al Khaimah",
-  "Fujairah"
+  "Fujairah",
 ];
 
 // States/Provinces for Saudi Arabia
@@ -88,34 +85,52 @@ const saudiStates = [
   "Jazan",
   "Najran",
   "Al Bahah",
-  "Al Jouf"
+  "Al Jouf",
 ];
 
 // Cities for UAE states
 const uaeCities = {
-  "Abu Dhabi": ["Abu Dhabi City", "Al Ain", "Al Dhafra", "Al Ruwais", "Liwa Oasis"],
-  "Dubai": ["Dubai City", "Jebel Ali", "Hatta", "Al Aweer", "Al Qusais"],
-  "Sharjah": ["Sharjah City", "Khor Fakkan", "Kalba", "Dibba Al-Hisn", "Al Dhaid"],
-  "Ajman": ["Ajman City", "Al Manama", "Masfout"],
+  "Abu Dhabi": [
+    "Abu Dhabi City",
+    "Al Ain",
+    "Al Dhafra",
+    "Al Ruwais",
+    "Liwa Oasis",
+  ],
+  Dubai: ["Dubai City", "Jebel Ali", "Hatta", "Al Aweer", "Al Qusais"],
+  Sharjah: [
+    "Sharjah City",
+    "Khor Fakkan",
+    "Kalba",
+    "Dibba Al-Hisn",
+    "Al Dhaid",
+  ],
+  Ajman: ["Ajman City", "Al Manama", "Masfout"],
   "Umm Al Quwain": ["Umm Al Quwain City", "Al Sinniyah", "Al Raas"],
   "Ras Al Khaimah": ["Ras Al Khaimah City", "Al Rams", "Al Jazirah Al Hamra"],
-  "Fujairah": ["Fujairah City", "Dibba", "Khor Fakkan", "Kalba"]
+  Fujairah: ["Fujairah City", "Dibba", "Khor Fakkan", "Kalba"],
 };
 
 // Cities for Saudi Arabia states
 const saudiCities = {
-  "Riyadh": ["Riyadh City", "Al Kharj", "Al Diriyah", "Al Majma'ah", "Al Zulfi"],
-  "Makkah": ["Mecca", "Jeddah", "Taif", "Rabigh", "Al Lith"],
-  "Eastern Province": ["Dammam", "Al Khobar", "Dhahran", "Al Jubail", "Al Ahsa"],
-  "Asir": ["Abha", "Khamis Mushait", "Bisha", "Najran", "Ranyah"],
-  "Qassim": ["Buraydah", "Unaizah", "Al Rass", "Al Badayea", "Al Mithnab"],
-  "Hail": ["Hail City", "Al Ghat", "Al Shinan", "Al Sulaimi"],
-  "Tabuk": ["Tabuk City", "Al Wajh", "Duba", "Haql", "Umluj"],
+  Riyadh: ["Riyadh City", "Al Kharj", "Al Diriyah", "Al Majma'ah", "Al Zulfi"],
+  Makkah: ["Mecca", "Jeddah", "Taif", "Rabigh", "Al Lith"],
+  "Eastern Province": [
+    "Dammam",
+    "Al Khobar",
+    "Dhahran",
+    "Al Jubail",
+    "Al Ahsa",
+  ],
+  Asir: ["Abha", "Khamis Mushait", "Bisha", "Najran", "Ranyah"],
+  Qassim: ["Buraydah", "Unaizah", "Al Rass", "Al Badayea", "Al Mithnab"],
+  Hail: ["Hail City", "Al Ghat", "Al Shinan", "Al Sulaimi"],
+  Tabuk: ["Tabuk City", "Al Wajh", "Duba", "Haql", "Umluj"],
   "Northern Borders": ["Arar", "Rafha", "Turaif"],
-  "Jazan": ["Jazan City", "Abu Arish", "Sabya", "Samtah", "Al Ahad"],
-  "Najran": ["Najran City", "Sharurah", "Badr Al Janub", "Yadamah"],
+  Jazan: ["Jazan City", "Abu Arish", "Sabya", "Samtah", "Al Ahad"],
+  Najran: ["Najran City", "Sharurah", "Badr Al Janub", "Yadamah"],
   "Al Bahah": ["Al Bahah City", "Baljurashi", "Al Mikhwah", "Al Aqiq"],
-  "Al Jouf": ["Sakaka", "Qurayyat", "Dumat Al Jandal", "Tabarjal"]
+  "Al Jouf": ["Sakaka", "Qurayyat", "Dumat Al Jandal", "Tabarjal"],
 };
 
 const NUMBER_OF_EMPLOYEES_OPTIONS = [
@@ -143,8 +158,12 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
-  const [stateOptions, setStateOptions] = useState<Array<{ value: string; label: string }>>([]);
-  const [cityOptions, setCityOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [stateOptions, setStateOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [cityOptions, setCityOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
   const [selectedCity, setSelectedCity] = useState<string>("");
@@ -158,7 +177,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   }
 
   // Check if user has permission to view facilities
-  if (!canView('facilities')) {
+  if (!canView("facilities")) {
     return (
       <div className="p-8 text-center text-gray-500">
         You don't have permission to view facilities.
@@ -193,7 +212,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   // Get user location and organization ID on component mount
   useEffect(() => {
     // Get user location
-    if (typeof window !== 'undefined' && navigator.geolocation) {
+    if (typeof window !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -223,7 +242,9 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         }
       );
     } else {
-      console.log("Geolocation is not supported by this browser or running on server");
+      console.log(
+        "Geolocation is not supported by this browser or running on server"
+      );
       // Set default coordinates
       const defaultLat = 40.28;
       const defaultLng = 74.6;
@@ -252,9 +273,9 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const getStateOptions = (country: string) => {
     switch (country) {
       case "United Arab Emirates":
-        return uaeStates.map(state => ({ value: state, label: state }));
+        return uaeStates.map((state) => ({ value: state, label: state }));
       case "Saudi Arabia":
-        return saudiStates.map(state => ({ value: state, label: state }));
+        return saudiStates.map((state) => ({ value: state, label: state }));
       default:
         return [];
     }
@@ -263,12 +284,16 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   // Get city options based on selected country and state
   const getCityOptions = (country: string, state: string) => {
     if (!country || !state) return [];
-    
+
     switch (country) {
       case "United Arab Emirates":
-        return (uaeCities[state as keyof typeof uaeCities] || []).map(city => ({ value: city, label: city }));
+        return (uaeCities[state as keyof typeof uaeCities] || []).map(
+          (city) => ({ value: city, label: city })
+        );
       case "Saudi Arabia":
-        return (saudiCities[state as keyof typeof saudiCities] || []).map(city => ({ value: city, label: city }));
+        return (saudiCities[state as keyof typeof saudiCities] || []).map(
+          (city) => ({ value: city, label: city })
+        );
       default:
         return [];
     }
@@ -291,7 +316,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   // Handle form field changes
   const handleFormChange = (field: string, value: string) => {
     // Handle country change
-    if (field === 'country') {
+    if (field === "country") {
       const newStateOptions = getStateOptions(value);
       setStateOptions(newStateOptions);
       setCityOptions([]);
@@ -299,44 +324,44 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       setSelectedState("");
       setSelectedCity("");
       // Update form data and clear dependent fields
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         country: value,
         stateProvince: "",
-        city: ""
+        city: "",
       }));
       return;
     }
 
     // Handle state change
-    if (field === 'stateProvince') {
+    if (field === "stateProvince") {
       const newCityOptions = getCityOptions(selectedCountry, value);
       setCityOptions(newCityOptions);
       setSelectedState(value);
       setSelectedCity("");
       // Update form data and clear dependent fields
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         stateProvince: value,
-        city: ""
+        city: "",
       }));
       return;
     }
 
     // Handle city change
-    if (field === 'city') {
+    if (field === "city") {
       setSelectedCity(value);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        city: value
+        city: value,
       }));
       return;
     }
 
     // Handle all other fields
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -359,11 +384,11 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         setFacilityData(response.data.facilities || []);
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch facilities");
-      console.log(error, 'error')
+      console.log(error, "error");
     } finally {
       setLoading(false);
     }
@@ -383,17 +408,17 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         fetchFacilities(); // Refresh the list
       } else {
         // toast.error(response.message || "Failed to delete facility");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete facility");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prepare facility data
     const facilityData = {
       facilityName: formData.facilityName,
@@ -404,7 +429,10 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       postalCode: formData.postalCode,
       latitude: location.latitude,
       longitude: location.longitude,
-      facilityType: formData.facilityType === "Other" ? formData.customFacilityType : formData.facilityType,
+      facilityType:
+        formData.facilityType === "Other"
+          ? formData.customFacilityType
+          : formData.facilityType,
       customFacilityType: formData.customFacilityType || "",
       floorArea: parseInt(formData.floorArea),
       numberOfEmployees: parseInt(formData.numberOfEmployees) || 0,
@@ -445,18 +473,18 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         setEditingItem(null);
         resetForm();
         fetchFacilities(); // Refresh the list after adding/updating
-        
+
         // Call onComplete callback if provided (for steps page) and this is a new facility
         if (onComplete && !editingItem) {
           onComplete();
         }
       } else {
         // toast.error(response.message || "Operation failed");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
@@ -488,22 +516,24 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const startEdit = (item: any) => {
     // Check if the facility type is custom (not in predefined list)
     const isCustomType = !facilityTypes.includes(item.facilityType);
-    
+
     // Set state and city options based on the item's country and state
     const itemStateOptions = getStateOptions(item.country);
     const itemCityOptions = getCityOptions(item.country, item.stateProvince);
-    
+
     setStateOptions(itemStateOptions);
     setCityOptions(itemCityOptions);
     setSelectedCountry(item.country);
     setSelectedState(item.stateProvince);
     setSelectedCity(item.city);
-    console.log(item, 'item')
+    console.log(item, "item");
     setEditingItem(item);
-    let some:string|undefined;
-    if(item.numberOfEmployees){
-      some=NUMBER_OF_EMPLOYEES_OPTIONS.find(p=>p.includes(item.numberOfEmployees.toString()))
-      console.log(some, 'some')
+    let some: string | undefined;
+    if (item.numberOfEmployees) {
+      some = NUMBER_OF_EMPLOYEES_OPTIONS.find((p) =>
+        p.includes(item.numberOfEmployees.toString())
+      );
+      console.log(some, "some");
     }
     setFormData({
       facilityName: item.facilityName || "",
@@ -511,10 +541,12 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       postalCode: item.postalCode || "",
       latitude: item.latitude || 0,
       longitude: item.longitude || 0,
-      facilityType: isCustomType ? "Other" : (item.facilityType || ""),
-      customFacilityType: isCustomType ? (item.facilityType || "") : (item.customFacilityType || ""),
+      facilityType: isCustomType ? "Other" : item.facilityType || "",
+      customFacilityType: isCustomType
+        ? item.facilityType || ""
+        : item.customFacilityType || "",
       floorArea: item.floorArea?.toString() || "",
-      numberOfEmployees: some||"",
+      numberOfEmployees: some || "",
       status: item.status || "",
       country: item.country || "",
       stateProvince: item.stateProvince || "",
@@ -559,10 +591,10 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   };
 
   useEffect(() => {
-    if (showForm && typeof window !== 'undefined') {
+    if (showForm && typeof window !== "undefined") {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [showForm]);
@@ -581,7 +613,9 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   // Selection handlers
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedFacilities(facilityData.map(facility => facility.id || facility._id));
+      setSelectedFacilities(
+        facilityData.map((facility) => facility.id || facility._id)
+      );
     } else {
       setSelectedFacilities([]);
     }
@@ -589,19 +623,23 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
 
   const handleSelectFacility = (facilityId: string, checked: boolean) => {
     if (checked) {
-      setSelectedFacilities(prev => [...prev, facilityId]);
+      setSelectedFacilities((prev) => [...prev, facilityId]);
     } else {
-      setSelectedFacilities(prev => prev.filter(id => id !== facilityId));
+      setSelectedFacilities((prev) => prev.filter((id) => id !== facilityId));
     }
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedFacilities.length} selected facilities?`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${selectedFacilities.length} selected facilities?`
+      )
+    ) {
       return;
     }
 
     try {
-      const deletePromises = selectedFacilities.map(facilityId => 
+      const deletePromises = selectedFacilities.map((facilityId) =>
         postRequest(
           `facilities/deleteFacilities/${facilityId}`,
           {},
@@ -612,18 +650,20 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       );
 
       await Promise.all(deletePromises);
-      toast.success(`${selectedFacilities.length} facilities deleted successfully`);
+      toast.success(
+        `${selectedFacilities.length} facilities deleted successfully`
+      );
       setSelectedFacilities([]);
       fetchFacilities();
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete some facilities");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
   const handleBulkStatusUpdate = async (newStatus: string) => {
     try {
-      const updatePromises = selectedFacilities.map(facilityId => 
+      const updatePromises = selectedFacilities.map((facilityId) =>
         postRequest(
           `facilities/updateFacilities/${facilityId}`,
           { status: newStatus },
@@ -634,93 +674,102 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       );
 
       await Promise.all(updatePromises);
-      toast.success(`${selectedFacilities.length} facilities status updated successfully`);
+      toast.success(
+        `${selectedFacilities.length} facilities status updated successfully`
+      );
       setSelectedFacilities([]);
       fetchFacilities();
     } catch (error: any) {
       //  toast.error(error.message || "Failed to update some facilities");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Building2 className="w-6 h-6 text-green-600" />
-          <h3 className="text-xl font-semibold text-gray-900">
-            Facility Management
-          </h3>
+      {onComplete ? null : (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Building2 className="w-6 h-6 text-green-600" />
+            <h3 className="text-xl font-semibold text-gray-900">
+              Facility Management
+            </h3>
+          </div>
+          <PermissionGuard permission="facilities.create">
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Facility</span>
+            </button>
+          </PermissionGuard>
         </div>
-        <PermissionGuard permission="facilities.create">
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Facility</span>
-          </button>
-        </PermissionGuard>
-      </div>
+      )}
 
       {/* Search and Filter Section */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-1/2">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Search facilities..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={filters.sortBy}
-              onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="createdAt">Created Date</option>
-              <option value="facilityName">Facility Name</option>
-              <option value="facilityType">Facility Type</option>
-              <option value="status">Status</option>
-              <option value="country">Country</option>
-            </select>
-            <select
-              value={filters.sortOrder}
-              onChange={(e) =>
-                handleFilterChange("sortOrder", e.target.value)
-              }
-              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
-            </select>
+      {onComplete ? null : (
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-1/2">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Search facilities..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={filters.sortBy}
+                onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="createdAt">Created Date</option>
+                <option value="facilityName">Facility Name</option>
+                <option value="facilityType">Facility Type</option>
+                <option value="status">Status</option>
+                <option value="country">Country</option>
+              </select>
+              <select
+                value={filters.sortOrder}
+                onChange={(e) =>
+                  handleFilterChange("sortOrder", e.target.value)
+                }
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Bulk Actions */}
-      {selectedFacilities.length > 0 && (
-        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-blue-900'>
-                {selectedFacilities.length} facilit{selectedFacilities.length > 1 ? 'ies' : 'y'} selected
-              </span>
-            </div>
-            <div className='flex gap-2'>
-              {/* <PermissionGuard permission="facilities.update">
+      {onComplete
+        ? null
+        : selectedFacilities.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-blue-900">
+                    {selectedFacilities.length} facilit
+                    {selectedFacilities.length > 1 ? "ies" : "y"} selected
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {/* <PermissionGuard permission="facilities.update">
                 <select
                   onChange={(e) => handleBulkStatusUpdate(e.target.value)}
                   className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 border-0'
@@ -731,216 +780,250 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
                   ))}
                 </select>
               </PermissionGuard> */}
-              <button
-                onClick={() => setSelectedFacilities([])}
-                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
-              >
-                Clear Selection
-              </button>
+                  <button
+                    onClick={() => setSelectedFacilities([])}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
             </div>
+          )}
+
+      {/* Facility Table */}
+      {onComplete ? null : (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h4 className="text-lg font-medium text-gray-900">
+              Facility Directory
+            </h4>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedFacilities.length === facilityData.length &&
+                        facilityData.length > 0
+                      }
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Facility
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Location
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Floor Area
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Employees
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Created At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Created By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
+                      Loading facilities...
+                    </td>
+                  </tr>
+                ) : facilityData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
+                      No facilities found. Add your first facility to get
+                      started.
+                    </td>
+                  </tr>
+                ) : (
+                  facilityData.map((facility, i) => (
+                    <tr
+                      key={facility.id || facility._id}
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedFacilities.includes(
+                            facility.id || facility._id
+                          )}
+                          onChange={(e) =>
+                            handleSelectFacility(
+                              facility.id || facility._id,
+                              e.target.checked
+                            )
+                          }
+                          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-xs font-medium text-gray-900">
+                          FC-{i + 1}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {facility.facilityName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {facility.fullAddress}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${getFacilityTypeColor(
+                            facility.facilityType
+                          )}`}
+                        >
+                          {facility.facilityType}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">
+                          {facility.city}, {facility.stateProvince}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {facility.country}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {facility.floorArea
+                          ? `${facility.floorArea.toLocaleString()} sq ft`
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {facility.numberOfEmployees
+                          ? facility.numberOfEmployees.toLocaleString()
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {formatDate(facility.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {facility.createdBy?.firstName || "-"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                            facility.status
+                          )}`}
+                        >
+                          {facility.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <PermissionGuard permission="facilities.update">
+                            <button
+                              onClick={() => startEdit(facility)}
+                              className="text-green-600 hover:text-green-800"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          </PermissionGuard>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {/* Facility Table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h4 className="text-lg font-medium text-gray-900">
-            Facility Directory
-          </h4>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  <input
-                    type="checkbox"
-                    checked={selectedFacilities.length === facilityData.length && facilityData.length > 0}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                  />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Facility
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Location
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Floor Area
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Employees
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Created At
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Created By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    Loading facilities...
-                  </td>
-                </tr>
-              ) : facilityData.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    No facilities found. Add your first facility to get started.
-                  </td>
-                </tr>
-              ) : (
-                facilityData.map((facility,i) => (
-                  <tr key={facility.id || facility._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedFacilities.includes(facility.id || facility._id)}
-                        onChange={(e) => handleSelectFacility(facility.id || facility._id, e.target.checked)}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                      />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="text-xs font-medium text-gray-900">FC-{i+1}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {facility.facilityName}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {facility.fullAddress}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${getFacilityTypeColor(
-                          facility.facilityType
-                        )}`}
-                      >
-                        {facility.facilityType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {facility.city}, {facility.stateProvince}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {facility.country}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {facility.floorArea
-                        ? `${facility.floorArea.toLocaleString()} sq ft`
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {facility.numberOfEmployees
-                        ? facility.numberOfEmployees.toLocaleString()
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {formatDate(facility.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {facility.createdBy?.firstName || '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          facility.status
-                        )}`}
-                      >
-                        {facility.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <PermissionGuard permission="facilities.update">
-                          <button
-                            onClick={() => startEdit(facility)}
-                            className="text-green-600 hover:text-green-800"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                        </PermissionGuard>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {showForm && (
-        <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-semibold text-gray-800'>
-              {editingItem ? 'Edit Facility' : 'Add Facility'}
+      {(onComplete ? true : showForm) && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {editingItem ? "Edit Facility" : "Add Facility"}
             </h2>
-            <button
+           {onComplete?null:<button
               onClick={resetForm}
-              className='text-gray-500 hover:text-gray-700'
+              className="text-gray-500 hover:text-gray-700"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
-            </button>
+            </button>}
           </div>
-          
-          <form onSubmit={handleFormSubmit} className='space-y-4'>
+
+          <form onSubmit={handleFormSubmit} className="space-y-4">
             {/* Row 1: Facility Name & Facility Type */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Facility Name *
                 </label>
                 <input
                   type="text"
                   value={formData.facilityName}
-                  onChange={(e) => handleFormChange('facilityName', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("facilityName", e.target.value)
+                  }
                   placeholder="Enter facility name"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Facility Type *
                 </label>
                 <select
                   value={formData.facilityType}
-                  onChange={(e) => handleFormChange('facilityType', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("facilityType", e.target.value)
+                  }
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select facility type</option>
-                  {facilityTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
+                  {facilityTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -948,15 +1031,17 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
 
             {/* Custom Facility Type - Full Width */}
             {formData.facilityType === "Other" && (
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <div className='md:col-span-2'>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Custom Facility Type *
                   </label>
                   <input
                     type="text"
                     value={formData.customFacilityType}
-                    onChange={(e) => handleFormChange('customFacilityType', e.target.value)}
+                    onChange={(e) =>
+                      handleFormChange("customFacilityType", e.target.value)
+                    }
                     placeholder="Enter custom facility type"
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
@@ -966,69 +1051,79 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             )}
 
             {/* Row 2: Country & State */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Country *
                 </label>
                 <select
                   value={formData.country}
-                  onChange={(e) => handleFormChange('country', e.target.value)}
+                  onChange={(e) => handleFormChange("country", e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select country</option>
-                  {countries.map(country => (
-                    <option key={country} value={country}>{country}</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   State/Province *
                 </label>
                 <select
                   value={formData.stateProvince}
-                  onChange={(e) => handleFormChange('stateProvince', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("stateProvince", e.target.value)
+                  }
                   required
                   disabled={!formData.country}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
                 >
                   <option value="">Select state/province</option>
-                  {stateOptions.map(state => (
-                    <option key={state.value} value={state.value}>{state.label}</option>
+                  {stateOptions.map((state) => (
+                    <option key={state.value} value={state.value}>
+                      {state.label}
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
 
             {/* Row 3: City & Full Address */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   City *
                 </label>
                 <select
                   value={formData.city}
-                  onChange={(e) => handleFormChange('city', e.target.value)}
+                  onChange={(e) => handleFormChange("city", e.target.value)}
                   required
                   disabled={!formData.stateProvince}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
                 >
                   <option value="">Select city</option>
-                  {cityOptions.map(city => (
-                    <option key={city.value} value={city.value}>{city.label}</option>
+                  {cityOptions.map((city) => (
+                    <option key={city.value} value={city.value}>
+                      {city.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Address *
                 </label>
                 <input
                   type="text"
                   value={formData.fullAddress}
-                  onChange={(e) => handleFormChange('fullAddress', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("fullAddress", e.target.value)
+                  }
                   placeholder="Enter complete address"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
@@ -1037,28 +1132,32 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             </div>
 
             {/* Row 4: Postal Code & Floor Area */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Postal Code *
                 </label>
                 <input
                   type="text"
                   value={formData.postalCode}
-                  onChange={(e) => handleFormChange('postalCode', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("postalCode", e.target.value)
+                  }
                   placeholder="Enter postal code"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Floor Area (sq ft) *
                 </label>
                 <input
                   type="text"
                   value={formData.floorArea}
-                  onChange={(e) => handleFormChange('floorArea', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("floorArea", e.target.value)
+                  }
                   placeholder="Enter floor area"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
@@ -1067,57 +1166,73 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             </div>
 
             {/* Row 5: Number of Employees & Status */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Number of Employees
                 </label>
                 <select
                   value={formData.numberOfEmployees}
-                  onChange={(e) => handleFormChange('numberOfEmployees', e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("numberOfEmployees", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select number of employees</option>
-                  {NUMBER_OF_EMPLOYEES_OPTIONS.map(option => (
-                    <option key={option} value={option}>{option}</option>
+                  {NUMBER_OF_EMPLOYEES_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Status *
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => handleFormChange('status', e.target.value)}
+                  onChange={(e) => handleFormChange("status", e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Select status</option>
-                  {statusOptions.map(status => (
-                    <option key={status} value={status}>{status}</option>
+                  {statusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
-            
-            <div className='flex gap-3 pt-4'>
+
+            <div className="flex gap-3 pt-4">
               <button
-                type='submit'
-                className='bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+                type="submit"
+                className="bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
-                {editingItem ? 'Update Facility' : 'Save Facility'}
+                {editingItem ? "Update Facility" : "Save Facility"}
               </button>
-              <button
-                type='button'
+             {onComplete?null:<button
+                type="button"
                 onClick={resetForm}
-                className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
               >
                 Cancel
-              </button>
+              </button>}
             </div>
           </form>
         </div>

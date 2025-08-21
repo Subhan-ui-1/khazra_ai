@@ -148,11 +148,11 @@ export default function LoginPage() {
         safeLocalStorage.setItem("tokens", JSON.stringify(response.tokens));
         safeLocalStorage.setItem("user", JSON.stringify(response.user));
         safeLocalStorage.setItem('permissions', JSON.stringify(response.user.role.permissions))
-        // if (response.user.boundary) {
+        if (response.user.boundary) {
           router.replace("/dashboard");
-        // } else {
-        //   router.replace("/dashboard?section=add-boundary");
-        // }
+        } else {
+          router.replace("/dashboard/steps");
+        }
       } else {
         // toast.error(response.message);
         console.log(response, 'response')
@@ -339,7 +339,7 @@ export default function LoginPage() {
             )}
           </button>
 
-          {/* Signup redirect */}
+          {/* Signup redirect
           <p
             className="text-center mt-3"
             style={{ fontSize: "var(--P2-size)", color: "var(--Paragraph)" }}
@@ -352,7 +352,7 @@ export default function LoginPage() {
             >
               Sign up
             </button>
-          </p>
+          </p> */}
         </form>
       </AuthLayout>
 

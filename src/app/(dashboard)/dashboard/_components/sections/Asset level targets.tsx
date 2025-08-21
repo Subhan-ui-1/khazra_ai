@@ -310,7 +310,7 @@ const AssetLevelTargetPlatform = () => {
     return (
       <div className="space-y-10">
         {/* Summary Cards - Updated to match dashboard design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -388,12 +388,12 @@ const AssetLevelTargetPlatform = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Category Breakdown - Updated styling */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Emissions by Category
+            Target by Assets
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(totals)

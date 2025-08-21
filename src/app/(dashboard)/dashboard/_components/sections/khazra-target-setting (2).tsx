@@ -426,7 +426,7 @@ const FlexibleTargetPlatform = () => {
           <div className="bg-white rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Target className="w-6 h-6 text-green-600" />
-              <h3 className="text-xl font-semibold text-green-900">
+              <h3 className="text-xl font-semibold text-black">
                 Target Strategy & Approach
               </h3>
             </div>
@@ -558,7 +558,7 @@ const FlexibleTargetPlatform = () => {
           <div className="bg-white border border-green-200 rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Globe className="w-6 h-6 text-green-600" />
-              <h3 className="text-xl font-semibold text-green-900">
+              <h3 className="text-xl font-semibold text-black">
                 Scope Coverage & Boundaries
               </h3>
             </div>
@@ -667,7 +667,7 @@ const FlexibleTargetPlatform = () => {
           <div className="bg-white border border-green-200 rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
               <BarChart3 className="w-6 h-6 text-green-600" />
-              <h3 className="text-xl font-semibold text-green-900">
+              <h3 className="text-xl font-semibold text-black">
                 Baseline Data & Target Setting
               </h3>
             </div>
@@ -807,7 +807,7 @@ const FlexibleTargetPlatform = () => {
             {/* Target Analysis */}
             {targetData.baselineEmissions.total && targetData.targetValue && (
               <div className="bg-white border border-green-200 rounded-lg p-6">
-                <h4 className="font-medium text-green-900 mb-4">
+                <h4 className="font-medium text-black mb-4">
                   Target Analysis
                 </h4>
                 
@@ -858,44 +858,44 @@ const FlexibleTargetPlatform = () => {
           <div className="bg-white border border-green-200 rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
               <CheckCircle className="w-6 h-6 text-green-600" />
-              <h3 className="text-xl font-semibold text-green-900">
+              <h3 className="text-xl font-semibold text-black">
                 Review & Deploy Target
               </h3>
             </div>
             
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h4 className="font-medium text-green-900">
+                <h4 className="font-medium text-black">
                   Target Configuration
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-green-700">Organization:</span>
-                    <span className="font-medium text-green-900">
+                    <span className="text-black">Organization:</span>
+                    <span className="font-medium text-black">
                       {targetData.organizationName}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Category:</span>
-                    <span className="font-medium text-green-900 capitalize">
+                    <span className="text-black">Category:</span>
+                    <span className="font-medium text-black capitalize">
                       {targetData.targetCategory.replace("_", " ")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Methodology:</span>
-                    <span className="font-medium text-green-900 capitalize">
+                    <span className="text-black">Methodology:</span>
+                    <span className="font-medium text-black capitalize">
                       {targetData.methodology.replace("_", " ")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Type:</span>
-                    <span className="font-medium text-green-900 capitalize">
+                    <span className="text-black">Type:</span>
+                    <span className="font-medium text-black capitalize">
                       {targetData.targetType.replace("_", " ")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Coverage:</span>
-                    <span className="font-medium text-green-900">
+                    <span className="text-black">Coverage:</span>
+                    <span className="font-medium text-black">
                       {targetData.businessCoverage}% of operations
                     </span>
                   </div>
@@ -903,39 +903,39 @@ const FlexibleTargetPlatform = () => {
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-medium text-green-900">Target Metrics</h4>
+                <h4 className="font-medium text-black">Target Metrics</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-green-700">
+                    <span className="text-black">
                       Baseline ({targetData.baselineYear}):
                     </span>
-                    <span className="font-medium text-green-900">
+                    <span className="font-medium text-black">
                       {targetData.baselineEmissions.total.toLocaleString()}{" "}
                       tCO₂e
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">
+                    <span className="text-black">
                       Target ({targetData.targetYear}):
                     </span>
-                    <span className="font-medium text-green-900">
+                    <span className="font-medium text-black">
                       {targetData.targetValue.toLocaleString()} tCO₂e
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Reduction:</span>
+                    <span className="text-black">Reduction:</span>
                     <span className="font-medium text-green-600">
                       {calculateTargetMetrics().totalReduction}%
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Annual Rate:</span>
+                    <span className="text-black">Annual Rate:</span>
                     <span className="font-medium text-green-600">
                       {calculateTargetMetrics().annualReduction}%/year
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-green-700">Ambition:</span>
+                    <span className="text-black">Ambition:</span>
                     <span className="font-medium text-green-600">
                       {assessTargetAmbition().level}
                     </span>
@@ -946,7 +946,7 @@ const FlexibleTargetPlatform = () => {
 
             {/* Scope Coverage Summary */}
             <div className="mt-6 pt-6 border-t border-green-200">
-              <h4 className="font-medium text-green-900 mb-3">
+              <h4 className="font-medium text-black mb-3">
                 Scope Coverage
               </h4>
               <div className="flex space-x-6">

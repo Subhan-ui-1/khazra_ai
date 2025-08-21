@@ -11,6 +11,8 @@ import AddDepartmentSection from '../_components/sections/AddDepartmentSection';
 import AddFacilitySection from '../_components/sections/AddFacilitySection';
 import AddVehicleSection from '../_components/sections/AddVehicleSection';
 import AddEquipmentSection from '../_components/sections/AddEquipmentSection';
+import AddRoleSection from '../_components/sections/AddRoleSection';
+import AddUserSection from '../_components/sections/AddUserSection';
 
 interface SetupStatus {
   hasBoundary: boolean;
@@ -36,13 +38,6 @@ const getSteps = (boundaryData?: BoundaryData) => [
     required: true
   },
   {
-    id: 'departments',
-    title: 'Add Departments',
-    description: 'Create organizational departments and structure',
-    component: AddDepartmentSection,
-    required: true
-  },
-  {
     id: 'facilities',
     title: 'Add Facilities',
     description: 'Add your organization facilities and locations',
@@ -55,7 +50,7 @@ const getSteps = (boundaryData?: BoundaryData) => [
     title: 'Add Vehicles',
     description: 'Register your fleet vehicles for emissions tracking',
     component: AddVehicleSection,
-    required: false,
+    required: boundaryData?.hasVehicles === 'Yes',
     show: boundaryData?.hasVehicles === 'Yes'
   },
   {
@@ -63,8 +58,36 @@ const getSteps = (boundaryData?: BoundaryData) => [
     title: 'Add Equipment',
     description: 'Add equipment and machinery for emissions calculation',
     component: AddEquipmentSection,
-    required: false,
+    required: boundaryData?.hasEquipment === 'Yes',
     show: boundaryData?.hasEquipment === 'Yes'
+  },
+  // Optional steps that don't affect main progress
+  {
+    id: 'departments',
+    title: 'Add Departments',
+    description: 'Create organizational departments and structure (Optional)',
+    component: AddDepartmentSection,
+    required: false,
+    show: true,
+    optional: true
+  },
+  {
+    id: 'roles',
+    title: 'Add Roles',
+    description: 'Define user roles and permissions (Optional)',
+    component: AddRoleSection,
+    required: false,
+    show: true,
+    optional: true
+  },
+  {
+    id: 'users',
+    title: 'Add Users',
+    description: 'Invite team members to your organization (Optional)',
+    component: AddUserSection,
+    required: false,
+    show: true,
+    optional: true
   }
 ];
 
@@ -102,109 +125,81 @@ export default function StepsPage() {
     try {
       setLoading(true);
       
-      // Check dashboard data to see what's already configured
-      const dashboardResponse = await getRequest(
-        'dashboard/getDashboardData',
-        getTokens()
-      );
+      // Fetch boundary + existence checks in parallel to reduce latency
+      const [boundaryResponse, facilitiesResp, vehiclesResp, equipmentResp] = await Promise.all([
+        getRequest('boundaries/getBoundaries', getTokens()),
+        getRequest('facilities/getFacilities?limit=1', getTokens()),
+        getRequest('vehicles/getVehicles?limit=1', getTokens()),
+        getRequest('equipments/getEquipments?limit=1', getTokens()),
+      ]);
 
-      if (dashboardResponse.success) {
-        const dashboardData = dashboardResponse.dashboardData;
-        
-        // Check if boundary exists by calling the boundaries API directly
-        let hasBoundary = false;
-        let boundaryInfo: BoundaryData | undefined;
-        
-        try {
-          const boundaryResponse = await getRequest(
-            'boundaries/getBoundaries',
-            getTokens()
-          );
-          
-          if (boundaryResponse.success && boundaryResponse.data?.boundaries?.length > 0) {
-            hasBoundary = true;
-            const boundary = boundaryResponse.data.boundaries[0];
-            boundaryInfo = {
-              hasVehicles: boundary.vehicleCount > 0 ? 'Yes' : 'No',
-              hasFacilities: boundary.facilityCount > 0 ? 'Yes' : 'No',
-              hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No'
-            };
-            setBoundaryData(boundaryInfo);
-          }
-        } catch (error) {
-          console.error('Error fetching boundaries:', error);
-          hasBoundary = false;
-        }
-        
-        // Check if departments exist
-        let hasDepartments = false;
-        try {
-          const departmentsResponse = await getRequest(
-            'departments/getDepartments?limit=1',
-            getTokens()
-          );
-          hasDepartments = departmentsResponse.success && departmentsResponse.data?.departments?.length > 0;
-        } catch (error) {
-          console.error('Error checking departments:', error);
-          hasDepartments = false;
-        }
-        
-        // Check if facilities exist (only if user said they have facilities)
-        const facilitiesExist = dashboardData.totalFacilities > 0;
-        const hasFacilities = boundaryInfo?.hasFacilities === 'Yes' && facilitiesExist;
-        
-        // Check if vehicles exist (only if user said they have vehicles)
-        const vehiclesExist = dashboardData.totalVehicles > 0;
-        const hasVehicles = boundaryInfo?.hasVehicles === 'Yes' && vehiclesExist;
-        
-        // Check if equipment exists (only if user said they have equipment)
-        const equipmentExist = dashboardData.totalEquipment > 0;
-        const hasEquipment = boundaryInfo?.hasEquipment === 'Yes' && equipmentExist;
+      let hasBoundary = false;
+      let boundaryInfo: BoundaryData | undefined;
 
-        const newSetupStatus = {
-          hasBoundary,
-          hasDepartments,
-          hasFacilities,
-          hasVehicles,
-          hasEquipment
+      if (boundaryResponse.success && boundaryResponse.data?.boundaries?.length > 0) {
+        hasBoundary = true;
+        const boundary = boundaryResponse.data.boundaries[0];
+        boundaryInfo = {
+          hasVehicles: boundary.vehicleCount > 0 ? 'Yes' : 'No',
+          hasFacilities: boundary.facilityCount > 0 ? 'Yes' : 'No',
+          hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No'
         };
-
-        setSetupStatus(newSetupStatus);
-
-        // Mark completed steps
-        const completed = new Set<string>();
-        if (hasBoundary) completed.add('boundary');
-        if (hasDepartments) completed.add('departments');
-        if (hasFacilities) completed.add('facilities');
-        if (hasVehicles) completed.add('vehicles');
-        if (hasEquipment) completed.add('equipment');
-
-        setCompletedSteps(completed);
-
-        // Check if all required steps are completed
-        const currentSteps = getSteps(boundaryInfo);
-        const requiredSteps = currentSteps.filter(step => step.required);
-        const completedRequiredSteps = requiredSteps.filter(step => {
-          if (step.id === 'boundary') return hasBoundary;
-          if (step.id === 'departments') return hasDepartments;
-          if (step.id === 'facilities') return hasFacilities;
-          if (step.id === 'vehicles') return hasVehicles;
-          if (step.id === 'equipment') return hasEquipment;
-          return false;
-        });
-        
-        // If all required steps are completed, redirect to dashboard
-        if (completedRequiredSteps.length === requiredSteps.length) {
-          router.push('/dashboard');
-          return;
-        }
-
-        // Set current step to first incomplete step
-        const firstIncompleteIndex = currentSteps.findIndex(step => !completed.has(step.id));
-        if (firstIncompleteIndex !== -1) {
-          setCurrentStep(firstIncompleteIndex);
-        }
+        setBoundaryData(boundaryInfo);
       }
+
+      const facilitiesExist = facilitiesResp.success && facilitiesResp.data?.facilities?.length > 0;
+      const vehiclesExist = vehiclesResp.success && vehiclesResp.data?.vehicles?.length > 0;
+      const equipmentExist = equipmentResp.success && equipmentResp.data?.equipments?.length > 0;
+
+      const hasFacilities = boundaryInfo?.hasFacilities === 'Yes' && facilitiesExist;
+      const hasVehicles = boundaryInfo?.hasVehicles === 'Yes' && vehiclesExist;
+      const hasEquipment = boundaryInfo?.hasEquipment === 'Yes' && equipmentExist;
+
+      const newSetupStatus = {
+        hasBoundary,
+        hasDepartments: false,
+        hasFacilities,
+        hasVehicles,
+        hasEquipment
+      };
+
+      setSetupStatus(newSetupStatus);
+
+      // Only count steps that exist in the current step definition
+      const currentSteps = getSteps(boundaryInfo);
+      const stepIds = new Set(currentSteps.map(s => s.id));
+
+      // Mark completed steps (main steps only; optional steps are never auto-completed)
+      const completed = new Set<string>();
+      if (hasBoundary && stepIds.has('boundary')) completed.add('boundary');
+      if (hasFacilities && stepIds.has('facilities')) completed.add('facilities');
+      if (hasVehicles && stepIds.has('vehicles')) completed.add('vehicles');
+      if (hasEquipment && stepIds.has('equipment')) completed.add('equipment');
+
+      setCompletedSteps(completed);
+
+      // Set current step to first incomplete VISIBLE step
+      const isVisibleWith = (bd: BoundaryData | undefined, id: string) => {
+        if (id === 'boundary') return true;
+        if (!bd) return false;
+        if (id === 'facilities') return bd.hasFacilities === 'Yes';
+        if (id === 'vehicles') return bd.hasVehicles === 'Yes';
+        if (id === 'equipment') return bd.hasEquipment === 'Yes';
+        if (['departments', 'roles', 'users'].includes(id)) return true;
+        return false;
+      };
+      const visibleSteps = currentSteps.filter(step => isVisibleWith(boundaryInfo, step.id));
+      const firstIncompleteVisible = visibleSteps.find(step => !completed.has(step.id));
+      if (firstIncompleteVisible) {
+        const idx = currentSteps.findIndex(s => s.id === firstIncompleteVisible.id);
+        if (idx !== -1) setCurrentStep(idx);
+      }
+
+      return {
+        boundaryInfo,
+        setupStatus: newSetupStatus,
+        completed,
+      };
     } catch (error) {
       console.error('Error checking setup status:', error);
       toast.error('Failed to check setup status. Please try again.');
@@ -220,7 +215,13 @@ export default function StepsPage() {
   const handleStepComplete = async () => {
     // Show success message
     const currentStepTitle = steps[currentStep].title;
-    toast.success(`${currentStepTitle} completed successfully!`);
+    const isOptionalStep = ['departments', 'roles', 'users'].includes(steps[currentStep].id);
+    
+    if (isOptionalStep) {
+      toast.success(`${currentStepTitle} completed successfully! (Optional step)`);
+    } else {
+      toast.success(`${currentStepTitle} completed successfully!`);
+    }
     
     // Mark current step as completed
     setCompletedSteps(prev => new Set([...prev, steps[currentStep].id]));
@@ -251,7 +252,7 @@ export default function StepsPage() {
           if (availableSteps.length > 0) {
             toast.success(`Based on your boundary setup, you'll need to complete: ${availableSteps.join(', ')}`);
           } else {
-            toast.success('Based on your boundary setup, you only need to complete Departments step.');
+            toast.success('Based on your boundary setup, you only need to complete the main required steps.');
           }
         }
       } catch (error) {
@@ -262,41 +263,42 @@ export default function StepsPage() {
     // Wait a moment for state to update, then check if we should move to next step
     setTimeout(async () => {
       // Refresh setup status after completing a step
-      await checkSetupStatus();
+      const status = await checkSetupStatus();
+      const effectiveBoundary = status?.boundaryInfo || boundaryData;
       
-      // Check if all required steps are completed
-      const currentSteps = getSteps(boundaryData);
-      const requiredSteps = currentSteps.filter(step => step.required);
-      const completedRequiredSteps = requiredSteps.filter(step => {
-        if (step.id === 'boundary') return completedSteps.has('boundary');
-        if (step.id === 'departments') return completedSteps.has('departments');
-        if (step.id === 'facilities') return completedSteps.has('facilities');
-        if (step.id === 'vehicles') return completedSteps.has('vehicles');
-        if (step.id === 'equipment') return completedSteps.has('equipment');
-        return false;
-      });
+      // Check if all main required steps are completed
+      const currentSteps = getSteps(effectiveBoundary);
+      const mainRequiredSteps = currentSteps.filter(step => 
+        step.required && 
+        ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+        isStepVisible(step.id)
+      );
+      const completedMainRequiredSteps = mainRequiredSteps.filter(step => completedSteps.has(step.id));
       
-      // If all required steps are completed, redirect to dashboard
-      if (completedRequiredSteps.length === requiredSteps.length) {
-        toast.success('All required steps completed! Redirecting to dashboard...');
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
-        return;
-      }
+      // Do not auto-redirect; allow user to click Complete Setup when ready
       
-      // Automatically move to next step if available
-      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-      
-      if (currentVisibleIndex < visibleSteps.length - 1) {
-        const nextStep = visibleSteps[currentVisibleIndex + 1];
-        const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
+      // Automatically move to next step if available (only for main required steps)
+      if (!isOptionalStep) {
+        const visibleSteps = currentSteps.filter(step => {
+          if (step.id === 'boundary') return true;
+          if (!effectiveBoundary) return false;
+          if (step.id === 'facilities') return effectiveBoundary.hasFacilities === 'Yes';
+          if (step.id === 'vehicles') return effectiveBoundary.hasVehicles === 'Yes';
+          if (step.id === 'equipment') return effectiveBoundary.hasEquipment === 'Yes';
+          return false;
+        });
+        const currentStepId = steps[currentStep].id;
+        const currentVisibleIndex = visibleSteps.findIndex(step => step.id === currentStepId);
         
-        setTimeout(() => {
-          setCurrentStep(nextStepIndex);
-          toast.success(`Moving to next step: ${nextStep.title}`);
-        }, 1500); // Small delay to show completion feedback
+        if (currentVisibleIndex < visibleSteps.length - 1) {
+          const nextStep = visibleSteps[currentVisibleIndex + 1];
+          const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
+          
+          setTimeout(() => {
+            setCurrentStep(nextStepIndex);
+            toast.success(`Moving to next step: ${nextStep.title}`);
+          }, 1500); // Small delay to show completion feedback
+        }
       }
     }, 500);
   };
@@ -333,26 +335,48 @@ export default function StepsPage() {
 
   // Function to check if a step should be visible
   const isStepVisible = (stepId: string) => {
-    if (stepId === 'boundary' || stepId === 'departments') return true;
+    if (stepId === 'boundary') return true;
     if (!boundaryData) return false;
     
-    switch (stepId) {
-      case 'facilities':
-        return boundaryData.hasFacilities === 'Yes';
-      case 'vehicles':
-        return boundaryData.hasVehicles === 'Yes';
-      case 'equipment':
-        return boundaryData.hasEquipment === 'Yes';
-      default:
-        return false;
-    }
+    // Main required steps based on boundary data
+    if (stepId === 'facilities') return boundaryData.hasFacilities === 'Yes';
+    if (stepId === 'vehicles') return boundaryData.hasVehicles === 'Yes';
+    if (stepId === 'equipment') return boundaryData.hasEquipment === 'Yes';
+    
+    // Optional steps are always visible
+    if (['departments', 'roles', 'users'].includes(stepId)) return true;
+    
+    return false;
   };
+
+  // Get main required steps for progress calculation
+  const getMainRequiredSteps = () => {
+    const currentSteps = getSteps(boundaryData);
+    return currentSteps.filter(step => 
+      step.required && 
+      ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+      isStepVisible(step.id)
+    );
+  };
+
+  // Calculate main progress (only for required steps)
+  const getMainProgress = () => {
+    const mainRequiredSteps = getMainRequiredSteps();
+    const mainCompleted = mainRequiredSteps.filter(step => completedSteps.has(step.id)).length;
+    return mainRequiredSteps.length === 0 ? 0 : Math.min(100, Math.round((mainCompleted / mainRequiredSteps.length) * 100));
+  };
+
+  // Check if all main required steps are completed
+  const allMainRequiredStepsCompleted = (() => {
+    const mainRequiredSteps = getMainRequiredSteps();
+    return mainRequiredSteps.every(step => completedSteps.has(step.id));
+  })();
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0D5942] mx-auto mb-4"></div>
           <p className="text-gray-600">Checking your setup...</p>
         </div>
       </div>
@@ -360,6 +384,27 @@ export default function StepsPage() {
   }
 
   const CurrentStepComponent = steps[currentStep].component;
+  
+  const allRequiredStepsCompleted = (() => {
+    const currentStepsDef = getSteps(boundaryData);
+    // Only count main required steps (boundary, facilities, vehicles, equipment)
+    const mainRequiredSteps = currentStepsDef.filter(step => 
+      step.required && 
+      ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+      isStepVisible(step.id)
+    );
+    return mainRequiredSteps.every(step => completedSteps.has(step.id));
+  })();
+
+  // Get main required steps for progress calculation
+  const mainSteps = (() => {
+    const currentSteps = getSteps(boundaryData);
+    return currentSteps.filter(step => 
+      step.required && 
+      ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+      isStepVisible(step.id)
+    );
+  })();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -391,16 +436,13 @@ export default function StepsPage() {
             Welcome to Khazra.ai Setup
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Let's get your organization set up for sustainability tracking. Complete each step below to configure your boundaries, departments, facilities, vehicles, and equipment.
+            Let's get your organization set up for sustainability tracking. Complete the required steps below to configure your boundaries, facilities, vehicles, and equipment. Additional optional steps are available for departments, roles, and users.
           </p>
           {boundaryData && (
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-2xl mx-auto">
               <p className="text-sm text-blue-800">
                 <strong>Setup Configuration:</strong> Based on your boundary setup, you'll need to complete: 
-                {['boundary', 'departments'].map(stepId => {
-                  const step = steps.find(s => s.id === stepId);
-                  return step ? ` ${step.title}` : '';
-                })}
+                Boundary
                 {boundaryData.hasFacilities === 'Yes' && ' Facilities'}
                 {boundaryData.hasVehicles === 'Yes' && ' Vehicles'}
                 {boundaryData.hasEquipment === 'Yes' && ' Equipment'}
@@ -414,26 +456,44 @@ export default function StepsPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              Setup Progress: {completedSteps.size} of {(() => {
-                const currentSteps = getSteps(boundaryData);
-                return currentSteps.filter(step => isStepVisible(step.id)).length;
-              })()} completed
+              {(() => {
+                const mainRequiredSteps = getMainRequiredSteps();
+                const mainCompleted = mainRequiredSteps.filter(step => completedSteps.has(step.id)).length;
+                return `Main Setup Progress: ${mainCompleted} of ${mainRequiredSteps.length} completed`;
+              })()}
             </span>
             <span className="text-sm font-medium text-gray-700">
-              {Math.round((completedSteps.size / (() => {
-                const currentSteps = getSteps(boundaryData);
-                return currentSteps.filter(step => isStepVisible(step.id)).length;
-              })()) * 100)}%
+              {getMainProgress()}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-green-600 h-2 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${(completedSteps.size / (() => {
-                const currentSteps = getSteps(boundaryData);
-                return currentSteps.filter(step => isStepVisible(step.id)).length;
-              })()) * 100}%` }}
+              className="bg-[#0D5942] h-2 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${getMainProgress()}%` }}
             ></div>
+          </div>
+          
+          {/* Optional Steps Progress */}
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-500">
+                {(() => {
+                  const optionalSteps = ['departments', 'roles', 'users'];
+                  const optionalCompleted = optionalSteps.filter(stepId => completedSteps.has(stepId)).length;
+                  return `Optional Steps: ${optionalCompleted} of ${optionalSteps.length} completed`;
+                })()}
+              </span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-1">
+              <div 
+                className="bg-blue-400 h-1 rounded-full transition-all duration-500 ease-out"
+                style={{ width: (() => {
+                  const optionalSteps = ['departments', 'roles', 'users'];
+                  const optionalCompleted = optionalSteps.filter(stepId => completedSteps.has(stepId)).length;
+                  return optionalSteps.length === 0 ? 0 : Math.min(100, Math.round((optionalCompleted / optionalSteps.length) * 100));
+                })() + '%' }}
+              ></div>
+            </div>
           </div>
         </div>
         
@@ -464,10 +524,10 @@ export default function StepsPage() {
                        >
                          <div className="flex-shrink-0">
                            {isCompleted ? (
-                             <CheckCircle className="h-6 w-6 text-green-600" />
+                             <CheckCircle className="h-6 w-6 text-[#0D5942]" />
                            ) : (
                              <Circle className={`h-6 w-6 ${
-                               isCurrent ? 'text-green-600' : 'text-gray-300'
+                               isCurrent ? 'text-[#0D5942]' : 'text-gray-300'
                              }`} />
                            )}
                          </div>
@@ -476,9 +536,10 @@ export default function StepsPage() {
                              isCompleted ? 'text-green-900' : isCurrent ? 'text-green-800' : 'text-gray-500'
                            }`}>
                              {step.title}
+                             {step.optional && <span className="text-xs text-blue-600 ml-1">(Optional)</span>}
                            </p>
                            <p className={`text-xs ${
-                             isCompleted ? 'text-green-700' : isCurrent ? 'text-green-600' : 'text-gray-400'
+                             isCompleted ? 'text-green-700' : isCurrent ? 'text-[#0D5942]' : 'text-gray-400'
                            }`}>
                              {step.description}
                            </p>
@@ -559,7 +620,7 @@ export default function StepsPage() {
                          return (
                            <button
                              onClick={handleNext}
-                             className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                             className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-[#0D5942] rounded-md hover:bg-green-700 transition-colors"
                            >
                              Next
                              <ArrowRight className="h-4 w-4" />
@@ -568,8 +629,9 @@ export default function StepsPage() {
                        } else {
                          return (
                            <button
-                             onClick={() => router.push('/dashboard')}
-                             className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                             onClick={() => allMainRequiredStepsCompleted && router.push('/dashboard')}
+                             disabled={!allMainRequiredStepsCompleted}
+                             className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${allMainRequiredStepsCompleted ? 'bg-[#0D5942] hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
                            >
                              Complete Setup
                              <CheckCircle className="h-4 w-4" />

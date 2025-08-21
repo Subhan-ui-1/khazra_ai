@@ -62,6 +62,17 @@ export default function StationaryCombustionSection() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataEmissions, setDataEmissions] = useState<any>(null);
 
+  // Add state for fuel type analysis
+  const [fuelTypeAnalysis, setFuelTypeAnalysis] = useState<{
+    primaryFuel: string;
+    primaryFuelPercentage: number;
+    secondaryFuel: string;
+  }>({
+    primaryFuel: "No data",
+    primaryFuelPercentage: 0,
+    secondaryFuel: "No data"
+  });
+
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [equipments, setEquipments] = useState<EquipmentType[]>([]);
@@ -141,11 +152,15 @@ export default function StationaryCombustionSection() {
         setDataEmissions({
           emission: response.dashboardData.stationaryCombustionEmissions,
           facilityCount: response.dashboardData.totalFacilities,
+          stationaryEmissionsPercentageChange: response.dashboardData.stationaryEmissionsPercentageChange,
+          scope1Emissions: response.dashboardData.scope1Emissions,
+          stationaryCombustionEmissions: response.dashboardData.stationaryCombustionEmissions,
           totalCount:
             response.dashboardData.totalFacilities +
             response.dashboardData.totalEquipment +
             response.dashboardData.totalVehicles,
         });
+        
         console.log(facilities, "facilities");
       }
     } catch (error) {
@@ -221,6 +236,9 @@ export default function StationaryCombustionSection() {
       const response = await getRequest("stationary/getStationary", getToken());
       if (response.success) {
         setStationaryCombustionData(response.data.stationary);
+        
+        // Analyze fuel types and calculate emissions
+        analyzeFuelTypes(response.data.stationary);
       } else {
         // toast.error(response.message || "Failed to fetch stationary total");
         console.log(response, "response");
@@ -236,13 +254,19 @@ export default function StationaryCombustionSection() {
     const loadData = async () => {
       setLoading(true);
       try {
+        // First load the reference data (facilities, equipments, fuel types)
         await Promise.all([
           fetchFacilities(),
           fetchEquipments(),
           fetchFuelTypes(),
+        ]);
+        
+        // Then load the actual data and analyze
+        await Promise.all([
           getStationaryTotal(),
           getDashboard(),
         ]);
+        
         setDataLoaded(true);
       } catch (error) {
         console.error("Error loading data:", error);
@@ -254,6 +278,62 @@ export default function StationaryCombustionSection() {
     loadData();
   }, []);
 
+  // Function to analyze fuel types and calculate emissions
+  const analyzeFuelTypes = (stationaryData: any[]) => {
+    if (!stationaryData || stationaryData.length === 0 || fuelTypes.length === 0) {
+      setFuelTypeAnalysis({
+        primaryFuel: "No data",
+        primaryFuelPercentage: 0,
+        secondaryFuel: "No data"
+      });
+      return;
+    }
+
+    // Group by fuel type and calculate total emissions
+    const fuelTypeEmissions: { [key: string]: number } = {};
+    
+    stationaryData.forEach(item => {
+      const fuelTypeId = item.fuelType || item.fuelTypeId;
+      if (fuelTypeId && item.totalEmissions) {
+        const fuelTypeName = getFuelTypeName(fuelTypeId).split(' (')[0]; // Extract just the fuel type name
+        if (fuelTypeName !== "Loading..." && fuelTypeName !== "N/A") {
+          fuelTypeEmissions[fuelTypeName] = (fuelTypeEmissions[fuelTypeName] || 0) + (item.totalEmissions || 0);
+        }
+      }
+    });
+
+    // Sort fuel types by emissions (highest to lowest)
+    const sortedFuelTypes = Object.entries(fuelTypeEmissions)
+      .sort(([,a], [,b]) => b - a);
+
+    if (sortedFuelTypes.length === 0) {
+      setFuelTypeAnalysis({
+        primaryFuel: "No data",
+        primaryFuelPercentage: 0,
+        secondaryFuel: "No data"
+      });
+      return;
+    }
+
+    const totalEmissions = sortedFuelTypes.reduce((sum, [, emissions]) => sum + emissions, 0);
+    const primaryFuel = sortedFuelTypes[0][0];
+    const primaryFuelPercentage = totalEmissions > 0 ? (sortedFuelTypes[0][1] / totalEmissions) * 100 : 0;
+    const secondaryFuel = sortedFuelTypes.length > 1 ? sortedFuelTypes[1][0] : "No data";
+
+    setFuelTypeAnalysis({
+      primaryFuel,
+      primaryFuelPercentage: Math.round(primaryFuelPercentage * 10) / 10, // Round to 1 decimal place
+      secondaryFuel
+    });
+  };
+
+  // Add effect to re-analyze when fuel types are loaded
+  useEffect(() => {
+    if (fuelTypes.length > 0 && stationaryCombustionData.length > 0) {
+      analyzeFuelTypes(stationaryCombustionData);
+    }
+  }, [fuelTypes, stationaryCombustionData]);
+
   const handleStationarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -264,7 +344,7 @@ export default function StationaryCombustionSection() {
         scope: "scope1",
         scopeType: "stationary",
         month: stationaryFormData.month,
-        year: parseInt(stationaryFormData.year),
+        year: 2025,
         facility: stationaryFormData.facility,
         facilityDescription: stationaryFormData.facilityDescription,
         equipment: stationaryFormData.equipment,
@@ -288,7 +368,7 @@ export default function StationaryCombustionSection() {
 
         // Refresh the data from the server
         await getStationaryTotal();
-
+        getDashboard();
         setIsStationaryModalOpen(false);
 
         // Reset form
@@ -327,7 +407,7 @@ export default function StationaryCombustionSection() {
         // scope: "scope1",
         // scopeType: "stationary",
         month: stationaryFormData.month,
-        year: parseInt(stationaryFormData.year),
+        year: 2025,
         facility: stationaryFormData.facility,
         facilityDescription: stationaryFormData.facilityDescription,
         equipment: stationaryFormData.equipment,
@@ -360,13 +440,13 @@ export default function StationaryCombustionSection() {
 
         // Refresh the data from the server
         await getStationaryTotal();
+        getDashboard();
 
         setIsStationaryModalOpen(false);
 
         // Reset editing states
         setEditingStationaryData(null);
         setEditingStationaryIndex(null);
-
         // Reset form
         setStationaryFormData({
           month: "",
@@ -543,6 +623,7 @@ export default function StationaryCombustionSection() {
     setEditingStationaryIndex(null);
     setIsStationaryModalOpen(false);
   };
+  console.log(dataEmissions, "dataEmissions");
 
   return (
     <div className="space-y-5">
@@ -569,10 +650,10 @@ export default function StationaryCombustionSection() {
                 {(dataEmissions?.emission || 0).toFixed(2)}
               </div>
               <div className="text-sm text-green-800 mb-2">
-                ▼ 8.5% vs last year
+                ▼ {dataEmissions?.stationaryEmissionsPercentageChange || 0}% vs last year
               </div>
               <div className="text-xs text-black opacity-60">
-                tonnes CO₂e • 53.8% of Scope 1
+                tonnes CO₂e • {dataEmissions?.scope1Emissions>0?(dataEmissions?.stationaryCombustionEmissions/dataEmissions?.scope1Emissions*100).toFixed(1):0}% of Scope 1
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
@@ -594,7 +675,7 @@ export default function StationaryCombustionSection() {
                 Active Sources
               </div>
               <div className="text-3xl font-bold text-black mb-2">
-                {dataEmissions?.facilityCount?.toString()}
+                {dataEmissions?.facilityCount?.toString()||0}
               </div>
               <div className="text-sm text-green-800 mb-2">
                 Across {dataEmissions?.facilityCount?.toString()} facilities
@@ -616,13 +697,13 @@ export default function StationaryCombustionSection() {
                 Primary Fuel
               </div>
               <div className="text-3xl font-bold text-black mb-2">
-                Natural Gas
+                {fuelTypeAnalysis.primaryFuel}
               </div>
               <div className="text-sm text-green-800 mb-2">
-                65% of consumption
+                {fuelTypeAnalysis.primaryFuelPercentage > 0 ? `${fuelTypeAnalysis.primaryFuelPercentage}%` : '0%'} of consumption
               </div>
               <div className="text-xs text-black opacity-60">
-                Followed by heating oil
+                {fuelTypeAnalysis.secondaryFuel !== "No data" ? `Followed by ${fuelTypeAnalysis.secondaryFuel.toLowerCase()}` : "Single fuel type"}
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
@@ -763,7 +844,7 @@ export default function StationaryCombustionSection() {
                 </select>
               </div>
 
-              <div>
+              {/* <div>
                 <label
                   htmlFor="year"
                   className="block text-sm font-medium text-gray-700 mb-2"
@@ -789,7 +870,7 @@ export default function StationaryCombustionSection() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               <div>
                 <label

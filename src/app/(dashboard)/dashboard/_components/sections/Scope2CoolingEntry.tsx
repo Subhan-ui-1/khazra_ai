@@ -143,7 +143,7 @@ const Scope2CoolingEntry: React.FC = () => {
       const requestData = {
         
         month: parseInt(formData.month),
-        year: parseInt(formData.year),
+        year: 2025,
         facility: formData.facility,
         energyType: energyType._id,
         gridLocation: formData.gridLocation,
@@ -374,6 +374,11 @@ const Scope2CoolingEntry: React.FC = () => {
               label: "Emission Factor",
               render: (value, row) => <span>{row.emissionFactor}</span>,
             },
+            {
+              key: "totalEmissions",
+              label: "Total Emissions",
+              render: (value, row) => <span>{row.totalEmissions.toFixed(1)}</span>,
+            },
           ]}
           actions={[
             {
@@ -433,7 +438,7 @@ const Scope2CoolingEntry: React.FC = () => {
                   <option value="12">December</option>
                 </select>
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
                 <select
                   value={formData.year}
@@ -446,7 +451,7 @@ const Scope2CoolingEntry: React.FC = () => {
                     <option key={year} value={year}>{year}</option>
                   ))}
                 </select>
-              </div>
+              </div> */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Facility *</label>
                 <select

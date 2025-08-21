@@ -605,8 +605,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
           if (onComplete) {
             onComplete();
           } else {
-            // Redirect to dashboard after successful creation (for regular dashboard)
-            router.push("/dashboard");
+            // Stay on the current page to allow follow-up steps instead of forcing navigation
           }
         } else {
           // toast.error(response?.message || "Failed to create boundary");

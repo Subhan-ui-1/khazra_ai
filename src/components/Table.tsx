@@ -63,6 +63,8 @@ const Table: React.FC<TableProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>(selectedRows.map(row => row[rowKey]));
+  const PAGE_SIZE = 5;
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   React.useEffect(() => {
     setSelectedRowIds(selectedRows.map(row => row[rowKey]));
@@ -72,6 +74,22 @@ const Table: React.FC<TableProps> = ({
     setSearchQuery(query);
     onSearch?.(query);
   };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, data.length);
+  const paginatedData = totalPages > 1 ? data.slice(startIndex, endIndex) : data;
+
+  // Clamp current page when data length changes
+  React.useEffect(() => {
+    const total = Math.ceil(data.length / PAGE_SIZE);
+    if (total === 0) {
+      if (currentPage !== 1) setCurrentPage(1);
+    } else if (currentPage > total) {
+      setCurrentPage(total);
+    }
+  }, [data.length]);
 
   const handleRowSelect = (row: any, checked: boolean) => {
     const newSelectedIds = checked
@@ -85,9 +103,10 @@ const Table: React.FC<TableProps> = ({
   };
 
   const handleSelectAll = (checked: boolean) => {
-    const newSelectedIds = checked ? data.map(row => row[rowKey]) : [];
+    const scope = paginatedData;
+    const newSelectedIds = checked ? scope.map(row => row[rowKey]) : [];
     setSelectedRowIds(newSelectedIds);
-    onRowSelect?.(checked ? data : []);
+    onRowSelect?.(checked ? scope : []);
   };
 
   const renderCell = (column: TableColumn, value: any, row: any) => {
@@ -212,7 +231,7 @@ const Table: React.FC<TableProps> = ({
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedRowIds.length === data.length && data.length > 0}
+                    checked={selectedRowIds.length === paginatedData.length && paginatedData.length > 0}
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
@@ -269,7 +288,7 @@ const Table: React.FC<TableProps> = ({
                 </td>
               </tr>
             ) : (
-              data.map((row, index) => (
+              paginatedData.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   {selectable && (
                     <td className="px-6 py-4">
@@ -321,6 +340,38 @@ const Table: React.FC<TableProps> = ({
           </tbody>
         </table>
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200">
+          <div className="text-sm text-gray-600">
+            Showing {startIndex + 1}–{endIndex} of {data.length}
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 text-sm rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed bg-gray-100' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 text-sm rounded-md ${currentPage === page ? 'bg-[#0D5942] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 text-sm rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed bg-gray-100' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

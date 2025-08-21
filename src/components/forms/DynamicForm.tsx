@@ -1,14 +1,30 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'multiselect' | 'checkbox' | 'radio' | 'date' | 'phone';
+  type:
+    | "text"
+    | "email"
+    | "tel"
+    | "number"
+    | "textarea"
+    | "select"
+    | "multiselect"
+    | "checkbox"
+    | "radio"
+    | "date"
+    | "phone";
   required?: boolean;
   placeholder?: string;
-  options?: Array<{ value: string; label: string; flag?: string; code?: string }>;
+  options?: Array<{
+    value: string;
+    label: string;
+    flag?: string;
+    code?: string;
+  }>;
   validation?: {
     pattern?: RegExp;
     message?: string;
@@ -36,6 +52,7 @@ export interface DynamicFormProps {
   showCloseButton?: boolean;
   onClose?: () => void;
   confirmationMessage?: string;
+  showCancelButton?: boolean;
 }
 
 const DynamicForm: React.FC<DynamicFormProps> = ({
@@ -45,11 +62,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   onCancel,
   initialData = {},
   loading = false,
-  submitText = 'Submit',
-  cancelText = 'Cancel',
+  submitText = "Submit",
+  cancelText = "Cancel",
   showCloseButton = true,
+  showCancelButton = true,
   onClose,
-  confirmationMessage = 'Do you really want to perform this action?'
+  confirmationMessage = "Do you really want to perform this action?",
 }) => {
   const [formData, setFormData] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,15 +76,15 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
   // Initialize form data with initial values and update when initialData changes
   useEffect(() => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const updatedFormData = { ...prev };
-      fields.forEach(field => {
+      fields.forEach((field) => {
         if (initialData[field.name] !== undefined) {
           updatedFormData[field.name] = initialData[field.name];
         } else if (field.defaultValue !== undefined) {
           updatedFormData[field.name] = field.defaultValue;
         } else if (!(field.name in updatedFormData)) {
-          updatedFormData[field.name] = '';
+          updatedFormData[field.name] = "";
         }
       });
       return updatedFormData;
@@ -74,21 +92,24 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   }, [initialData, fields]);
 
   const validateField = (name: string, value: any): string => {
-    const field = fields.find(f => f.name === name);
-    if (!field) return '';
+    const field = fields.find((f) => f.name === name);
+    if (!field) return "";
 
     // Required validation
-    if (field.required && (!value || (typeof value === 'string' && !value.trim()))) {
+    if (
+      field.required &&
+      (!value || (typeof value === "string" && !value.trim()))
+    ) {
       return `${field.label} is required`;
     }
 
     // Skip validation if value is empty and not required
-    if (!value || (typeof value === 'string' && !value.trim())) {
-      return '';
+    if (!value || (typeof value === "string" && !value.trim())) {
+      return "";
     }
 
     // Pattern validation
-    if (field.validation?.pattern && typeof value === 'string') {
+    if (field.validation?.pattern && typeof value === "string") {
       if (!field.validation.pattern.test(value)) {
         return field.validation.message || `${field.label} format is invalid`;
       }
@@ -103,10 +124,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     }
 
     // Phone number validation for phone type fields
-    if (field.type === 'phone' && value) {
+    if (field.type === "phone" && value) {
       const countryCode = formData[`${field.name}CountryCode`];
       if (countryCode && field.validation?.custom) {
-        const result = field.validation.custom({ countryCode, phoneNumber: value });
+        const result = field.validation.custom({
+          countryCode,
+          phoneNumber: value,
+        });
         if (!result.isValid) {
           return result.message;
         }
@@ -114,7 +138,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     }
 
     // Length validation
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       if (field.minLength && value.length < field.minLength) {
         return `${field.label} must be at least ${field.minLength} characters`;
       }
@@ -123,51 +147,62 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
       }
     }
 
-    return '';
+    return "";
   };
 
   const handleInputChange = (name: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
-    
+
     // Clear error for this field
     if (errors[name]) {
-      setErrors((prev: Record<string, string>) => ({ ...prev, [name]: '' }));
+      setErrors((prev: Record<string, string>) => ({ ...prev, [name]: "" }));
     }
 
     // Call custom onChange handler if it exists
-    const field = fields.find(f => f.name === name);
+    const field = fields.find((f) => f.name === name);
     if (field?.onChange) {
       field.onChange(value);
     }
 
     // For phone fields, also validate when country code changes
-    if (name.endsWith('CountryCode')) {
-      const phoneFieldName = name.replace('CountryCode', '');
+    if (name.endsWith("CountryCode")) {
+      const phoneFieldName = name.replace("CountryCode", "");
       const phoneValue = formData[phoneFieldName];
       if (phoneValue) {
-        const phoneField = fields.find(f => f.name === phoneFieldName);
-                 if (phoneField?.type === 'phone' && phoneField.validation?.custom) {
-           const result = phoneField.validation.custom({ countryCode: value, phoneNumber: phoneValue });
-           if (!result.isValid) {
-             setErrors((prev: Record<string, string>) => ({ ...prev, [phoneFieldName]: result.message }));
-           } else {
-             setErrors((prev: Record<string, string>) => ({ ...prev, [phoneFieldName]: '' }));
-           }
-         }
+        const phoneField = fields.find((f) => f.name === phoneFieldName);
+        if (phoneField?.type === "phone" && phoneField.validation?.custom) {
+          const result = phoneField.validation.custom({
+            countryCode: value,
+            phoneNumber: phoneValue,
+          });
+          if (!result.isValid) {
+            setErrors((prev: Record<string, string>) => ({
+              ...prev,
+              [phoneFieldName]: result.message,
+            }));
+          } else {
+            setErrors((prev: Record<string, string>) => ({
+              ...prev,
+              [phoneFieldName]: "",
+            }));
+          }
+        }
       }
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate all visible fields
     const newErrors: Record<string, string> = {};
     let hasErrors = false;
 
-    const visibleFields = fields.filter(field => !field.condition || field.condition(formData));
-    
-    visibleFields.forEach(field => {
+    const visibleFields = fields.filter(
+      (field) => !field.condition || field.condition(formData)
+    );
+
+    visibleFields.forEach((field) => {
       const error = validateField(field.name, formData[field.name]);
       if (error) {
         newErrors[field.name] = error;
@@ -197,16 +232,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   };
 
   const renderField = (field: FormField) => {
-    const value = formData[field.name] || '';
+    const value = formData[field.name] || "";
     const hasError = errors[field.name];
     const baseInputClasses = `w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-      hasError 
-        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-        : 'border-gray-300'
+      hasError
+        ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+        : "border-gray-300"
     }`;
 
     switch (field.type) {
-      case 'textarea':
+      case "textarea":
         return (
           <textarea
             id={field.name}
@@ -220,7 +255,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case 'select':
+      case "select":
         return (
           <select
             id={field.name}
@@ -230,7 +265,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             className={baseInputClasses}
             disabled={field.disabled}
           >
-            <option value="">{field.placeholder || 'Select an option'}</option>
+            <option value="">{field.placeholder || "Select an option"}</option>
             {field.options?.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -239,7 +274,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           </select>
         );
 
-      case 'multiselect':
+      case "multiselect":
         return (
           <select
             id={field.name}
@@ -258,14 +293,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           </select>
         );
 
-      case 'phone':
+      case "phone":
         return (
           <div className="flex gap-2">
             <div className="w-1/5">
               <select
                 name={`${field.name}CountryCode`}
-                value={formData[`${field.name}CountryCode`] || ''}
-                onChange={(e) => handleInputChange(`${field.name}CountryCode`, e.target.value)}
+                value={formData[`${field.name}CountryCode`] || ""}
+                onChange={(e) =>
+                  handleInputChange(`${field.name}CountryCode`, e.target.value)
+                }
                 className={baseInputClasses}
               >
                 <option value="">Code</option>
@@ -283,7 +320,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 name={field.name}
                 value={value}
                 onChange={(e) => {
-                  const numericValue = e.target.value.replace(/\D/g, '');
+                  const numericValue = e.target.value.replace(/\D/g, "");
                   handleInputChange(field.name, numericValue);
                 }}
                 maxLength={field.maxLength || 9}
@@ -314,40 +351,61 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
   // Group fields into pairs for 2-column layout
   const fieldGroups = [];
-  const visibleFields = fields.filter(field => !field.condition || field.condition(formData));
-  
+  const visibleFields = fields.filter(
+    (field) => !field.condition || field.condition(formData)
+  );
+
   for (let i = 0; i < visibleFields.length; i += 2) {
     fieldGroups.push(visibleFields.slice(i, i + 2));
   }
 
   return (
     <>
-      <div className='bg-white p-6 rounded-lg shadow-sm border border-gray-200'>
-        <div className='flex justify-between items-center mb-4'>
-          <h2 className='text-xl font-semibold text-gray-800'>{title}</h2>
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
           {showCloseButton && onClose && (
             <button
               onClick={onClose}
-              className='text-gray-500 hover:text-gray-700'
+              className="text-gray-500 hover:text-gray-700"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
         </div>
-        
-        <form onSubmit={handleSubmit} className='space-y-4'>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           {fieldGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div
+              key={groupIndex}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
               {group.map((field) => (
-                <div key={field.name} className={group.length === 1 ? 'md:col-span-2' : ''}>
-                  <label htmlFor={field.name} className='block text-sm font-medium text-gray-700 mb-2'>
-                    {field.label} {field.required && '*'}
+                <div
+                  key={field.name}
+                  className={group.length === 1 ? "md:col-span-2" : ""}
+                >
+                  <label
+                    htmlFor={field.name}
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    {field.label} {field.required && "*"}
                   </label>
                   {renderField(field)}
                   {errors[field.name] && (
-                    <div className='mt-1 text-xs text-red-500'>
+                    <div className="mt-1 text-xs text-red-500">
                       {errors[field.name]}
                     </div>
                   )}
@@ -355,37 +413,64 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
               ))}
             </div>
           ))}
-          
-          <div className='flex gap-3 pt-4'>
+
+          <div className="flex gap-3 pt-4">
             <button
-              type='submit'
+              type="submit"
               disabled={loading}
-              className='bg-[#0D5942]  disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+              className="bg-[#0D5942]  disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Loading...
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   {submitText}
                 </>
               )}
             </button>
-            <button
-              type='button'
-              onClick={onCancel}
-              className='bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200'
-            >
-              {cancelText}
-            </button>
+            {showCancelButton && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
+              >
+                {cancelText}
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -396,18 +481,28 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg
+                  className="h-6 w-6 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-lg font-medium text-gray-900">Confirm Action</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Confirm Action
+                </h3>
               </div>
             </div>
             <div className="mb-6">
-              <p className="text-sm text-gray-500">
-                {confirmationMessage}
-              </p>
+              <p className="text-sm text-gray-500">{confirmationMessage}</p>
             </div>
             <div className="flex justify-end space-x-3">
               <button
@@ -432,4 +527,4 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   );
 };
 
-export default DynamicForm; 
+export default DynamicForm;

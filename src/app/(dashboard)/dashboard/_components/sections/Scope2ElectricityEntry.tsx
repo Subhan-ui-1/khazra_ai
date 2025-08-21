@@ -151,7 +151,7 @@ const Scope2ElectricityEntry: React.FC = () => {
       // Prepare the data according to the API specification
       const requestData = {
         month: parseInt(formData.month),
-        year: parseInt(formData.year),
+        year: 2025,
         facility: formData.facility,
         energyType: energyType._id,
         gridLocation: formData.gridLocation,
@@ -392,6 +392,11 @@ const Scope2ElectricityEntry: React.FC = () => {
               label: "Emission Factor",
               render: (value, row) => <span>{row.emissionFactor}</span>,
             },
+            {
+              key: "totalEmissions",
+              label: "Total Emissions",
+              render: (value, row) => <span>{row.totalEmissions.toFixed(1)}</span>,
+            },
           ]}
           actions={[
             {
@@ -457,7 +462,7 @@ const Scope2ElectricityEntry: React.FC = () => {
                   <option value="12">December</option>
                 </select>
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Year *
                 </label>
@@ -479,7 +484,7 @@ const Scope2ElectricityEntry: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Facility *

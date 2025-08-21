@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit3, Trash2, Thermometer } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Plus, X, Edit3, Trash2, Thermometer } from "lucide-react";
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
-import { safeLocalStorage } from '@/utils/localStorage';
+import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
 
 interface Facility {
@@ -33,7 +33,7 @@ interface SteamFormData {
 }
 
 const Scope2SteamEntry: React.FC = () => {
-  const [selectedFacility, setSelectedFacility] = useState('all');
+  const [selectedFacility, setSelectedFacility] = useState("all");
   const [steamData, setSteamData] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -45,15 +45,15 @@ const Scope2SteamEntry: React.FC = () => {
   const [energyTypes, setEnergyTypes] = useState<EnergyType[]>([]);
 
   const [formData, setFormData] = useState<SteamFormData>({
-    month: '',
-    year: '',
-    facility: '',
-    energyType: '',
-    gridLocation: '',
-    consumedUnits: '',
-    amountOfConsumption: '',
-    emissionFactor: '',
-    customEmissionFactor: false
+    month: "",
+    year: "",
+    facility: "",
+    energyType: "",
+    gridLocation: "",
+    consumedUnits: "",
+    amountOfConsumption: "",
+    emissionFactor: "",
+    customEmissionFactor: false,
   });
 
   const getToken = () => {
@@ -64,46 +64,55 @@ const Scope2SteamEntry: React.FC = () => {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
-      const response = await getRequest("facilities/getFacilities?status=Active", getToken());
+      const response = await getRequest(
+        "facilities/getFacilities?status=Active",
+        getToken()
+      );
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch facilities");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
   const fetchEnergyTypes = async () => {
     try {
-      const response = await getRequest("energy-types/getEnergyTypes", getToken());
+      const response = await getRequest(
+        "energy-types/getEnergyTypes",
+        getToken()
+      );
       if (response.success) {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
         // toast.error(response.message || "Failed to fetch energy types");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch energy types");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
   const getSteamTotal = async () => {
     try {
-      const response = await getRequest("purchased-electricity/getPurchasedElectricity?scopeType=steam", getToken());
+      const response = await getRequest(
+        "purchased-electricity/getPurchasedElectricity?scopeType=steam",
+        getToken()
+      );
       if (response.success) {
         setSteamData(response.data.purchasedElectricity || []);
       } else {
         // toast.error(response.message || "Failed to fetch steam data");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch steam data");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
@@ -115,16 +124,16 @@ const Scope2SteamEntry: React.FC = () => {
         await Promise.all([
           fetchFacilities(),
           fetchEnergyTypes(),
-          getSteamTotal()
+          getSteamTotal(),
         ]);
         setDataLoaded(true);
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
 
@@ -132,40 +141,41 @@ const Scope2SteamEntry: React.FC = () => {
     setLoading(true);
 
     try {
-      const energyType = energyTypes.find(e => e.energyType === "Purchased Steam")
+      const energyType = energyTypes.find(
+        (e) => e.energyType === "Purchased Steam"
+      );
       // Prepare the data according to the API specification
       const requestData = {
-        
         month: parseInt(formData.month),
-        year: parseInt(formData.year),
+        year: 2025,
         facility: formData.facility,
         energyType: energyType?._id,
         gridLocation: formData.gridLocation,
         consumedUnits: parseFloat(formData.consumedUnits),
         amountOfConsumption: parseFloat(formData.amountOfConsumption),
         emissionFactor: formData.customEmissionFactor
-        ? parseFloat(formData.emissionFactor)
-        : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
+          ? parseFloat(formData.emissionFactor)
+          : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
       };
 
       if (editingItem) {
         // Update existing record
         const editingId = editingItem?._id || editingItem?.id;
-        
+
         if (!editingId) {
           // toast.error("No item ID found for editing");
-          console.log("No item ID found for editing")
+          console.log("No item ID found for editing");
           return;
         }
 
         const response = await postRequest(
           `purchased-electricity/updatePurchasedElectricity/${editingId}`,
           requestData,
-          '',
+          "",
           getToken(),
           "put",
-          true, 
-          'purchasedElectricity'
+          true,
+          "purchasedElectricity"
         );
 
         if (response.success) {
@@ -176,19 +186,18 @@ const Scope2SteamEntry: React.FC = () => {
           resetForm();
         } else {
           // toast.error(response.message || "Failed to update steam data");
-          console.log(response, 'response')
+          console.log(response, "response");
         }
       } else {
         // Add new record
         const response = await postRequest(
           "purchased-electricity/addPurchasedElectricity",
-          {...requestData,  scope: "scope2",
-            scopeType: "steam",},
-            '',
+          { ...requestData, scope: "scope2", scopeType: "steam" },
+          "",
           getToken(),
           "post",
-          true, 
-          'purchasedElectricity'
+          true,
+          "purchasedElectricity"
         );
 
         if (response.success) {
@@ -198,12 +207,12 @@ const Scope2SteamEntry: React.FC = () => {
           resetForm();
         } else {
           // toast.error(response.message || "Failed to add steam data");
-          console.log(response, 'response')
+          console.log(response, "response");
         }
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to save steam data");
-      console.log(error, 'error')
+      console.log(error, "error");
     } finally {
       setLoading(false);
     }
@@ -211,30 +220,30 @@ const Scope2SteamEntry: React.FC = () => {
 
   const resetForm = () => {
     setFormData({
-      month: '',
-      year: '',
-      facility: '',
-      energyType: '',
-      gridLocation: '',
-      consumedUnits: '',
-      amountOfConsumption: '',
-      emissionFactor: '',
-      customEmissionFactor: false
+      month: "",
+      year: "",
+      facility: "",
+      energyType: "",
+      gridLocation: "",
+      consumedUnits: "",
+      amountOfConsumption: "",
+      emissionFactor: "",
+      customEmissionFactor: false,
     });
   };
 
   const startEdit = (item: any) => {
     setEditingItem(item);
     setFormData({
-      month: item.month?.toString() || '',
-      year: item.year?.toString() || '',
-      facility: item.facility || '',
-      energyType: item.energyType || '',
-      gridLocation: item.gridLocation || '',
-      consumedUnits: item.consumedUnits?.toString() || '',
-      amountOfConsumption: item.amountOfConsumption?.toString() || '',
-      emissionFactor: item.emissionFactor?.toString() || '',
-      customEmissionFactor: false
+      month: item.month?.toString() || "",
+      year: item.year?.toString() || "",
+      facility: item.facility || "",
+      energyType: item.energyType || "",
+      gridLocation: item.gridLocation || "",
+      consumedUnits: item.consumedUnits?.toString() || "",
+      amountOfConsumption: item.amountOfConsumption?.toString() || "",
+      emissionFactor: item.emissionFactor?.toString() || "",
+      customEmissionFactor: false,
     });
     setShowForm(true);
   };
@@ -243,7 +252,7 @@ const Scope2SteamEntry: React.FC = () => {
     if (showForm) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [showForm]);
@@ -251,10 +260,10 @@ const Scope2SteamEntry: React.FC = () => {
   const deleteRecord = async (item: any) => {
     try {
       const editingId = item?._id || item?.id;
-      
+
       if (!editingId) {
         // toast.error("No item ID found for deletion");
-        console.log("No item ID found for deletion")
+        console.log("No item ID found for deletion");
         return;
       }
 
@@ -265,7 +274,7 @@ const Scope2SteamEntry: React.FC = () => {
         getToken(),
         "delete",
         true,
-        'purchasedElectricity'
+        "purchasedElectricity"
       );
 
       if (response.success) {
@@ -273,25 +282,29 @@ const Scope2SteamEntry: React.FC = () => {
         await getSteamTotal();
       } else {
         //  toast.error(response.message || "Failed to delete steam record");
-        console.log(response, 'response')
+        console.log(response, "response");
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete steam record");
-      console.log(error, 'error')
+      console.log(error, "error");
     }
   };
 
   // Helper functions to get names from IDs
   const getFacilityName = (facilityId: string) => {
     if (!facilityId) return "N/A";
-    const facility = facilities.find(f => f._id === facilityId);
-    return facility ? facility.facilityName : (dataLoaded ? "N/A" : "Loading...");
+    const facility = facilities.find((f) => f._id === facilityId);
+    return facility ? facility.facilityName : dataLoaded ? "N/A" : "Loading...";
   };
 
   const getEnergyTypeName = (energyTypeId: string) => {
     if (!energyTypeId) return "N/A";
-    const energyType = energyTypes.find(e => e._id === energyTypeId);
-    return energyType ? energyType.energyType : (dataLoaded ? "N/A" : "Loading...");
+    const energyType = energyTypes.find((e) => e._id === energyTypeId);
+    return energyType
+      ? energyType.energyType
+      : dataLoaded
+      ? "N/A"
+      : "Loading...";
   };
 
   const generateYearOptions = () => {
@@ -305,16 +318,27 @@ const Scope2SteamEntry: React.FC = () => {
 
   const getMonthName = (monthNumber: number | string) => {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const monthIndex = parseInt(monthNumber.toString()) - 1;
     return months[monthIndex] || monthNumber;
   };
 
-  const filteredData = selectedFacility === 'all'
-    ? steamData
-    : steamData.filter(item => item.facility === selectedFacility);
+  const filteredData =
+    selectedFacility === "all"
+      ? steamData
+      : steamData.filter((item) => item.facility === selectedFacility);
 
   return (
     <div className="space-y-6">
@@ -336,7 +360,9 @@ const Scope2SteamEntry: React.FC = () => {
             {
               key: "facility",
               label: "Facility",
-              render: (value, row) => <span>{getFacilityName(row.facility)}</span>,
+              render: (value, row) => (
+                <span>{getFacilityName(row.facility)}</span>
+              ),
             },
             {
               key: "gridLocation",
@@ -364,6 +390,13 @@ const Scope2SteamEntry: React.FC = () => {
               label: "Emission Factor",
               render: (value, row) => <span>{row.emissionFactor}</span>,
             },
+            {
+              key: "totalEmissions",
+              label: "Total Emissions",
+              render: (value, row) => (
+                <span>{row.totalEmissions.toFixed(1)}</span>
+              ),
+            },
           ]}
           actions={[
             {
@@ -384,7 +417,7 @@ const Scope2SteamEntry: React.FC = () => {
         <div className="bg-white border border-red-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-medium text-black">
-              {editingItem ? 'Edit' : 'Add'} Steam Consumption
+              {editingItem ? "Edit" : "Add"} Steam Consumption
             </h4>
             <button
               onClick={() => {
@@ -400,10 +433,17 @@ const Scope2SteamEntry: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Month *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Month *
+                </label>
                 <select
                   value={formData.month}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, month: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      month: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                   required
                 >
@@ -422,25 +462,41 @@ const Scope2SteamEntry: React.FC = () => {
                   <option value="12">December</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
+              {/* <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Year *
+                </label>
                 <select
                   value={formData.year}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, year: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      year: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                   required
                 >
                   <option value="">Select Year</option>
-                  {generateYearOptions().map(year => (
-                    <option key={year} value={year}>{year}</option>
+                  {generateYearOptions().map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Facility *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Facility *
+                </label>
                 <select
                   value={formData.facility}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, facility: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      facility: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                   required
                 >
@@ -477,51 +533,79 @@ const Scope2SteamEntry: React.FC = () => {
                 </select>
               </div> */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Grid Location *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Grid Location *
+                </label>
                 <input
                   type="text"
                   value={formData.gridLocation}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, gridLocation: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      gridLocation: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                   placeholder="e.g., Argentina Kwh"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Consumed Units *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Consumed Units *
+                </label>
                 <input
                   type="number"
                   value={formData.consumedUnits}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, consumedUnits: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      consumedUnits: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                   placeholder="20"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount of Consumption *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount of Consumption *
+                </label>
                 <input
                   type="number"
                   value={formData.amountOfConsumption}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, amountOfConsumption: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      amountOfConsumption: e.target.value,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
                   placeholder="24"
                   required
                 />
               </div>
               {formData.customEmissionFactor && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Custom Emission Factor *</label>
-                    <input
-                      type="number"
-                      value={formData.emissionFactor}
-                      onChange={(e) => setFormData((prev: any) => ({ ...prev, emissionFactor: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-                      placeholder="5"
-                      required
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Custom Emission Factor *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.emissionFactor}
+                    onChange={(e) =>
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        emissionFactor: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                    placeholder="5"
+                    required
+                  />
+                </div>
+              )}
               <div className="col-span-2">
                 <div className="flex items-center mb-2">
                   <input
@@ -529,20 +613,25 @@ const Scope2SteamEntry: React.FC = () => {
                     id="customEmissionFactor"
                     checked={formData.customEmissionFactor}
                     onChange={(e) => {
-                      console.log(e.target.checked, 'checked')
-                      setFormData((prev: any) => ({ 
-                      ...prev, 
-                      customEmissionFactor: e.target.checked,
-                      emissionFactor: e.target.checked ?0: prev.emissionFactor,
-                      // emissionFactor: !e.target.checked ? prev.emissionFactor : 0
-                    }))}}
+                      console.log(e.target.checked, "checked");
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        customEmissionFactor: e.target.checked,
+                        emissionFactor: e.target.checked
+                          ? 0
+                          : prev.emissionFactor,
+                        // emissionFactor: !e.target.checked ? prev.emissionFactor : 0
+                      }));
+                    }}
                     className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="customEmissionFactor" className="ml-2 block text-sm text-gray-700">
+                  <label
+                    htmlFor="customEmissionFactor"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
                     Use Custom Emission Factor
                   </label>
                 </div>
-                
               </div>
             </div>
             <div className="flex justify-end space-x-3">
@@ -562,15 +651,14 @@ const Scope2SteamEntry: React.FC = () => {
                 disabled={loading}
                 className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-md disabled:opacity-50"
               >
-                <span>{loading ? 'Saving...' : 'Save'}</span>
+                <span>{loading ? "Saving..." : "Save"}</span>
               </button>
             </div>
           </div>
         </div>
       )}
-      
     </div>
   );
 };
 
-export default Scope2SteamEntry; 
+export default Scope2SteamEntry;

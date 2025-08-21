@@ -131,11 +131,11 @@ export default function DashboardPage() {
           // Setup is complete if boundary, departments, and all applicable steps are done
           const isSetupComplete = hasBoundary && hasDepartments && facilitiesComplete && vehiclesComplete && equipmentComplete;
           
-          // if (!isSetupComplete) {
-          //   // Redirect to steps page if setup is not complete
-          //   router.push('/dashboard/steps');
-          //   return;
-          // }
+          if (!isSetupComplete) {
+            // Redirect to steps page if setup is not complete
+            router.push('/dashboard/steps');
+            return;
+          }
           
           setSetupComplete(true);
         }
@@ -223,7 +223,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white relative">
       <DashboardHeader />
       <div className="flex pt-16">
-        <div className="fixed left-0 top-0 h-screen z-50">
+        <div className="fixed left-0 top-0 h-screen z-10">
           <DashboardSidebar 
             activeSection={activeSection} 
             onSectionChange={setActiveSection} 
