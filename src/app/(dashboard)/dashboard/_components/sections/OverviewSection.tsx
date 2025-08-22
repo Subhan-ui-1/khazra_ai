@@ -14,7 +14,7 @@ import HorizontalStackedChart from "./overview/HorizontalStackedChart";
 import StackedBarWithLineChart from "./overview/StackedBarWithLineChart";
 import HistoryModal from "./overview/HistoryModal";
 import Table from "@/components/Table";
-import { Edit3, Trash2, History } from "lucide-react";
+import { Edit3, Trash2, History, Loader } from "lucide-react";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { getRequest } from "@/utils/api";
 import LineChart from "./overview/lineChart";
@@ -186,7 +186,7 @@ const [loading, setLoading] = useState(false)
       changeType: "decrease",
       subtitle: "Tonnes CO₂e • All scopes",
       icon: "🏭",
-      progress: 82.4,
+      progress: 100,
       details: [
         {
           category: "Scope 1 (Direct)",
@@ -406,7 +406,12 @@ const [loading, setLoading] = useState(false)
     setIsScopeModalOpen(false);
     setSelectedScope(null);
   };
-  if (loading||data.scope1Emissions > 0) {
+  if(loading){
+    return <div className="flex justify-center items-center h-screen">
+      <Loader className="animate-spin" />
+    </div>
+  }
+  if (loading||data.totalEmissions > 0) {
     return (
       <div className="space-y-10">
         <div className="border-b border-green-100 pb-6">
@@ -441,7 +446,7 @@ const [loading, setLoading] = useState(false)
             />
           </div>
           <div className="xl:w-1/3 h-[590px]">
-            <ProgressChart overallProgressValue={overallProgressValue} />
+            <ProgressChart />
           </div>
         </div>
 
@@ -468,7 +473,7 @@ const [loading, setLoading] = useState(false)
         </div>
         <div className="xl:flex gap-5 space-y-5 w-full">
           <div className="xl:w-1/3 h-full">
-            <ProgressChart overallProgressValue={overallProgressValue} />
+            <ProgressChart  />
           </div>
           <div className="h-[580px] flex xl:w-2/3 w-full">
             <ScopeChartData
@@ -541,12 +546,6 @@ const [loading, setLoading] = useState(false)
 
             {/* CTAs */}
             <div className="mt-6 flex flex-col sm:flex-row items-center lg:items-start gap-3 sm:gap-4">
-              <a
-                href="/dashboard?section=stationary-combustion"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-lg text-white bg-[#0D5942] hover:bg-[#0b4a37] transition-colors shadow-sm w-full sm:w-auto"
-              >
-                Start Setup
-              </a>
               <Link
                 href="/dashboard?section=stationary-combustion"
                 className="inline-flex items-center justify-center px-5 py-3 rounded-lg text-[#0D5942] bg-white hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm w-full sm:w-auto"

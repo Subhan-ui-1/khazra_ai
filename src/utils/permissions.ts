@@ -37,19 +37,62 @@ export class PermissionManager {
     this.loadPermissions();
   }
 
+  // Check if permissions exist in localStorage
+  public hasPermissionsInStorage(): boolean {
+    try {
+      const permissionsData = safeLocalStorage.getItem("permissions");
+      return permissionsData !== null && permissionsData !== undefined;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Wait for permissions to be available (useful for setup flows)
+  public waitForPermissions(timeout: number = 5000): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (this.arePermissionsReady()) {
+        resolve(true);
+        return;
+      }
+
+      const startTime = Date.now();
+      const checkInterval = setInterval(() => {
+        if (this.arePermissionsReady()) {
+          clearInterval(checkInterval);
+          resolve(true);
+        } else if (Date.now() - startTime > timeout) {
+          clearInterval(checkInterval);
+          resolve(false);
+        }
+      }, 100);
+    });
+  }
+
   public hasPermission(permissionName: string): boolean {
+    // If permissions are not loaded yet, return false to prevent blocking
+    if (this.permissions.length === 0) {
+      return false;
+    }
     return this.permissions.some(
       (permission) => permission.name === permissionName
     );
   }
 
   public hasAnyPermission(permissionNames: string[]): boolean {
+    // If permissions are not loaded yet, return false to prevent blocking
+    if (this.permissions.length === 0) {
+      return false;
+    }
     return permissionNames.some((permissionName) =>
       this.hasPermission(permissionName)
     );
   }
 
   public hasAllPermissions(permissionNames: string[]): boolean {
+    // If permissions are not loaded yet, return false to prevent blocking
+    if (this.permissions.length === 0) {
+      return false;
+    }
     return permissionNames.every((permissionName) =>
       this.hasPermission(permissionName)
     );
@@ -61,6 +104,11 @@ export class PermissionManager {
 
   public getPermissionNames(): string[] {
     return this.permissions.map((permission) => permission.name);
+  }
+
+  // Check if permissions are loaded and ready
+  public arePermissionsReady(): boolean {
+    return this.permissions.length > 0;
   }
 
   // Helper methods for common permission patterns
@@ -131,6 +179,18 @@ export const usePermissions = () => {
     return permissionManager.getPermissions();
   };
 
+  const arePermissionsReady = (): boolean => {
+    return permissionManager.arePermissionsReady();
+  };
+
+  const hasPermissionsInStorage = (): boolean => {
+    return permissionManager.hasPermissionsInStorage();
+  };
+
+  const waitForPermissions = (timeout?: number): Promise<boolean> => {
+    return permissionManager.waitForPermissions(timeout);
+  };
+
   return {
     hasPermission,
     hasAnyPermission,
@@ -141,6 +201,9 @@ export const usePermissions = () => {
     canDelete,
     canManage,
     getPermissions,
+    arePermissionsReady,
+    hasPermissionsInStorage,
+    waitForPermissions,
     refreshPermissions: () => permissionManager.refreshPermissions(),
   };
 };

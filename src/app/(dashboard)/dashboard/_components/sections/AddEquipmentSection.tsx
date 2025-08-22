@@ -99,7 +99,7 @@ const statusOptions = [
 ];
 
 interface AddEquipmentSectionProps {
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
 const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
@@ -160,6 +160,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
 
   const fetchEquipments = async () => {
     try {
+
       setLoading(true);
       const queryParams = new URLSearchParams({
         page: filters.page.toString(),
@@ -174,6 +175,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         tokenData.accessToken
       );
       if (response.success) {
+        safeLocalStorage.setItem("equipments", JSON.stringify(response.data.equipments));
         setEquipmentData(
           response.data.equipments.map((ep: any) => {
             return {
@@ -340,17 +342,30 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
       );
 
       if (response.success) {
-        toast.success(
-          editingItem
-            ? "Equipment updated successfully"
-            : "Equipment created successfully"
-        );
+        const equipments = safeLocalStorage.getItem("equipments");
+        if(equipments){
+          const equipmentsData = JSON.parse(equipments)||[]
+          const index = equipmentsData.findIndex((e:any)=>e._id === response.equipment._id);
+          if(index !== -1){
+            equipmentsData[index] = response.equipment;
+          } else{
+            equipmentsData.push(response.equipment);
+          }
+          safeLocalStorage.setItem("equipments", JSON.stringify(equipmentsData));
+        } else{
+          safeLocalStorage.setItem("equipments", JSON.stringify([response.equipment]));
+        }
+        // toast.success(
+        //   editingItem
+        //     ? "Equipment updated successfully"
+        //     : "Equipment created successfully"
+        // );
         resetForm();
         fetchEquipments();
 
         // Call onComplete callback if provided (for steps page) and this is new equipment
         if (onComplete && !editingItem) {
-          onComplete();
+          onComplete(response.data);
         }
       }
     } catch (error: any) {

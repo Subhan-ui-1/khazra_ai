@@ -185,7 +185,7 @@ export default function DashboardSidebar({
         ],
       },
       {
-        section: "Add",
+        section: "Configurations",
         items: [
           {
             id: "add-boundary",

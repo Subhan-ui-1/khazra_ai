@@ -4,6 +4,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
+import { scope2EnergyTypes } from "@/constants/scope2EnergyType";
 
 interface Facility {
   _id: string;
@@ -64,12 +65,18 @@ const Scope2SteamEntry: React.FC = () => {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
+      const facilities = safeLocalStorage.getItem("facilities");
+      if(facilities){
+        setFacilities(JSON.parse(facilities));
+        return;
+      }
       const response = await getRequest(
         "facilities/getFacilities?status=Active",
         getToken()
       );
       if (response.success) {
         setFacilities(response.data.facilities || []);
+        safeLocalStorage.setItem("facilities", JSON.stringify(response.data.facilities));
       } else {
         return;
       }
@@ -79,29 +86,23 @@ const Scope2SteamEntry: React.FC = () => {
   };
 
   const fetchEnergyTypes = async () => {
-    try {
-      const response = await getRequest(
-        "energy-types/getEnergyTypes",
-        getToken()
-      );
-      if (response.success) {
-        setEnergyTypes(response.data.energyTypes || []);
-      } else {
-        return;
-      }
-    } catch (error: any) {
-      return;
-    }
+    setEnergyTypes(scope2EnergyTypes);
   };
 
   const getSteamTotal = async () => {
     try {
+      const steamTotal = safeLocalStorage.getItem("steamTotal");
+      if(steamTotal){
+        setSteamData(JSON.parse(steamTotal));
+        return;
+      }
       const response = await getRequest(
         "purchased-electricity/getPurchasedElectricity?scopeType=steam",
         getToken()
       );
       if (response.success) {
         setSteamData(response.data.purchasedElectricity || []);
+        safeLocalStorage.setItem("steamTotal", JSON.stringify(response.data.purchasedElectricity||[]));
       } else {
         return;
       }
@@ -172,6 +173,13 @@ const Scope2SteamEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Steam data updated successfully");
+          const steamTotal = safeLocalStorage.getItem("steamTotal");
+          if(steamTotal){
+            const steamData = JSON.parse(steamTotal) ||[];
+            const index = steamData.findIndex((item:any)=>item._id == editingId);
+            steamData[index] = response.purchasedElectricity;
+            safeLocalStorage.setItem("steamTotal", JSON.stringify(steamData));
+          }
           await getSteamTotal();
           setShowForm(false);
           setEditingItem(null);
@@ -193,6 +201,12 @@ const Scope2SteamEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Steam data added successfully");
+          const steamTotal = safeLocalStorage.getItem("steamTotal");
+          if(steamTotal){
+            const steamData = JSON.parse(steamTotal) ||[];
+            steamData.push(response.purchasedElectricity);
+            safeLocalStorage.setItem("steamTotal", JSON.stringify(steamData));
+          }
           await getSteamTotal();
           setShowForm(false);
           resetForm();
@@ -266,6 +280,13 @@ const Scope2SteamEntry: React.FC = () => {
 
       if (response.success) {
         toast.success("Steam record deleted successfully");
+        const steamTotal = safeLocalStorage.getItem("steamTotal");
+        if(steamTotal){
+          const steamData = JSON.parse(steamTotal) ||[];
+          const index = steamData.findIndex((item:any)=>item._id == editingId);
+          steamData.splice(index, 1);
+          safeLocalStorage.setItem("steamTotal", JSON.stringify(steamData));
+        }
         await getSteamTotal();
       } else {
           return;

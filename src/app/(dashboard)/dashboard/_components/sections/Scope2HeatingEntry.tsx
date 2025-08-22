@@ -4,6 +4,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from '@/utils/localStorage';
 import Table from "@/components/Table";
+import { scope2EnergyTypes } from '@/constants/scope2EnergyType';
 
 interface Facility {
   _id: string;
@@ -64,9 +65,15 @@ const Scope2HeatingEntry: React.FC = () => {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
+      const facilities = safeLocalStorage.getItem("facilities");
+      if(facilities){
+        setFacilities(JSON.parse(facilities));
+        return;
+      }
       const response = await getRequest("facilities/getFacilities?status=Active", getToken());
       if (response.success) {
         setFacilities(response.data.facilities || []);
+        safeLocalStorage.setItem("facilities", JSON.stringify(response.data.facilities));
       } else {
         return;
       }
@@ -76,23 +83,20 @@ const Scope2HeatingEntry: React.FC = () => {
   };
 
   const fetchEnergyTypes = async () => {
-    try {
-      const response = await getRequest("energy-types/getEnergyTypes", getToken());
-      if (response.success) {
-        setEnergyTypes(response.data.energyTypes || []);
-      } else {
-        return;
-      }
-    } catch (error: any) {
-      return;
-    }
+  setEnergyTypes(scope2EnergyTypes);
   };
 
   const getHeatingTotal = async () => {
     try {
+      const heatingTotal = safeLocalStorage.getItem("heatingTotal");
+      if(heatingTotal){
+        setHeatingData(JSON.parse(heatingTotal));
+        return;
+      }
       const response = await getRequest("purchased-electricity/getPurchasedElectricity?scopeType=heating", getToken());
       if (response.success) {
         setHeatingData(response.data.purchasedElectricity || []);
+        safeLocalStorage.setItem("heatingTotal", JSON.stringify(response.data.purchasedElectricity||[]));
       } else {
         return;
       }
@@ -161,6 +165,13 @@ const Scope2HeatingEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Heating data updated successfully");
+          const heatingTotal = safeLocalStorage.getItem("heatingTotal");
+          if(heatingTotal){
+            const heatingData = JSON.parse(heatingTotal) ||[];
+            const index = heatingData.findIndex((item:any)=>item._id == editingId);
+            heatingData[index] = response.purchasedElectricity;
+            safeLocalStorage.setItem("heatingTotal", JSON.stringify(heatingData));
+          }
           await getHeatingTotal();
           setShowForm(false);
           setEditingItem(null);
@@ -183,6 +194,12 @@ const Scope2HeatingEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Heating data added successfully");
+          const heatingTotal = safeLocalStorage.getItem("heatingTotal");
+          if(heatingTotal){
+            const heatingData = JSON.parse(heatingTotal) ||[];
+            heatingData.push(response.purchasedElectricity);
+            safeLocalStorage.setItem("heatingTotal", JSON.stringify(heatingData));
+          }
           await getHeatingTotal();
           setShowForm(false);
           resetForm();
@@ -256,6 +273,13 @@ const Scope2HeatingEntry: React.FC = () => {
 
       if (response.success) {
         toast.success("Heating record deleted successfully");
+        const heatingTotal = safeLocalStorage.getItem("heatingTotal");
+        if(heatingTotal){
+          const heatingData = JSON.parse(heatingTotal) ||[];
+          const index = heatingData.findIndex((item:any)=>item._id == editingId);
+          heatingData.splice(index, 1);
+          safeLocalStorage.setItem("heatingTotal", JSON.stringify(heatingData));
+        }
         await getHeatingTotal();
       } else {
           return;

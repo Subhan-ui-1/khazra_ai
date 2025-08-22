@@ -4,6 +4,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
+import { scope2EnergyTypes } from "@/constants/scope2EnergyType";
 
 interface Facility {
   _id: string;
@@ -64,9 +65,15 @@ const Scope2ElectricityEntry: React.FC = () => {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
+      const facilities = safeLocalStorage.getItem("facilities");
+      if(facilities){
+        setFacilities(JSON.parse(facilities));
+        return;
+      }
       const response = await getRequest("facilities/getFacilities?status=Active", getToken());
       if (response.success) {
         setFacilities(response.data.facilities || []);
+        safeLocalStorage.setItem("facilities", JSON.stringify(response.data.facilities));
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
         return;
@@ -78,31 +85,43 @@ const Scope2ElectricityEntry: React.FC = () => {
   };
 
   const fetchEnergyTypes = async () => {
-    try {
-      const response = await getRequest(
-        "energy-types/getEnergyTypes",
-        getToken()
-      );
-      if (response.success) {
-        setEnergyTypes(response.data.energyTypes || []);
-      } else {
-        // toast.error(response.message || "Failed to fetch energy types");
-       return;
-      }
-    } catch (error: any) {
-      // toast.error(error.message || "Failed to fetch energy types");
-      return;
-    }
+    // try {
+    //   const energyTypes = safeLocalStorage.getItem("energyTypes");
+    //   if(energyTypes){
+    //     setEnergyTypes(JSON.parse(energyTypes));
+    //     return;
+    //   }
+    //   const response = await getRequest(
+    //     "energy-types/getEnergyTypes",
+    //     getToken()
+    //   );
+    //   if (response.success) {
+        setEnergyTypes(scope2EnergyTypes);
+        // setEnergyTypes(response.data.energyTypes || []);
+    //   } else {
+    //     // toast.error(response.message || "Failed to fetch energy types");
+    //    return;
+    //   }
+    // } catch (error: any) {
+    //   // toast.error(error.message || "Failed to fetch energy types");
+    //   return;
+    // }
   };
 
   const getElectricityTotal = async () => {
     try {
+      const electricityTotal = safeLocalStorage.getItem("electricityTotal");
+      if(electricityTotal){
+        setElectricityData(JSON.parse(electricityTotal));
+        return;
+      }
       const response = await getRequest(
         "purchased-electricity/getPurchasedElectricity?scopeType=electricity",
         getToken()
       );
       if (response.success) {
         setElectricityData(response.data.purchasedElectricity || []);
+        safeLocalStorage.setItem("electricityTotal", JSON.stringify(response.data.purchasedElectricity||[]));
       } else {
         // toast.error(response.message || "Failed to fetch electricity data");
         return;
@@ -181,6 +200,13 @@ const Scope2ElectricityEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Electricity data updated successfully");
+          const electricityTotal = safeLocalStorage.getItem("electricityTotal");
+          if(electricityTotal){
+            const electricityData = JSON.parse(electricityTotal) ||[];
+            const index = electricityData.findIndex((item:any)=>item._id == editingId);
+            electricityData[index] = response.purchasedElectricity;
+            safeLocalStorage.setItem("electricityTotal", JSON.stringify(electricityData));
+          }
           await getElectricityTotal();
           setShowForm(false);
           setEditingItem(null);
@@ -207,6 +233,12 @@ const Scope2ElectricityEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Electricity data added successfully");
+          const electricityTotal = safeLocalStorage.getItem("electricityTotal");
+          if(electricityTotal){
+            const electricityData = JSON.parse(electricityTotal) ||[];
+            electricityData.push(response.purchasedElectricity);
+            safeLocalStorage.setItem("electricityTotal", JSON.stringify(electricityData));
+          }
           await getElectricityTotal();
           setShowForm(false);
           resetForm();
@@ -283,6 +315,13 @@ const Scope2ElectricityEntry: React.FC = () => {
 
       if (response.success) {
         toast.success("Electricity record deleted successfully");
+        const electricityTotal = safeLocalStorage.getItem("electricityTotal");
+        if(electricityTotal){
+          const electricityData = JSON.parse(electricityTotal) ||[];
+          const index = electricityData.findIndex((item:any)=>item._id == editingId);
+          electricityData.splice(index, 1);
+          safeLocalStorage.setItem("electricityTotal", JSON.stringify(electricityData));
+        }
         await getElectricityTotal();
       } else {
         //  toast.error(response.message || "Failed to delete electricity record");

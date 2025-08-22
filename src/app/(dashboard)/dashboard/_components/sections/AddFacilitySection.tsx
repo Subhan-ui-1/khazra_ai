@@ -148,7 +148,7 @@ const NUMBER_OF_EMPLOYEES_OPTIONS = [
 ];
 
 interface AddFacilitySectionProps {
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
 const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
@@ -442,6 +442,19 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
           tokenData.accessToken,
           "put"
         );
+        if(response.success){
+          const facilities = safeLocalStorage.getItem("facilities");
+        if(facilities){
+          const facilitiesData = JSON.parse(facilities)||[]
+          const index = facilitiesData.findIndex((e:any)=>e._id === facilityId);
+          if(index !== -1){
+            facilitiesData[index] = response.facilities;
+          }
+          safeLocalStorage.setItem("facilities", JSON.stringify(facilitiesData));
+        } else{
+          safeLocalStorage.setItem("facilities", JSON.stringify([response.facilities])); 
+        }
+        }
       } else {
         // Add new facility
         response = await postRequest(
@@ -451,14 +464,24 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
           tokenData.accessToken,
           "post"
         );
+        if(response.success){
+          const facilities = safeLocalStorage.getItem("facilities");
+        if(facilities){
+          const facilitiesData = JSON.parse(facilities)||[]
+          facilitiesData.push(response.facilities);
+          safeLocalStorage.setItem("facilities", JSON.stringify(facilitiesData));
+        } else{
+          safeLocalStorage.setItem("facilities", JSON.stringify([response.facilities]));
+        }
+        }
       }
 
       if (response.success) {
-        toast.success(
-          editingItem
-            ? "Facility Updated Successfully"
-            : "Facility Created Successfully"
-        );
+        // toast.success(
+        //   editingItem
+        //     ? "Facility Updated Successfully"
+        //     : "Facility Created Successfully"
+        // );
         setShowForm(false);
         setEditingItem(null);
         resetForm();
@@ -466,7 +489,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
 
         // Call onComplete callback if provided (for steps page) and this is a new facility
         if (onComplete && !editingItem) {
-          onComplete();
+          onComplete(response.data);
         }
       } else {
         // toast.error(response.message || "Operation failed");
@@ -1197,6 +1220,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
+                disabled={loading}
                 className="bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
               >
                 <svg

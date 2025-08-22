@@ -4,6 +4,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from '@/utils/localStorage';
 import Table from "@/components/Table";
+import { scope2EnergyTypes } from '@/constants/scope2EnergyType';
 
 interface Facility {
   _id: string;
@@ -64,9 +65,15 @@ const Scope2CoolingEntry: React.FC = () => {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
+      const facilities = safeLocalStorage.getItem("facilities");
+      if(facilities){
+        setFacilities(JSON.parse(facilities));
+        return;
+      }
       const response = await getRequest("facilities/getFacilities?status=Active", getToken());
       if (response.success) {
         setFacilities(response.data.facilities || []);
+        safeLocalStorage.setItem("facilities", JSON.stringify(response.data.facilities));
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
         return;
@@ -78,25 +85,21 @@ const Scope2CoolingEntry: React.FC = () => {
   };
 
   const fetchEnergyTypes = async () => {
-    try {
-      const response = await getRequest("energy-types/getEnergyTypes", getToken());
-      if (response.success) {
-        setEnergyTypes(response.data.energyTypes || []);
-      } else {
-        // toast.error(response.message || "Failed to fetch energy types");
-        return;
-      }
-    } catch (error: any) {
-      // toast.error(error.message || "Failed to fetch energy types");
-      return;
-    }
+    setEnergyTypes(scope2EnergyTypes);
+    
   };
 
   const getCoolingTotal = async () => {
     try {
+      const coolingTotal = safeLocalStorage.getItem("coolingTotal");
+      if(coolingTotal){
+        setCoolingData(JSON.parse(coolingTotal));
+        return;
+      }
       const response = await getRequest("purchased-electricity/getPurchasedElectricity?scopeType=cooling", getToken());
       if (response.success) {
         setCoolingData(response.data.purchasedElectricity || []);
+        safeLocalStorage.setItem("coolingTotal", JSON.stringify(response.data.purchasedElectricity||[]));
       } else {
         // toast.error(response.message || "Failed to fetch cooling data");
         return;
@@ -175,6 +178,13 @@ const Scope2CoolingEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Cooling data updated successfully");
+          const coolingTotal = safeLocalStorage.getItem("coolingTotal");
+          if(coolingTotal){
+            const coolingData = JSON.parse(coolingTotal) ||[];
+            const index = coolingData.findIndex((item:any)=>item._id == editingId);
+            coolingData[index] = response.purchasedElectricity;
+            safeLocalStorage.setItem("coolingTotal", JSON.stringify(coolingData));
+          }
           await getCoolingTotal();
           setShowForm(false);
           setEditingItem(null);
@@ -198,6 +208,12 @@ const Scope2CoolingEntry: React.FC = () => {
 
         if (response.success) {
           toast.success("Cooling data added successfully");
+          const coolingTotal = safeLocalStorage.getItem("coolingTotal");
+          if(coolingTotal){
+            const coolingData = JSON.parse(coolingTotal) ||[];
+            coolingData.push(response.purchasedElectricity);
+            safeLocalStorage.setItem("coolingTotal", JSON.stringify(coolingData));
+          }
           await getCoolingTotal();
           setShowForm(false);
           resetForm();
@@ -273,6 +289,13 @@ const Scope2CoolingEntry: React.FC = () => {
 
       if (response.success) {
         toast.success("Cooling record deleted successfully");
+        const coolingTotal = safeLocalStorage.getItem("coolingTotal");
+        if(coolingTotal){
+          const coolingData = JSON.parse(coolingTotal) ||[];
+          const index = coolingData.findIndex((item:any)=>item._id == editingId);
+          coolingData.splice(index, 1);
+          safeLocalStorage.setItem("coolingTotal", JSON.stringify(coolingData));
+        }
         await getCoolingTotal();
       } else {
         //  toast.error(response.message || "Failed to delete cooling record");

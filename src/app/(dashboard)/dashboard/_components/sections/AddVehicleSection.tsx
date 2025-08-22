@@ -157,7 +157,7 @@ const regions = [
 ];
 
 interface AddVehicleSectionProps {
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
 const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
@@ -292,7 +292,14 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+if(!formData.purchaseYear){
+  toast.error("Please select a purchase year");
+  return;
+}
+if(!formData.annualMileageValue){
+  toast.error("Please select a annual mileage");
+  return;
+}
     // Prepare the request body according to the API specification
     const requestBody = {
       vehicleType: formData.vehicleType,
@@ -352,6 +359,19 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
       }
 
       if (response.success) {
+        const vehicles = safeLocalStorage.getItem("vehicles");
+        if(vehicles){
+          const vehiclesData = JSON.parse(vehicles)||[]
+          const index = vehiclesData.findIndex((e:any)=>e._id === response.vehicle._id);
+          if(index !== -1){
+            vehiclesData[index] = response.vehicle;
+          } else{
+            vehiclesData.push(response.vehicle);
+          }
+          safeLocalStorage.setItem("vehicles", JSON.stringify(vehiclesData));
+        } else{
+          safeLocalStorage.setItem("vehicles", JSON.stringify([response.vehicle]));
+        }
         toast.success(
           editingItem
             ? "Vehicle Updated Successfully"
@@ -364,7 +384,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
 
         // Call onComplete callback if provided (for steps page) and this is a new vehicle
         if (onComplete && !editingItem) {
-          onComplete();
+          onComplete(response.data);
         }
       } else {
         // toast.error(response.message || "Operation failed");

@@ -10,12 +10,26 @@ import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 
 // Constants
 const INDUSTRY_OPTIONS = [
-  "Industry",
-  "Textile",
-  "Chemical Industries",
-  "Tech Industries",
-  "Medical Industries",
-  "Automobile Industries",
+  "Technology",
+  "Manufacturing",
+  "Automotive",
+  "Information Technology",
+  "Electronics",
+  "Agriculture",
+  "Energy",
+  "Natural Resources",
+  "Luxury Goods",
+  "Finance",
+  "Consumer Electronics",
+  "Mining",
+  "Oil & Gas",
+  "Automotive Manufacturing",
+  "Palm Oil",
+  "Fashion",
+  "Textiles",
+  "Apparel",
+  "Mining", // Appears twice intentionally (common in different countries)
+  "Agribusiness"
 ];
 
 const NUMBER_OF_EMPLOYEES_OPTIONS = [
@@ -142,7 +156,7 @@ interface Boundary {
 }
 
 interface AddBoundarySectionProps {
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
 const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
@@ -158,7 +172,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     hasBaselineEmissions: "",
   });
   const router = useRouter();
-  const { canView, canCreate, canUpdate, canDelete } = usePermissions();
+  const { canView, canCreate, canUpdate, canDelete, arePermissionsReady, waitForPermissions } = usePermissions();
 
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
@@ -167,12 +181,58 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
   }
 
   // Check if user has permission to view boundaries
-  if (!canView("boundaries")) {
+  // For the setup flow, we'll be more lenient and allow access if permissions aren't loaded yet
+  const hasBoundaryPermission = canView("boundaries");
+  const permissionsReady = arePermissionsReady();
+  
+  // Show loading while permissions are being checked
+  if (!permissionsReady && !onComplete) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        You don't have permission to view boundaries.
+      <div className="p-8 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D5942] mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading permissions...</p>
       </div>
     );
+  }
+  
+  // If this is the setup flow and permissions aren't ready yet, show a friendly message
+  if (!permissionsReady && onComplete) {
+    return (
+      <div className="p-8 text-center">
+        <div className="mb-4">
+          <svg className="w-16 h-16 mx-auto text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Setting Up Your Organization</h3>
+        <p className="text-gray-600 mb-4">Welcome! We're preparing your boundary setup form.</p>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0D5942] mx-auto"></div>
+        <p className="text-sm text-gray-500 mt-2">Loading setup components...</p>
+      </div>
+    );
+  }
+  
+  if (!hasBoundaryPermission) {
+    // Check if this is a setup flow (onComplete prop is provided)
+    if (onComplete) {
+      // In setup flow, allow access even without explicit permissions
+      // This prevents blocking new users from setting up their organization
+      console.log("Setup flow detected - allowing boundary access for organization setup");
+    } else {
+      // In regular flow, require permissions
+      return (
+        <div className="p-8 text-center text-gray-500">
+          <div className="mb-4">
+            <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Permission Required</h3>
+          <p className="text-gray-600 mb-4">You don't have permission to view boundaries.</p>
+          <p className="text-sm text-gray-500">Please contact your administrator to get the necessary permissions.</p>
+        </div>
+      );
+    }
   }
 
   const [formData, setFormData] = useState<BoundaryFormData>({
@@ -217,12 +277,70 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     checkExistingBoundary();
   }, []);
 
+  // Wait for permissions to be available in setup flow
+  useEffect(() => {
+    if (onComplete && !arePermissionsReady()) {
+      waitForPermissions(3000).then((permissionsLoaded) => {
+        if (permissionsLoaded) {
+          // Permissions are now available, we can proceed
+          console.log("Permissions loaded successfully");
+        }
+      });
+    }
+  }, [onComplete, arePermissionsReady, waitForPermissions]);
+
+  // Debug useEffect to monitor state changes
+  useEffect(() => {
+    console.log('showForm state changed to:', showForm);
+    console.log('editingBoundary state changed to:', editingBoundary);
+  }, [showForm, editingBoundary]);
+
+  // Ensure form data is properly initialized when form is shown
+  useEffect(() => {
+    if (showForm && !editingBoundary) {
+      console.log('Form shown, initializing form data');
+      const initialData = {
+        organizationId: getOrganizationId(),
+        industry: "",
+        businessNature: "",
+        baselineYear: "",
+        hasBaselineEmissions: "",
+        baselineEmissions: "",
+        hasVehicles: "",
+        vehicleCount: 0,
+        hasFacilities: "",
+        facilityCount: 0,
+        hasEquipment: "",
+        equipmentCount: 0,
+        businessFormationDate: "",
+        reportingPeriodStartDate: "",
+        reportingPeriodEndDate: "",
+        reportingPeriod: {
+          start: "",
+          end: "",
+        },
+        primaryFunctionalCurrency: "",
+        numberOfEmployees: "",
+        secondaryFunctionalCurrency: "",
+        annualRevenue: "",
+        internationalBusinessTraveling: false,
+      };
+      console.log('Setting initial form data:', initialData);
+      setFormData(initialData);
+    }
+  }, [showForm, editingBoundary]);
+
   const checkExistingBoundary = async () => {
     try {
       setLoading(true);
       const userData = JSON.parse(safeLocalStorage.getItem("user") || "{}");
 
-      if (userData.boundary) {
+      if (userData.boundary && userData.boundary!='undefined') {
+        const boundary = safeLocalStorage.getItem("boundary");
+        if(boundary){
+          setBoundaryData(JSON.parse(boundary));
+          return;
+        }
         // Fetch boundary details
         const response = await getRequest(
           `boundaries/getBoundaries`,
@@ -230,7 +348,11 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
         );
 
         if (response.success) {
-          setBoundaryData(response.data.boundaries[0]);
+          if(response.data.boundaries.length>0){
+            safeLocalStorage.setItem("boundary", JSON.stringify({}));
+            setBoundaryData(response.data.boundaries[0]);
+            safeLocalStorage.setItem("boundary", JSON.stringify(response.data.boundaries[0]));
+          }
         }
       }
     } catch (error: any) {
@@ -241,23 +363,30 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
   };
 
   const validateForm = useCallback((data: BoundaryFormData): boolean => {
+    console.log('Validating form data:', data);
+    
     if (!data.industry || data.industry === "Industry") {
+      console.log('Industry validation failed:', data.industry);
       return false;
     }
 
     if (!data.businessNature || data.businessNature === "") {
+      console.log('Business nature validation failed:', data.businessNature);
       return false;
     }
 
     if (!data.baselineYear) {
+      console.log('Baseline year validation failed:', data.baselineYear);
       return false;
     }
 
+    console.log('Form validation passed');
     return true;
   }, []);
 
   const resetForm = () => {
-    setFormData({
+    console.log('resetForm called');
+    const initialFormData = {
       organizationId: getOrganizationId(),
       industry: "",
       businessNature: "",
@@ -282,7 +411,9 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
       secondaryFunctionalCurrency: "",
       annualRevenue: "",
       internationalBusinessTraveling: false,
-    });
+    };
+    console.log('Setting form data to:', initialFormData);
+    setFormData(initialFormData);
     setQuestions({
       hasVehicles: "",
       hasFacilities: "",
@@ -294,6 +425,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
   };
 
   const startEdit = (boundary: Boundary) => {
+    console.log('startEdit called with boundary:', boundary);
     setEditingBoundary(boundary);
 
     // Format dates for form inputs (YYYY-MM-DD format)
@@ -499,13 +631,18 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
   ];
 
   const handleFormSubmit = async (data: any) => {
-    if (!validateForm(data)) {
-      return;
-    }
-
-    setSubmitting(true);
-
     try {
+      console.log('handleFormSubmit function called with data:', data);
+      
+      if (!validateForm(data)) {
+        console.log('Form validation failed');
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      
+      console.log('Form validation passed, proceeding with submission');
+      setSubmitting(true);
+
       const validBusinessFormationDate =
         Date.now() > new Date(data.businessFormationDate).getTime();
       if (!validBusinessFormationDate) {
@@ -542,6 +679,12 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
         );
 
         if (response?.success) {
+          const boundary = safeLocalStorage.getItem("boundary");
+          if(boundary){
+            let boundaryData = JSON.parse(boundary) || {};
+            boundaryData = response.boundary;
+            safeLocalStorage.setItem("boundary", JSON.stringify(boundaryData));
+          }
           toast.success("Boundary updated successfully");
           setBoundaryData(response.boundary);
           setEditingBoundary(null);
@@ -591,16 +734,18 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
         );
 
         if (response?.success) {
+         console.log(response, 'response received from add boundary')
           toast.success(response.message || "Boundary created successfully");
           const userData = safeLocalStorage.getItem("user");
           const userDataParsed = JSON.parse(userData || "{}");
           userDataParsed.boundary = response.boundary._id;
           safeLocalStorage.setItem("user", JSON.stringify(userDataParsed));
-
-          // Call onComplete callback if provided (for steps page)
-          if (onComplete) {
-            onComplete();
-          } else {
+          safeLocalStorage.setItem("boundary", JSON.stringify(response.boundary))
+          setShowForm(false);
+                  // Call onComplete callback if provided (for steps page)
+        if (onComplete) {
+          onComplete(response.boundary);
+        } else {
             // Stay on the current page to allow follow-up steps instead of forcing navigation
           }
         } else {
@@ -785,7 +930,10 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
         </h1>
         <PermissionGuard permission="boundaries.create">
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              console.log('Add Boundary button clicked, setting showForm to true');
+              setShowForm(true);
+            }}
             className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
           >
             <svg
@@ -808,22 +956,33 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
 
       {/* Form Section */}
       {showForm && (
-        <DynamicForm
-          title={editingBoundary ? "Edit Boundary" : "Add New Boundary"}
-          fields={boundaryFormFields}
-          onSubmit={handleFormSubmit}
-          onCancel={resetForm}
-          initialData={formData}
-          loading={submitting}
-          submitText={editingBoundary ? "Update Boundary" : "Create Boundary"}
-          cancelText="Cancel"
-          onClose={resetForm}
-          confirmationMessage={
-            editingBoundary
-              ? "Do you really want to update this boundary?"
-              : "Do you really want to create this boundary?"
-          }
-        />
+        <div>
+          <DynamicForm
+            title={editingBoundary ? "Edit Boundary" : "Add New Boundary"}
+            fields={boundaryFormFields}
+            onSubmit={(data) => {
+              console.log('DynamicForm onSubmit called with data:', data);
+              console.log('Calling handleFormSubmit...');
+              try {
+                handleFormSubmit(data);
+              } catch (error) {
+                console.error('Error calling handleFormSubmit:', error);
+                toast.error("An error occurred while submitting the form");
+              }
+            }}
+            onCancel={resetForm}
+            initialData={formData}
+            loading={submitting}
+            submitText={editingBoundary ? "Update Boundary" : "Create Boundary"}
+            cancelText="Cancel"
+            onClose={resetForm}
+            confirmationMessage={
+              editingBoundary
+                ? "Do you really want to update this boundary?"
+                : "Do you really want to create this boundary?"
+            }
+          />
+        </div>
       )}
 
       {/* Empty State */}
@@ -843,12 +1002,12 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             />
           </svg>
           <p className="mt-2 text-gray-600">No boundary found</p>
-          <button
+          {/* <button
             onClick={() => setShowForm(true)}
             className="mt-4 bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200"
           >
             Add your first boundary
-          </button>
+          </button> */}
         </div>
       )}
 

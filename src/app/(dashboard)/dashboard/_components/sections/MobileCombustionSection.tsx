@@ -6,6 +6,7 @@ import { Edit3, Trash2, Eye, Plus } from "lucide-react";
 import Table from "@/components/Table";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
+import { mobileFuelTypes as fuelTypesOfMobile } from "@/constants/mobileFuelType";
 
 interface Facility {
   _id: string;
@@ -138,9 +139,15 @@ export default function MobileCombustionSection() {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
+      const facilities = safeLocalStorage.getItem("facilities");
+      if(facilities){
+        setFacilities(JSON.parse(facilities));
+        return;
+      }
       const response = await getRequest("facilities/getFacilities", getToken());
       if (response.success) {
         setFacilities(response.data.facilities || []);
+        safeLocalStorage.setItem("facilities", JSON.stringify(response.data.facilities));
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
         return;
@@ -153,9 +160,15 @@ export default function MobileCombustionSection() {
 
   const fetchVehicles = async () => {
     try {
+      const vehicles = safeLocalStorage.getItem("vehicles");
+      if(vehicles){
+        setVehicles(JSON.parse(vehicles));
+        return;
+      }
       const response = await getRequest("vehicles/getVehicles", getToken());
       if (response.success) {
         setVehicles(response.data.vehicles);
+        safeLocalStorage.setItem("vehicles", JSON.stringify(response.data.vehicles));
       } else {
         // toast.error(response.message || "Failed to fetch vehicles");
         return;
@@ -168,16 +181,23 @@ export default function MobileCombustionSection() {
 
   const fetchMobileFuelTypes = async () => {
     try {
-      const response = await getRequest(
-        "mobile-fuel-types/getMobileFuelTypes",
-        getToken()
-      );
-      if (response.success) {
-        setMobileFuelTypes(response.data.mobileFuelTypes || []);
-      } else {
-        // toast.error(response.message || "Failed to fetch mobile fuel types");
-        return;
-      }
+      setMobileFuelTypes(fuelTypesOfMobile);
+      // const mobileFuelTypes = safeLocalStorage.getItem("mobileFuelTypes");
+      // if(mobileFuelTypes){
+      //   setMobileFuelTypes(JSON.parse(mobileFuelTypes));
+      //   return;
+      // }
+      // const response = await getRequest(
+      //   "mobile-fuel-types/getMobileFuelTypes",
+      //   getToken()
+      // );
+      // if (response.success) {
+      //   setMobileFuelTypes(response.data.mobileFuelTypes || []);
+      //   safeLocalStorage.setItem("mobileFuelTypes", JSON.stringify(response.data.mobileFuelTypes));
+      // } else {
+      //   // toast.error(response.message || "Failed to fetch mobile fuel types");
+      //   return;
+      // }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch mobile fuel types");
       return;
@@ -186,12 +206,18 @@ export default function MobileCombustionSection() {
 
   const getMobileTotal = async () => {
     try {
+      const mobileTotal = safeLocalStorage.getItem("mobileTotal");
+      if(mobileTotal){
+        setMobileCombustionData(JSON.parse(mobileTotal));
+        analyzeFuelTypes(JSON.parse(mobileTotal));
+        return;
+      }
       const response = await getRequest("mobile/getMobiles", getToken());
       if (response.success) {
         setMobileCombustionData(response.data.mobile || []);
-        
         // Analyze fuel types and calculate emissions
         analyzeFuelTypes(response.data.mobile || []);
+        safeLocalStorage.setItem("mobileTotal", JSON.stringify(response.data.mobile));
       } else {
         // toast.error(response.message || "Failed to fetch mobile data");
         return;
@@ -328,6 +354,12 @@ export default function MobileCombustionSection() {
 
       if (response.success) {
         toast.success("Mobile combustion data added successfully");
+        const mobileTotal = safeLocalStorage.getItem("mobileTotal");
+        if(mobileTotal){
+          const mobileData = JSON.parse(mobileTotal) ||[];
+          mobileData.push(response.mobile);
+          safeLocalStorage.setItem("mobileTotal", JSON.stringify(mobileData));
+        }
         await getDashboard();
         // Refresh the data from the server
         await getMobileTotal();
@@ -401,6 +433,13 @@ export default function MobileCombustionSection() {
 
       if (response.success) {
         toast.success("Mobile combustion data updated successfully");
+        const mobileTotal = safeLocalStorage.getItem("mobileTotal");
+        if(mobileTotal){
+          const mobileData = JSON.parse(mobileTotal) ||[];
+          const index = mobileData.findIndex((item:any)=>item._id == editingId);
+          mobileData[index] = response.mobile;
+          safeLocalStorage.setItem("mobileTotal", JSON.stringify(mobileData));
+        }
         await getDashboard();
         // Refresh the data from the server
         await getMobileTotal();
@@ -628,7 +667,13 @@ export default function MobileCombustionSection() {
           <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-800 transition-all duration-1000"
-              style={{ width: "30.3%" }}
+              style={{ width: data?.scope1Emissions > 0
+                ? ((
+                    (data?.mobileCombustionEmissions /
+                      data?.scope1Emissions) *
+                    100
+                  ).toFixed(1)).toString()+"%"
+                : "0%" }}
             ></div>
           </div>
         </div>
@@ -705,7 +750,7 @@ export default function MobileCombustionSection() {
             render: (value, row) => (row.fuelConsumed > 0 ? "Yes" : "No"),
             type: "status",
           },
-          { key: "amountOfFuelUsed", label: "Amount of Fuel Used" },
+          { key: "amountOfFuelUsed", label: "Fuel Consumed Quantity" },
           { key: "emissionFactor", label: "Emission Factor" },
           { key: "totalEmissions", label: "Total Emissions" },
         ]}
@@ -935,7 +980,7 @@ export default function MobileCombustionSection() {
                   htmlFor="fuelConsumed"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Fuel Consumed *
+                  Cost Of Fuel *
                 </label>
                 <input
                   id="fuelConsumed"
@@ -958,7 +1003,7 @@ export default function MobileCombustionSection() {
                   htmlFor="amountOfFuelUsed"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Amount of Fuel Used *
+                  Fuel Consumed Quantity *
                 </label>
                 <input
                   id="amountOfFuelUsed"

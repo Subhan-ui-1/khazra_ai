@@ -4,11 +4,12 @@ interface ProgressChartProps {
   overallProgressValue: number;
 }
 
-export default function ProgressChart({ overallProgressValue }: ProgressChartProps) {
+export default function ProgressChart() {
   const radius = 50;
   const circumference = Math.PI * radius;
+  let overallProgressValue = Math.floor(Math.random() * 100) + 1;
   const progress = (overallProgressValue / 90) * circumference;
-
+  
   return (
     <div className="bg-white border border-green-100 rounded-2xl p-6 shadow-sm w-full mx-auto xl:h-[580px] h-[400px]">
       <div className="mb-4 flex justify-between items-center">
@@ -39,8 +40,8 @@ export default function ProgressChart({ overallProgressValue }: ProgressChartPro
           />
           <defs>
             <linearGradient id="gaugeGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#16a34a" />
-              <stop offset="100%" stopColor="#0f766e" />
+              <stop offset={overallProgressValue+'%'} stopColor="#16a34a" />
+              <stop offset={100-overallProgressValue+'%'} stopColor="#0f766e" />
             </linearGradient>
           </defs>
         </svg>

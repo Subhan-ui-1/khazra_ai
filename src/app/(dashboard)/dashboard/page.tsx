@@ -131,8 +131,8 @@ export default function DashboardPage() {
           
           if (!isSetupComplete) {
             // Redirect to steps page if setup is not complete
-            router.push('/dashboard/steps');
-            return;
+            
+            
           }
           
           setSetupComplete(true);

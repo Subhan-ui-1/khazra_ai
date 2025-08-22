@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Edit3, Trash2, Eye, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
+import { stationaryFuelTypes } from "@/constants/stationaryFuelType";
 
 interface Facility {
   _id: string;
@@ -70,7 +71,7 @@ export default function StationaryCombustionSection() {
   }>({
     primaryFuel: "No data",
     primaryFuelPercentage: 0,
-    secondaryFuel: "No data"
+    secondaryFuel: "No data",
   });
 
   // Dropdown data states
@@ -152,9 +153,11 @@ export default function StationaryCombustionSection() {
         setDataEmissions({
           emission: response.dashboardData.stationaryCombustionEmissions,
           facilityCount: response.dashboardData.totalFacilities,
-          stationaryEmissionsPercentageChange: response.dashboardData.stationaryEmissionsPercentageChange,
+          stationaryEmissionsPercentageChange:
+            response.dashboardData.stationaryEmissionsPercentageChange,
           scope1Emissions: response.dashboardData.scope1Emissions,
-          stationaryCombustionEmissions: response.dashboardData.stationaryCombustionEmissions,
+          stationaryCombustionEmissions:
+            response.dashboardData.stationaryCombustionEmissions,
           totalCount:
             response.dashboardData.totalFacilities +
             response.dashboardData.totalEquipment +
@@ -178,12 +181,21 @@ export default function StationaryCombustionSection() {
   // Fetch dropdown data
   const fetchFacilities = async () => {
     try {
+      const facilities = safeLocalStorage.getItem("facilities");
+      if (facilities) {
+        setFacilities(JSON.parse(facilities));
+        return;
+      }
       const response = await getRequest(
         "facilities/getFacilities?status=Active",
         getToken()
       );
       if (response.success) {
         setFacilities(response.data.facilities || []);
+        safeLocalStorage.setItem(
+          "facilities",
+          JSON.stringify(response.data.facilities)
+        );
       } else {
         return;
       }
@@ -194,12 +206,21 @@ export default function StationaryCombustionSection() {
 
   const fetchEquipments = async () => {
     try {
+      const equipments = safeLocalStorage.getItem("equipments");
+      if (equipments) {
+        setEquipments(JSON.parse(equipments));
+        return;
+      }
       const response = await getRequest(
         "equipments/getEquipments?status=Active",
         getToken()
       );
       if (response.success) {
         setEquipments(response.data.equipments || []);
+        safeLocalStorage.setItem(
+          "equipments",
+          JSON.stringify(response.data.equipments)
+        );
       } else {
         return;
       }
@@ -210,25 +231,26 @@ export default function StationaryCombustionSection() {
 
   const fetchFuelTypes = async () => {
     try {
-      const response = await getRequest(
-        "stationary-fuel-types/getStationaryFuelTypes?limit=1000",
-        getToken()
-      );
-      if (response.success) {
-        setFuelTypes(response.data.stationaryFuelTypes || []);
-      } else {
-        return;
-      }
+      setFuelTypes(stationaryFuelTypes);
     } catch (error: any) {
       return;
     }
   };
   const getStationaryTotal = async () => {
     try {
+      const stationaryTotal = safeLocalStorage.getItem("stationaryTotal");
+      if (stationaryTotal) {
+        setStationaryCombustionData(JSON.parse(stationaryTotal));
+        analyzeFuelTypes(JSON.parse(stationaryTotal));
+        return;
+      }
       const response = await getRequest("stationary/getStationary", getToken());
       if (response.success) {
         setStationaryCombustionData(response.data.stationary);
-        
+        safeLocalStorage.setItem(
+          "stationaryTotal",
+          JSON.stringify(response.data.stationary)
+        );
         // Analyze fuel types and calculate emissions
         analyzeFuelTypes(response.data.stationary);
       } else {
@@ -242,7 +264,7 @@ export default function StationaryCombustionSection() {
   // Load dropdown data on component mount
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
+      await getDashboard(), setLoading(true);
       try {
         // First load the reference data (facilities, equipments, fuel types)
         await Promise.all([
@@ -250,16 +272,13 @@ export default function StationaryCombustionSection() {
           fetchEquipments(),
           fetchFuelTypes(),
         ]);
-        
+
         // Then load the actual data and analyze
-        await Promise.all([
-          getStationaryTotal(),
-          getDashboard(),
-        ]);
-        
+        await Promise.all([getStationaryTotal()]);
+
         setDataLoaded(true);
       } catch (error) {
-          return;
+        return;
       } finally {
         setLoading(false);
       }
@@ -270,50 +289,61 @@ export default function StationaryCombustionSection() {
 
   // Function to analyze fuel types and calculate emissions
   const analyzeFuelTypes = (stationaryData: any[]) => {
-    if (!stationaryData || stationaryData.length === 0 || fuelTypes.length === 0) {
+    if (
+      !stationaryData ||
+      stationaryData.length === 0 ||
+      fuelTypes.length === 0
+    ) {
       setFuelTypeAnalysis({
         primaryFuel: "No data",
         primaryFuelPercentage: 0,
-        secondaryFuel: "No data"
+        secondaryFuel: "No data",
       });
       return;
     }
 
     // Group by fuel type and calculate total emissions
     const fuelTypeEmissions: { [key: string]: number } = {};
-    
-    stationaryData.forEach(item => {
+
+    stationaryData.forEach((item) => {
       const fuelTypeId = item.fuelType || item.fuelTypeId;
       if (fuelTypeId && item.totalEmissions) {
-        const fuelTypeName = getFuelTypeName(fuelTypeId).split(' (')[0]; // Extract just the fuel type name
+        const fuelTypeName = getFuelTypeName(fuelTypeId).split(" (")[0]; // Extract just the fuel type name
         if (fuelTypeName !== "Loading..." && fuelTypeName !== "N/A") {
-          fuelTypeEmissions[fuelTypeName] = (fuelTypeEmissions[fuelTypeName] || 0) + (item.totalEmissions || 0);
+          fuelTypeEmissions[fuelTypeName] =
+            (fuelTypeEmissions[fuelTypeName] || 0) + (item.totalEmissions || 0);
         }
       }
     });
 
     // Sort fuel types by emissions (highest to lowest)
-    const sortedFuelTypes = Object.entries(fuelTypeEmissions)
-      .sort(([,a], [,b]) => b - a);
+    const sortedFuelTypes = Object.entries(fuelTypeEmissions).sort(
+      ([, a], [, b]) => b - a
+    );
 
     if (sortedFuelTypes.length === 0) {
       setFuelTypeAnalysis({
         primaryFuel: "No data",
         primaryFuelPercentage: 0,
-        secondaryFuel: "No data"
+        secondaryFuel: "No data",
       });
       return;
     }
 
-    const totalEmissions = sortedFuelTypes.reduce((sum, [, emissions]) => sum + emissions, 0);
+    const totalEmissions = sortedFuelTypes.reduce(
+      (sum, [, emissions]) => sum + emissions,
+      0
+    );
     const primaryFuel = sortedFuelTypes[0][0];
-    const primaryFuelPercentage = totalEmissions > 0 ? (sortedFuelTypes[0][1] / totalEmissions) * 100 : 0;
-    const secondaryFuel = sortedFuelTypes.length > 1 ? sortedFuelTypes[1][0] : "No data";
+    const primaryFuelPercentage =
+      totalEmissions > 0 ? (sortedFuelTypes[0][1] / totalEmissions) * 100 : 0;
+    const secondaryFuel =
+      sortedFuelTypes.length > 1 ? sortedFuelTypes[1][0] : "No data";
 
     setFuelTypeAnalysis({
       primaryFuel,
       primaryFuelPercentage: Math.round(primaryFuelPercentage * 10) / 10, // Round to 1 decimal place
-      secondaryFuel
+      secondaryFuel,
     });
   };
 
@@ -355,7 +385,15 @@ export default function StationaryCombustionSection() {
 
       if (response.success) {
         toast.success("Stationary combustion data added successfully");
-
+        const stationaryTotal = safeLocalStorage.getItem("stationaryTotal");
+        if (stationaryTotal) {
+          const stationaryData = JSON.parse(stationaryTotal) || [];
+          stationaryData.push(response.stationary);
+          safeLocalStorage.setItem(
+            "stationaryTotal",
+            JSON.stringify(stationaryData)
+          );
+        }
         // Refresh the data from the server
         await getStationaryTotal();
         getDashboard();
@@ -374,7 +412,7 @@ export default function StationaryCombustionSection() {
           useCustomEmissionFactor: false,
         });
       } else {
-        return; 
+        return;
       }
     } catch (error: any) {
       return;
@@ -421,7 +459,18 @@ export default function StationaryCombustionSection() {
 
       if (response.success) {
         toast.success("Stationary combustion data updated successfully");
-
+        const stationaryTotal = safeLocalStorage.getItem("stationaryTotal");
+        if (stationaryTotal) {
+          const stationaryData = JSON.parse(stationaryTotal) || [];
+          const index = stationaryData.findIndex(
+            (item: any) => item._id == editingId
+          );
+          stationaryData[index] = response.stationary;
+          safeLocalStorage.setItem(
+            "stationaryTotal",
+            JSON.stringify(stationaryData)
+          );
+        }
         // Refresh the data from the server
         await getStationaryTotal();
         getDashboard();
@@ -624,10 +673,19 @@ export default function StationaryCombustionSection() {
                 {(dataEmissions?.emission || 0).toFixed(2)}
               </div>
               <div className="text-sm text-green-800 mb-2">
-                ▼ {dataEmissions?.stationaryEmissionsPercentageChange || 0}% vs last year
+                ▼ {dataEmissions?.stationaryEmissionsPercentageChange || 0}% vs
+                last year
               </div>
               <div className="text-xs text-black opacity-60">
-                tonnes CO₂e • {dataEmissions?.scope1Emissions>0?(dataEmissions?.stationaryCombustionEmissions/dataEmissions?.scope1Emissions*100).toFixed(1):0}% of Scope 1
+                tonnes CO₂e •{" "}
+                {dataEmissions?.scope1Emissions > 0
+                  ? (
+                      (dataEmissions?.stationaryCombustionEmissions /
+                        dataEmissions?.scope1Emissions) *
+                      100
+                    ).toFixed(1)
+                  : 0}
+                % of Scope 1
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">
@@ -637,7 +695,16 @@ export default function StationaryCombustionSection() {
           <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-800 transition-all duration-1000"
-              style={{ width: "53.8%" }}
+              style={{
+                width:
+                  dataEmissions?.scope1Emissions > 0
+                    ? ((
+                        (dataEmissions?.stationaryCombustionEmissions /
+                          dataEmissions?.scope1Emissions) *
+                        100
+                      ).toFixed(1)).toString()+"%"
+                    : "0%",
+              }}
             ></div>
           </div>
         </div>
@@ -649,7 +716,7 @@ export default function StationaryCombustionSection() {
                 Active Sources
               </div>
               <div className="text-3xl font-bold text-black mb-2">
-                {dataEmissions?.facilityCount?.toString()||0}
+                {dataEmissions?.facilityCount?.toString() || 0}
               </div>
               <div className="text-sm text-green-800 mb-2">
                 Across {dataEmissions?.facilityCount?.toString()} facilities
@@ -674,10 +741,15 @@ export default function StationaryCombustionSection() {
                 {fuelTypeAnalysis.primaryFuel}
               </div>
               <div className="text-sm text-green-800 mb-2">
-                {fuelTypeAnalysis.primaryFuelPercentage > 0 ? `${fuelTypeAnalysis.primaryFuelPercentage}%` : '0%'} of consumption
+                {fuelTypeAnalysis.primaryFuelPercentage > 0
+                  ? `${fuelTypeAnalysis.primaryFuelPercentage}%`
+                  : "0%"}{" "}
+                of consumption
               </div>
               <div className="text-xs text-black opacity-60">
-                {fuelTypeAnalysis.secondaryFuel !== "No data" ? `Followed by ${fuelTypeAnalysis.secondaryFuel.toLowerCase()}` : "Single fuel type"}
+                {fuelTypeAnalysis.secondaryFuel !== "No data"
+                  ? `Followed by ${fuelTypeAnalysis.secondaryFuel.toLowerCase()}`
+                  : "Single fuel type"}
               </div>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-xl">

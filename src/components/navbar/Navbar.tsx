@@ -37,7 +37,7 @@ const Navbar = () => {
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className='hidden md:flex'>
+                {/* <div className='hidden md:flex'>
                     <ul className="flex list-none xl:space-x-4">
                         {navTabs.map((tab, index) => (
                         <li
@@ -48,7 +48,7 @@ const Navbar = () => {
                         </li>
                         ))}
                     </ul>
-                </div>
+                </div> */}
 
                 {/* Buttons */}
                 <div className="flex items-center xl:text-xl lg:text-lg text-sm">

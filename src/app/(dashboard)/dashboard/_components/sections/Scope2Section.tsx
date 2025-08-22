@@ -552,8 +552,7 @@ export default function Scope2Section() {
     const max = Math.max(
       purchasedElectricityEmissions,
       purchasedSteamEmissions,
-      purchasedHeatEmissions,
-      purchasedCoolingEmissions
+      purchasedHeatEmissions+purchasedCoolingEmissions
     );
     if (max === purchasedElectricityEmissions) {
       return {
@@ -563,7 +562,7 @@ export default function Scope2Section() {
       };
     } else if (max === purchasedSteamEmissions) {
       return { name: "Purchased Steam", value: purchasedSteamEmissions, icon: '💨' };
-    } else if (max === purchasedHeatEmissions) {
+    } else if (max === purchasedHeatEmissions+purchasedCoolingEmissions) {
       return {
         name: "Purchased Heating & Cooling",
         value: purchasedHeatEmissions + purchasedCoolingEmissions,
@@ -739,7 +738,7 @@ export default function Scope2Section() {
       value: "0%",
       change: "▲ 0%",
       changeType: "increase",
-      subtitle: "Clean energy usage • Target: 100%",
+      subtitle: "Clean energy usage • Target: 0%",
       icon: "🌞",
       progress: 0,
     },

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Circle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { getRequest } from '@/utils/api';
-import { safeLocalStorage } from '@/utils/localStorage';
+import { safeLocalStorage, storeStepCompletion, isStepCompleted, getCompletedSteps } from '@/utils/localStorage';
 import toast from 'react-hot-toast';
 import AddBoundarySection from '../_components/sections/AddBoundarySection';
 import AddDepartmentSection from '../_components/sections/AddDepartmentSection';
@@ -42,24 +42,27 @@ const getSteps = (boundaryData?: BoundaryData) => [
     title: 'Add Facilities',
     description: 'Add your organization facilities and locations',
     component: AddFacilitySection,
-    required: boundaryData?.hasFacilities === 'Yes',
-    show: boundaryData?.hasFacilities === 'Yes'
+    required: false,
+    show: boundaryData?.hasFacilities === 'Yes',
+    skippable: true
   },
   {
     id: 'vehicles',
     title: 'Add Vehicles',
     description: 'Register your fleet vehicles for emissions tracking',
     component: AddVehicleSection,
-    required: boundaryData?.hasVehicles === 'Yes',
-    show: boundaryData?.hasVehicles === 'Yes'
+    required: false,
+    show: boundaryData?.hasVehicles === 'Yes',
+    skippable: true
   },
   {
     id: 'equipment',
     title: 'Add Equipment',
     description: 'Add equipment and machinery for emissions calculation',
     component: AddEquipmentSection,
-    required: boundaryData?.hasEquipment === 'Yes',
-    show: boundaryData?.hasEquipment === 'Yes'
+    required: false,
+    show: boundaryData?.hasEquipment === 'Yes',
+    skippable: true
   },
   // Optional steps that don't affect main progress
   {
@@ -69,7 +72,8 @@ const getSteps = (boundaryData?: BoundaryData) => [
     component: AddDepartmentSection,
     required: false,
     show: true,
-    optional: true
+    optional: true,
+    skippable: true
   },
   {
     id: 'roles',
@@ -78,7 +82,8 @@ const getSteps = (boundaryData?: BoundaryData) => [
     component: AddRoleSection,
     required: false,
     show: true,
-    optional: true
+    optional: true,
+    skippable: true
   },
   {
     id: 'users',
@@ -87,7 +92,8 @@ const getSteps = (boundaryData?: BoundaryData) => [
     component: AddUserSection,
     required: false,
     show: true,
-    optional: true
+    optional: true,
+    skippable: true
   }
 ];
 
@@ -120,18 +126,13 @@ export default function StepsPage() {
     return userData.organization;
   };
 
-  // Check setup status
+  // Check setup status - only check boundary once, don't call other APIs
   const checkSetupStatus = async () => {
     try {
       setLoading(true);
       
-      // Fetch boundary + existence checks in parallel to reduce latency
-      const [boundaryResponse, facilitiesResp, vehiclesResp, equipmentResp] = await Promise.all([
-        getRequest('boundaries/getBoundaries', getTokens()),
-        getRequest('facilities/getFacilities?limit=1', getTokens()),
-        getRequest('vehicles/getVehicles?limit=1', getTokens()),
-        getRequest('equipments/getEquipments?limit=1', getTokens()),
-      ]);
+      // Only check boundary - don't call other APIs repeatedly
+      const boundaryResponse = await getRequest('boundaries/getBoundaries', getTokens());
 
       let hasBoundary = false;
       let boundaryInfo: BoundaryData | undefined;
@@ -147,17 +148,17 @@ export default function StepsPage() {
         setBoundaryData(boundaryInfo);
       }
 
-      const facilitiesExist = facilitiesResp.success && facilitiesResp.data?.facilities?.length > 0;
-      const vehiclesExist = vehiclesResp.success && vehiclesResp.data?.vehicles?.length > 0;
-      const equipmentExist = equipmentResp.success && equipmentResp.data?.equipments?.length > 0;
-
-      const hasFacilities = boundaryInfo?.hasFacilities === 'Yes' && facilitiesExist;
-      const hasVehicles = boundaryInfo?.hasVehicles === 'Yes' && vehiclesExist;
-      const hasEquipment = boundaryInfo?.hasEquipment === 'Yes' && equipmentExist;
+      // Check localStorage for existing data instead of calling APIs
+      const hasFacilities = isStepCompleted('facilities');
+      const hasVehicles = isStepCompleted('vehicles');
+      const hasEquipment = isStepCompleted('equipment');
+      const hasDepartments = isStepCompleted('departments');
+      const hasRoles = isStepCompleted('roles');
+      const hasUsers = isStepCompleted('users');
 
       const newSetupStatus = {
         hasBoundary,
-        hasDepartments: false,
+        hasDepartments,
         hasFacilities,
         hasVehicles,
         hasEquipment
@@ -165,16 +166,19 @@ export default function StepsPage() {
 
       setSetupStatus(newSetupStatus);
 
-      // Only count steps that exist in the current step definition
-      const currentSteps = getSteps(boundaryInfo);
-      const stepIds = new Set(currentSteps.map(s => s.id));
-
-      // Mark completed steps (main steps only; optional steps are never auto-completed)
+      // Get completed steps from localStorage
+      const localStorageCompleted = getCompletedSteps();
       const completed = new Set<string>();
-      if (hasBoundary && stepIds.has('boundary')) completed.add('boundary');
-      if (hasFacilities && stepIds.has('facilities')) completed.add('facilities');
-      if (hasVehicles && stepIds.has('vehicles')) completed.add('vehicles');
-      if (hasEquipment && stepIds.has('equipment')) completed.add('equipment');
+      
+      // Add boundary if it exists
+      if (hasBoundary) completed.add('boundary');
+      
+      // Add other steps from localStorage
+      localStorageCompleted.forEach((stepId: string) => {
+        if (stepId !== 'boundary') {
+          completed.add(stepId);
+        }
+      });
 
       setCompletedSteps(completed);
 
@@ -188,10 +192,10 @@ export default function StepsPage() {
         if (['departments', 'roles', 'users'].includes(id)) return true;
         return false;
       };
-      const visibleSteps = currentSteps.filter(step => isVisibleWith(boundaryInfo, step.id));
+      const visibleSteps = steps.filter(step => isVisibleWith(boundaryInfo, step.id));
       const firstIncompleteVisible = visibleSteps.find(step => !completed.has(step.id));
       if (firstIncompleteVisible) {
-        const idx = currentSteps.findIndex(s => s.id === firstIncompleteVisible.id);
+        const idx = steps.findIndex(s => s.id === firstIncompleteVisible.id);
         if (idx !== -1) setCurrentStep(idx);
       }
 
@@ -211,19 +215,21 @@ export default function StepsPage() {
     checkSetupStatus();
   }, []);
 
-  const handleStepComplete = async () => {
-    // Show success message
+  const handleStepComplete = async (responseData?: any) => {
+    // Show only one success message
     const currentStepTitle = steps[currentStep].title;
     const isOptionalStep = ['departments', 'roles', 'users'].includes(steps[currentStep].id);
     
-    if (isOptionalStep) {
-      toast.success(`${currentStepTitle} completed successfully! (Optional step)`);
-    } else {
-      toast.success(`${currentStepTitle} completed successfully!`);
-    }
+    // if (isOptionalStep) {
+      // toast.success(`${currentStepTitle} completed successfully! (Optional step)`);
+    // } else {
+      // toast.success(`${currentStepTitle} completed successfully!`);
+    // }
     
-    // Mark current step as completed
-    setCompletedSteps(prev => new Set([...prev, steps[currentStep].id]));
+    // Mark current step as completed in localStorage and state
+    const currentStepId = steps[currentStep].id;
+    storeStepCompletion(currentStepId, responseData);
+    setCompletedSteps(prev => new Set([...prev, currentStepId]));
     
     // If boundary step was completed, fetch boundary data to update steps
     if (steps[currentStep].id === 'boundary') {
@@ -248,55 +254,58 @@ export default function StepsPage() {
           if (boundaryInfo.hasVehicles === 'Yes') availableSteps.push('Vehicles');
           if (boundaryInfo.hasEquipment === 'Yes') availableSteps.push('Equipment');
           
-          if (availableSteps.length > 0) {
-            toast.success(`Based on your boundary setup, you'll need to complete: ${availableSteps.join(', ')}`);
-          } else {
-            toast.success('Based on your boundary setup, you only need to complete the main required steps.');
-          }
+          // if (availableSteps.length > 0) {
+          //   toast.success(`Based on your boundary setup, you'll need to complete: ${availableSteps.join(', ')}`);
+          // } else {
+          //   toast.success('Based on your boundary setup, you only need to complete the main required steps.');
+          // }
         }
       } catch (error) {
-        return;
+        console.error('Error fetching boundary data:', error);
       }
     }
     
-    // Wait a moment for state to update, then check if we should move to next step
-    setTimeout(async () => {
-      // Refresh setup status after completing a step
-      const status = await checkSetupStatus();
-      const effectiveBoundary = status?.boundaryInfo || boundaryData;
+    // Auto-navigate to next step after a short delay
+    setTimeout(() => {
+      const currentSteps = getSteps(boundaryData);
+      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
       
-      // Check if all main required steps are completed
-      const currentSteps = getSteps(effectiveBoundary);
-      const mainRequiredSteps = currentSteps.filter(step => 
-        step.required && 
-        ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
-        isStepVisible(step.id)
-      );
-      const completedMainRequiredSteps = mainRequiredSteps.filter(step => completedSteps.has(step.id));
-      
-      // Do not auto-redirect; allow user to click Complete Setup when ready
-      
-      // Automatically move to next step if available (only for main required steps)
-      if (!isOptionalStep) {
-        const visibleSteps = currentSteps.filter(step => {
-          if (step.id === 'boundary') return true;
-          if (!effectiveBoundary) return false;
-          if (step.id === 'facilities') return effectiveBoundary.hasFacilities === 'Yes';
-          if (step.id === 'vehicles') return effectiveBoundary.hasVehicles === 'Yes';
-          if (step.id === 'equipment') return effectiveBoundary.hasEquipment === 'Yes';
-          return false;
-        });
-        const currentStepId = steps[currentStep].id;
-        const currentVisibleIndex = visibleSteps.findIndex(step => step.id === currentStepId);
+      if (currentVisibleIndex < visibleSteps.length - 1) {
+        const nextStep = visibleSteps[currentVisibleIndex + 1];
+        const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
         
-        if (currentVisibleIndex < visibleSteps.length - 1) {
-          const nextStep = visibleSteps[currentVisibleIndex + 1];
-          const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
-          
-          setTimeout(() => {
-            setCurrentStep(nextStepIndex);
-            toast.success(`Moving to next step: ${nextStep.title}`);
-          }, 1500); // Small delay to show completion feedback
+        if (nextStepIndex !== -1) {
+          setCurrentStep(nextStepIndex);
+          // toast.success(`Moving to next step: ${nextStep.title}`);
+        }
+      }
+    }, 1000);
+  };
+
+  const handleStepSkip = () => {
+    const currentStepId = steps[currentStep].id;
+    
+    // Mark skipped step as completed
+    storeStepCompletion(currentStepId, { skipped: true });
+    setCompletedSteps(prev => new Set([...prev, currentStepId]));
+    
+    // Show skip message
+    // toast.success(`${steps[currentStep].title} skipped successfully!`);
+    
+    // Auto-navigate to next step
+    setTimeout(() => {
+      const currentSteps = getSteps(boundaryData);
+      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
+      
+      if (currentVisibleIndex < visibleSteps.length - 1) {
+        const nextStep = visibleSteps[currentVisibleIndex + 1];
+        const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
+        
+        if (nextStepIndex !== -1) {
+          setCurrentStep(nextStepIndex);
+          // toast.success(`Moving to next step: ${nextStep.title}`);
         }
       }
     }, 500);
@@ -536,6 +545,7 @@ export default function StepsPage() {
                            }`}>
                              {step.title}
                              {step.optional && <span className="text-xs text-blue-600 ml-1">(Optional)</span>}
+                             {step.skippable && step.id !== 'boundary' && <span className="text-xs text-orange-600 ml-1">(Skippable)</span>}
                            </p>
                            <p className={`text-xs ${
                              isCompleted ? 'text-green-700' : isCurrent ? 'text-[#0D5942]' : 'text-gray-400'
@@ -600,44 +610,79 @@ export default function StepsPage() {
                   </button>
 
                   <div className="flex items-center space-x-3">
-                    {/* Skip button for optional steps */}
-                    {!steps[currentStep].required && (
-                      <button
-                        onClick={handleNext}
-                        className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        Skip This Step
-                      </button>
-                    )}
+                    {/* Skip button for all steps except boundary and last step */}
+                    {(() => {
+                      const currentSteps = getSteps(boundaryData);
+                      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+                      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
+                      const isLastStep = currentVisibleIndex === visibleSteps.length - 1;
+                      
+                      return steps[currentStep].skippable && 
+                             steps[currentStep].id !== 'boundary' && 
+                             !isLastStep ? (
+                        <button
+                          onClick={handleStepSkip}
+                          className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                          Skip This Step
+                        </button>
+                      ) : null;
+                    })()}
                     
-                                         {(() => {
-                       const currentSteps = getSteps(boundaryData);
-                       const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-                       const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-                       
-                       if (currentVisibleIndex < visibleSteps.length - 1) {
-                         return (
-                           <button
-                             onClick={handleNext}
-                             className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-[#0D5942] rounded-md hover:bg-green-700 transition-colors"
-                           >
-                             Next
-                             <ArrowRight className="h-4 w-4" />
-                           </button>
-                         );
-                       } else {
-                         return (
-                           <button
-                             onClick={() => allMainRequiredStepsCompleted && router.push('/dashboard')}
-                             disabled={!allMainRequiredStepsCompleted}
-                             className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${allMainRequiredStepsCompleted ? 'bg-[#0D5942] hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
-                           >
-                             Complete Setup
-                             <CheckCircle className="h-4 w-4" />
-                           </button>
-                         );
-                       }
-                     })()}
+                    {/* Skip All Steps button */}
+                    <button
+                      onClick={() => {
+                        // Mark all visible steps as completed
+                        const currentSteps = getSteps(boundaryData);
+                        const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+                        
+                        visibleSteps.forEach(step => {
+                          if (!completedSteps.has(step.id)) {
+                            storeStepCompletion(step.id, { skipped: true });
+                          }
+                        });
+                        
+                        // Update completed steps state
+                        const allStepIds = visibleSteps.map(step => step.id);
+                        setCompletedSteps(new Set(allStepIds));
+                        
+                        // Navigate to dashboard
+                        toast.success("All steps skipped successfully!");
+                        router.push('/dashboard');
+                      }}
+                      className="px-4 py-2 text-sm font-medium text-orange-600 border border-orange-300 rounded-md hover:bg-orange-50 transition-colors"
+                    >
+                      Skip All Steps
+                    </button>
+                    
+                    {(() => {
+                      const currentSteps = getSteps(boundaryData);
+                      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+                      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
+                      
+                      if (currentVisibleIndex < visibleSteps.length - 1) {
+                        return (
+                          <button
+                            onClick={handleNext}
+                            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-[#0D5942] rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            Next
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                        );
+                      } else {
+                        return (
+                          <button
+                            onClick={() => allMainRequiredStepsCompleted && router.push('/dashboard')}
+                            disabled={!allMainRequiredStepsCompleted}
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${allMainRequiredStepsCompleted ? 'bg-[#0D5942] hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                          >
+                            Complete Setup
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               </div>

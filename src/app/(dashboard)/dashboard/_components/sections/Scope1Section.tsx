@@ -446,7 +446,13 @@ export default function Scope1Section() {
           <div className="w-full h-2 bg-green-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-800 transition-all duration-1000"
-              style={{ width: "83.8%" }}
+              style={{ width: dashboardData.totalEmissions > 0
+                ? ((
+                    (dashboardData.scope1Emissions /
+                      dashboardData.totalEmissions) *
+                    100
+                  ).toFixed(1)).toString()+"%"
+                : "0%" }}
             ></div>
           </div>
         </div>

@@ -230,6 +230,25 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     setShowConfirmation(false);
     setPendingFormData(null);
   };
+  const maxim = (type)=>{
+    const today = new Date();
+    const year = today.getFullYear();
+    let month = today.getMonth() + 1; // Months are 0-indexed
+    let day = today.getDate();
+
+    // Pad month and day with leading zeros if necessary
+    if (month < 10) {
+        month = '0' + month;
+    }
+    if (day < 10) {
+        day = '0' + day;
+    }
+
+    const maxDate = `${year}-${month}-${day}`;
+    if(type === 'date'){
+      return maxDate;
+    } 
+  }
 
   const renderField = (field: FormField) => {
     const value = formData[field.name] || "";
@@ -339,6 +358,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             id={field.name}
             name={field.name}
             value={value}
+            max={maxim(field.type)}
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             maxLength={field.maxLength}

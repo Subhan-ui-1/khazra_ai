@@ -34,7 +34,7 @@ interface Department {
 }
 
 interface AddDepartmentSectionProps {
-  onComplete?: () => void;
+  onComplete?: (data?: any) => void;
 }
 
 const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
@@ -219,7 +219,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
         
         // Call onComplete callback if provided (for steps page) and this is a new department
         if (onComplete && !editingItem) {
-          onComplete();
+          onComplete(response.data);
         }
       }
     } catch (error: any) {
