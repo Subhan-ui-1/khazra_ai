@@ -125,7 +125,7 @@ const AddUserSection = () => {
     toast.error("Please login to continue");
     router.push('/login');
   }
-  console.log(userData,'userData...........................????????????????????????????????????')
+
   // Check if user has permission to view users
   if (!canView('user')) {
     return (
@@ -206,11 +206,11 @@ const AddUserSection = () => {
         setUserData(response.data.users || []);
       } else {
         // toast.error(response.message || "Failed to fetch users");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch users");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -233,11 +233,11 @@ const AddUserSection = () => {
         }
       } else {
         // toast.error(response.message || "Failed to fetch departments");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch departments");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoadingDepartments(false);
     }
@@ -260,11 +260,11 @@ const AddUserSection = () => {
         }
       } else {
         // toast.error(response.message || "Failed to fetch roles");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch roles");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoadingRoles(false);
     }
@@ -315,7 +315,7 @@ const AddUserSection = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete user");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -456,7 +456,7 @@ const AddUserSection = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || (editingUser ? "Failed to update user" : "Failed to create user"));
-      console.log(error, 'error')
+      return;
     } finally {
       setSubmitting(false);
     }
@@ -501,7 +501,7 @@ const AddUserSection = () => {
       fetchUsers();
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete some users");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -523,7 +523,7 @@ const AddUserSection = () => {
       fetchUsers();
     } catch (error: any) {
       //  toast.error(error.message || "Failed to verify some users");
-      console.log(error, 'error')
+        return;
     }
   };
 

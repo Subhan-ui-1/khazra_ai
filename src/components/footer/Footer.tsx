@@ -61,7 +61,6 @@ const Footer = () => {
     const router = useRouter()
     const [email, setEmail] = useState('');
     const handleSend = () => {
-        console.log('Sending:', email);
         setEmail(''); // Clear input
     };
 

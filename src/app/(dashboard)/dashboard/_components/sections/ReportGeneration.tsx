@@ -137,7 +137,7 @@ export default function ReportGeneration() {
           "report-generation/getReportGeneration?page=1&limit=10&sortBy=createdAt&sortOrder=desc&search=",
           getTokens() as string
         );
-        console.log(response, "response from get Report generation API");
+
 
         if (response.success) {
           const arr = response.data.reportGeneration || [];
@@ -150,11 +150,9 @@ export default function ReportGeneration() {
           }));
           setTableRows(formattedRows);
         } else {
-          console.error("Failed to fetch reports:", response.message);
           setTableRows([]);
         }
       } catch (error) {
-        console.error("Error fetching reports:", error);
         setTableRows([]);
       } finally {
         setLoading(false);
@@ -163,11 +161,7 @@ export default function ReportGeneration() {
 // fetchBoundaires();
     fetchReports();
   }, []);
-  // console.log(tableRows, "tableRows");
-  // console.log("parsed:", reportData)
-console.log(reportData, 'reportData..............,,,,,,,,,,,,,,,,,')
   const handleViewReport = (row: any, index: number) => {
-    console.log("View row:", row);
     if (row.url) {
       // Open the report URL in a new tab
       window.open(row.url, "_blank");

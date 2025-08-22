@@ -390,7 +390,7 @@ export default function DataCollectionSection() {
             data={tableData}
             showAddButton={true}
             addButtonLabel="Add Entry"
-            onAddClick={() => console.log('Add new')}
+            onAddClick={() => {}}
             showSearch={true}
             rowKey="_id"
           />

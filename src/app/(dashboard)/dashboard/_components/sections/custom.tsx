@@ -131,16 +131,15 @@ const FlexibleTargetPlatform = () => {
   const fetchCustomTargets = async () => {
     try {
       const response = await getRequest("custom-targets/getCustomTargets", getToken());
-      console.log(response, 'response...........................')
       if (response.success) {
         setCustomTargets(response.customTargets || []);
       } else {
         // toast.error(response.message || "Failed to fetch custom targets");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch custom targets");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -208,11 +207,11 @@ const FlexibleTargetPlatform = () => {
         setActiveTab('dashboard');
       } else {
         // toast.error(response.message || "Failed to add custom target");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to add custom target");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -226,11 +225,11 @@ const FlexibleTargetPlatform = () => {
         setInitiatives(response.initiatives || []);
       } else {
         // toast.error(response.message || "Failed to fetch initiatives");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch initiatives");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -238,7 +237,6 @@ const FlexibleTargetPlatform = () => {
   const addInitiative = async () => {
     if (!memoizedFormData.initiative || !memoizedFormData.reduction || !memoizedFormData.investment) {
       toast.error("Please fill in all required fields");
-      console.log('Please fill in all required fields')
       return;
     }
 
@@ -267,11 +265,11 @@ const FlexibleTargetPlatform = () => {
         await fetchInitiatives();
       } else {
         //  toast.error(response.message || "Failed to add initiative");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to add initiative");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -987,7 +985,6 @@ const FlexibleTargetPlatform = () => {
       </div>
     </div>
   );
-console.log(customTargets, 'custom target...........................')
   // Target Dashboard
   const TargetDashboard = () => {
     const metrics = calculateTargetMetrics();

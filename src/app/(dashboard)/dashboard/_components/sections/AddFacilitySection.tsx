@@ -222,10 +222,8 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             latitude,
             longitude,
           }));
-          console.log("Location detected:", { latitude, longitude });
         },
         (error) => {
-          console.log("Location detection failed:", error.message);
           // Set default coordinates (New York)
           const defaultLat = 40.28;
           const defaultLng = 74.6;
@@ -235,16 +233,9 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             latitude: defaultLat,
             longitude: defaultLng,
           }));
-          console.log("Using default location:", {
-            latitude: defaultLat,
-            longitude: defaultLng,
-          });
         }
       );
     } else {
-      console.log(
-        "Geolocation is not supported by this browser or running on server"
-      );
       // Set default coordinates
       const defaultLat = 40.28;
       const defaultLng = 74.6;
@@ -263,8 +254,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
     try {
       const user = JSON.parse(safeLocalStorage.getItem("user") || "{}");
       return user.organization || "";
-    } catch (error) {
-      console.error("Error parsing user data from localStorage:", error);
+    } catch (error) { 
       return "";
     }
   };
@@ -384,11 +374,11 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         setFacilityData(response.data.facilities || []);
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch facilities");
-      console.log(error, "error");
+      return;
     } finally {
       setLoading(false);
     }
@@ -408,11 +398,11 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         fetchFacilities(); // Refresh the list
       } else {
         // toast.error(response.message || "Failed to delete facility");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete facility");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -480,11 +470,11 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         }
       } else {
         // toast.error(response.message || "Operation failed");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -526,14 +516,12 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
     setSelectedCountry(item.country);
     setSelectedState(item.stateProvince);
     setSelectedCity(item.city);
-    console.log(item, "item");
     setEditingItem(item);
     let some: string | undefined;
     if (item.numberOfEmployees) {
       some = NUMBER_OF_EMPLOYEES_OPTIONS.find((p) =>
         p.includes(item.numberOfEmployees.toString())
       );
-      console.log(some, "some");
     }
     setFormData({
       facilityName: item.facilityName || "",
@@ -657,7 +645,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       fetchFacilities();
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete some facilities");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -681,7 +669,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       fetchFacilities();
     } catch (error: any) {
       //  toast.error(error.message || "Failed to update some facilities");
-      console.log(error, "error");
+        return;
     }
   };
 

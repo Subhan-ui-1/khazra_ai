@@ -68,12 +68,10 @@ const Scope2HeatingEntry: React.FC = () => {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
-      console.log(error, 'error')
-      // toast.error(error.message || "Failed to fetch facilities");
+      return;
     }
   };
 
@@ -83,12 +81,10 @@ const Scope2HeatingEntry: React.FC = () => {
       if (response.success) {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
-        // toast.error(response.message || "Failed to fetch energy types");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
-      console.log(error, 'error')
-      // toast.error(error.message || "Failed to fetch energy types");
+      return;
     }
   };
 
@@ -98,12 +94,10 @@ const Scope2HeatingEntry: React.FC = () => {
       if (response.success) {
         setHeatingData(response.data.purchasedElectricity || []);
       } else {
-        // toast.error(response.message || "Failed to fetch heating data");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
-      console.log(error, 'error')
-      // toast.error(error.message || "Failed to fetch heating data");
+      return;
     }
   };
 
@@ -119,7 +113,7 @@ const Scope2HeatingEntry: React.FC = () => {
         ]);
         setDataLoaded(true);
       } catch (error) {
-        console.error('Error loading data:', error);
+        return;
       } finally {
         setLoading(false);
       }
@@ -133,7 +127,6 @@ const Scope2HeatingEntry: React.FC = () => {
 
     try {
       const energyType = energyTypes.find(e => e.energyType === "Purchased Heat")
-      console.log(energyTypes, formData.energyType, energyType, 'energyType')
       // Prepare the data according to the API specification
       const requestData = {
         
@@ -148,14 +141,11 @@ const Scope2HeatingEntry: React.FC = () => {
         ? parseFloat(formData.emissionFactor)
         : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
       };
-      console.log(requestData, 'requestData from adding heating data')
       if (editingItem) {
         // Update existing record
         const editingId = editingItem?._id || editingItem?.id;
         
         if (!editingId) {
-          // toast.error("No item ID found for editing");
-          console.log("No item ID found for editing")
           return;
         }
 
@@ -176,8 +166,7 @@ const Scope2HeatingEntry: React.FC = () => {
           setEditingItem(null);
           resetForm();
         } else {
-          // toast.error(response.message || "Failed to update heating data");
-          console.log(response, 'response')
+          return;
         }
       } else {
         // Add new record
@@ -198,13 +187,11 @@ const Scope2HeatingEntry: React.FC = () => {
           setShowForm(false);
           resetForm();
         } else {
-          // toast.error(response.message || "Failed to add heating data");
-          console.log(response, 'response')
+          return;
         }
       }
     } catch (error: any) {
-      console.log(error, 'error')
-      // toast.error(error.message || "Failed to save heating data");
+      return;
     } finally {
       setLoading(false);
     }
@@ -254,8 +241,6 @@ const Scope2HeatingEntry: React.FC = () => {
       const editingId = item?._id || item?.id;
       
       if (!editingId) {
-        // toast.error("No item ID found for deletion");
-        console.log("No item ID found for deletion")
         return;
       }
 
@@ -273,12 +258,10 @@ const Scope2HeatingEntry: React.FC = () => {
         toast.success("Heating record deleted successfully");
         await getHeatingTotal();
       } else {
-        // toast.error(response.message || "Failed to delete heating record");
-        console.log(response, 'response')
+          return;
       }
     } catch (error: any) {
-      // toast.error(error.message || "Failed to delete heating record");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -536,7 +519,6 @@ const Scope2HeatingEntry: React.FC = () => {
                     id="customEmissionFactor"
                     checked={formData.customEmissionFactor}
                     onChange={(e) => {
-                      console.log(e.target.checked, 'checked')
                       setFormData((prev: any) => ({ 
                       ...prev, 
                       customEmissionFactor: e.target.checked,

@@ -92,7 +92,7 @@ const [loading, setLoading] = useState(false)
         setData(response.dashboardData);
       }
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      return;
     } finally {
       setLoading(false);
     }
@@ -493,8 +493,8 @@ const [loading, setLoading] = useState(false)
           showSearch={false}
           showAddButton={false}
           // addButtonLabel="Add Sustainability Activity"
-          // onAddClick={() => console.log("Add new activity")}
-          // onSearch={(query) => console.log("Search:", query)}
+          // onAddClick={() =>}
+          // onSearch={(query) => }
           rowKey="_id"
           emptyMessage="No recent activities found"
         />

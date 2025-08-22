@@ -148,7 +148,6 @@ export default function ReportModal({ type, onClose, onSubmit, data, handleChang
                 contactDetails: parsed?.email ?? '',
             };
         } catch (err) {
-            console.error('Invalid user JSON:', err);
             return { departmentsNames: '', contactDetails: '' };
         }
     };

@@ -26,11 +26,9 @@ const handleError = (error: any) => {
       error.message ||
       "Something went wrong.";
 
-    console.error("Axios Error:", message, error.response?.data);
     toast.error(message); // 🔥 Show toast
     throw new Error(message); // Still throw for catching
   } else {
-    console.error("Unexpected Error:", error);
     toast.error("Unexpected error occurred.");
     throw new Error("Unexpected error occurred.");
   }
@@ -45,7 +43,6 @@ export const getRequest = async (
     const headers = getHeaders(token);
     const response = await axios.get(BASE_URLs + endPoint, { headers });
     if (response.status >= 200 && response.status < 300) {
-      console.log(response.data);
       return response.data;
     }
 
@@ -71,9 +68,6 @@ export const postRequest = async (
   scope?: "stationary" | "mobile" | "purchasedElectricity"
 ) => {
   try {
-    console.log("base url", BASE_URLs + endPoint);
-    console.log("data", data, getHeaders(token), method);
-
     let response;
     if (method === "delete") {
       // For DELETE requests, headers go in the second parameter
@@ -88,9 +82,7 @@ export const postRequest = async (
       });
     }
 
-    console.log(response.data);
     if (response.status >= 200 && response.status < 300) {
-      console.log("post request whole response.", response);
       // if (dashboard) {
       //   await axios.put(
       //     `${BASE_URLs}dashboard/updateDashboardData/${organizationId}`,

@@ -173,7 +173,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
   const [loading, setLoading] = useState(false);
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
-  console.log(canView, "canView...........................");
+
   // Check if user has permission to view vehicles
   if (!canView("vehicle")) {
     return (
@@ -183,11 +183,6 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
     );
   }
   const [formData, setFormData] = useState<VehicleFormData>(empty);
-  useEffect(() => {
-    console.log(formData, "canView...........................");
-  }, [formData]);
-
-  console.log(formData, "formData...........................");
 
   const [filters, setFilters] = useState<FilterState>({
     search: "",
@@ -263,11 +258,11 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
         setVehicleData(response.data.vehicles || []);
       } else {
         //toast.error(response.message || "Failed to fetch vehicles");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch vehicles");
-      console.log(error, "error");
+      return;
     } finally {
       setLoading(false);
     }
@@ -287,11 +282,11 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
         fetchVehicles(); // Refresh the list
       } else {
         // toast.error(response.message || "Failed to delete vehicle");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete vehicle");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -373,11 +368,11 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
         }
       } else {
         // toast.error(response.message || "Operation failed");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
-      console.log(error, "error");
+        return;
     }
   };
 
@@ -505,7 +500,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
       fetchVehicles();
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete some vehicles");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -523,7 +518,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
       setSelectedVehicles([]);
     } catch (error: any) {
       //  toast.error(error.message || "Failed to export vehicles");
-      console.log(error, "error");
+      return;
     }
   };
 

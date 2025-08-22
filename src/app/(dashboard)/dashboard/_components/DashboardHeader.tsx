@@ -34,7 +34,6 @@ export default function DashboardHeader() {
           return initials;
         }
       } catch (error) {
-        console.error("Error getting user initials:", error);
         return "";
       }
     };
@@ -48,7 +47,6 @@ export default function DashboardHeader() {
       const tokenData = JSON.parse(token || "{}");
       return tokenData.accessToken;
     } catch (error) {
-      console.error("Error getting tokens:", error);
       return "";
     }
   };

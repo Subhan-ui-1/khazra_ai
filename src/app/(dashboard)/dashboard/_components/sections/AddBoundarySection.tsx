@@ -207,8 +207,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     const user = JSON.parse(safeLocalStorage.getItem("user") || "{}");
     try {
       return user.organization || "";
-    } catch (error) {
-      console.error("Error parsing user data from localStorage:", error);
+    } catch (error) { 
       return "";
     }
   }
@@ -235,7 +234,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
         }
       }
     } catch (error: any) {
-      console.error("Error checking existing boundary:", error);
+      return;
     } finally {
       setLoading(false);
     }
@@ -243,17 +242,14 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
 
   const validateForm = useCallback((data: BoundaryFormData): boolean => {
     if (!data.industry || data.industry === "Industry") {
-      // toast.error("Please select a valid industry");
       return false;
     }
 
     if (!data.businessNature || data.businessNature === "") {
-      // toast.error("Please select a business nature");
       return false;
     }
 
     if (!data.baselineYear) {
-      // toast.error("Please select a baseline year");
       return false;
     }
 
@@ -552,7 +548,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
           setShowForm(false);
           checkExistingBoundary(); // Refresh the boundary data
         } else {
-          // toast.error(response?.message || "Failed to update boundary");
+            return;
         }
       } else {
         // Create new boundary
@@ -608,12 +604,11 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             // Stay on the current page to allow follow-up steps instead of forcing navigation
           }
         } else {
-          // toast.error(response?.message || "Failed to create boundary");
+          return;
         }
       }
     } catch (error) {
-      console.error("Error handling boundary:", error);
-      // toast.error("An error occurred. Please try again.");
+      return;
     } finally {
       setSubmitting(false);
     }

@@ -78,7 +78,7 @@ export default function Scope2Section() {
         setDashboardData(response.dashboardData);
       }
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      return;
     }
   };
 
@@ -343,7 +343,6 @@ export default function Scope2Section() {
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New Purchased Electricity Data:", formData);
 
     // Show review modal instead of directly adding
     setReviewData(formData);
@@ -371,8 +370,6 @@ export default function Scope2Section() {
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updated Purchased Electricity Data:", formData);
-    console.log("Original Data:", editingData);
 
     // Show review modal instead of directly updating
     setReviewData(formData);
@@ -389,7 +386,6 @@ export default function Scope2Section() {
         ...reviewData,
       };
       setPurchasedElectricityData([...purchasedElectricityData, newRow]);
-      console.log("Confirmed: Added new purchased electricity row");
     } else if (reviewMode === "edit" && editingIndex !== null) {
       const updatedData = [...purchasedElectricityData];
       updatedData[editingIndex] = {
@@ -397,7 +393,6 @@ export default function Scope2Section() {
         ...reviewData,
       };
       setPurchasedElectricityData(updatedData);
-      console.log("Confirmed: Updated purchased electricity row");
     }
 
     // Reset review modal
@@ -506,7 +501,7 @@ export default function Scope2Section() {
       label: "View",
       icon: <Eye className="w-4 h-4" />,
       onClick: (row: any) => {
-        console.log("View purchased electricity:", row);
+        return;
         // Add view functionality here
       },
       variant: "primary" as const,
@@ -515,7 +510,6 @@ export default function Scope2Section() {
       label: "Edit",
       icon: <Edit3 className="w-4 h-4" />,
       onClick: (row: any) => {
-        console.log("Edit purchased electricity:", row);
         handleEdit(
           row,
           purchasedElectricityData.findIndex((item) => item.id === row.id)
@@ -527,7 +521,7 @@ export default function Scope2Section() {
       label: "Delete",
       icon: <Trash2 className="w-4 h-4" />,
       onClick: (row: any) => {
-        console.log("Delete purchased electricity:", row);
+        return;
         // Add delete functionality here
       },
       variant: "danger" as const,
@@ -539,13 +533,13 @@ export default function Scope2Section() {
   };
 
   const handleSearch = (query: string) => {
-    console.log("Search query:", query);
     // Add search functionality here
+    return;
   };
-
+  
   const handleFilter = () => {
-    console.log("Filter purchased electricity");
     // Add filter functionality here
+    return;
   };
 
   const findMax = (data: any) => {

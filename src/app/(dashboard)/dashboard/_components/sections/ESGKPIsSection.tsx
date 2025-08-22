@@ -73,11 +73,11 @@ export default function ESGKPIsSection() {
         await fetchInitiatives();
       } else {
         // toast.error(response.message || "Failed to add initiative");
-        console.log(response, 'response')
+        return; 
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to add initiative");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }

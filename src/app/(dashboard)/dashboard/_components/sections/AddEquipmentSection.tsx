@@ -183,13 +183,10 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
             };
           }) || []
         );
-      } else {
-        // toast.error(response.message || "Failed to fetch equipments");
-        console.log(response, "response");
-      }
+      } 
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch equipments");
-      console.log(error, "error");
+     return;
     } finally {
       setLoading(false);
     }
@@ -205,8 +202,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         setFacilities(response.data.facilities || []);
       }
     } catch (error: any) {
-      // console.error('Failed to fetch facilities:', error);
-      console.log(error, "error");
+     return;
     }
   };
 
@@ -220,8 +216,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         setEquipmentTypeData(response.data.equipmentTypes || []);
       }
     } catch (error: any) {
-      // console.error('Failed to fetch equipment types:', error);
-      console.log(error, "error");
+     return; 
     }
   };
 
@@ -360,7 +355,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
       }
     } catch (error: any) {
       // toast.error(error.message || (editingItem ? "Failed to update equipment" : "Failed to create equipment"));
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -411,11 +406,11 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         fetchEquipments(); // Refresh the list
       } else {
         // toast.error(response.message || "Failed to delete equipment");
-        console.log(response, "response");
+        
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete equipment");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -499,17 +494,17 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         fetchEquipments(); // Refresh the list after adding/updating
       } else {
         // toast.error(response.message || "Operation failed");
-        console.log(response, "response");
+        
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
-      console.log(error, "error");
+      return;
     }
   };
 
   const startEdit = (item: any) => {
     setEditingItem(item);
-    console.log(item);
+    
     setFormData({
       facilityId: item.facilityId?._id || "",
       equipmentTypeId: item.equipmentTypeId?._id || "",
@@ -635,7 +630,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
       fetchEquipments();
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete some equipments");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -659,7 +654,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
       fetchEquipments();
     } catch (error: any) {
       // toast.error(error.message || "Failed to update some equipments");
-      console.log(error, "error");
+      return;
     }
   };
   const formatDate = (dateString: string) => {

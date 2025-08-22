@@ -1,5 +1,5 @@
-import React from 'react';
-import { safeLocalStorage } from './localStorage';
+import React from "react";
+import { safeLocalStorage } from "./localStorage";
 
 export interface Permission {
   _id: string;
@@ -24,12 +24,11 @@ export class PermissionManager {
 
   private loadPermissions(): void {
     try {
-      const permissionsData = safeLocalStorage.getItem('permissions');
+      const permissionsData = safeLocalStorage.getItem("permissions");
       if (permissionsData) {
         this.permissions = JSON.parse(permissionsData);
       }
     } catch (error) {
-      console.error('Error loading permissions:', error);
       this.permissions = [];
     }
   }
@@ -39,15 +38,21 @@ export class PermissionManager {
   }
 
   public hasPermission(permissionName: string): boolean {
-    return this.permissions.some(permission => permission.name === permissionName);
+    return this.permissions.some(
+      (permission) => permission.name === permissionName
+    );
   }
 
   public hasAnyPermission(permissionNames: string[]): boolean {
-    return permissionNames.some(permissionName => this.hasPermission(permissionName));
+    return permissionNames.some((permissionName) =>
+      this.hasPermission(permissionName)
+    );
   }
 
   public hasAllPermissions(permissionNames: string[]): boolean {
-    return permissionNames.every(permissionName => this.hasPermission(permissionName));
+    return permissionNames.every((permissionName) =>
+      this.hasPermission(permissionName)
+    );
   }
 
   public getPermissions(): Permission[] {
@@ -55,7 +60,7 @@ export class PermissionManager {
   }
 
   public getPermissionNames(): string[] {
-    return this.permissions.map(permission => permission.name);
+    return this.permissions.map((permission) => permission.name);
   }
 
   // Helper methods for common permission patterns
@@ -80,7 +85,7 @@ export class PermissionManager {
       `${resource}.view`,
       `${resource}.create`,
       `${resource}.update`,
-      `${resource}.delete`
+      `${resource}.delete`,
     ]);
   }
 }
@@ -136,7 +141,7 @@ export const usePermissions = () => {
     canDelete,
     canManage,
     getPermissions,
-    refreshPermissions: () => permissionManager.refreshPermissions()
+    refreshPermissions: () => permissionManager.refreshPermissions(),
   };
 };
 
@@ -148,19 +153,21 @@ export const withPermission = <P extends object>(
 ) => {
   const WithPermissionComponent: React.FC<P> = (props) => {
     const { hasPermission } = usePermissions();
-    
+
     if (hasPermission(requiredPermission)) {
       return React.createElement(WrappedComponent, props);
     }
-    
+
     if (fallbackComponent) {
       return React.createElement(fallbackComponent, props);
     }
-    
+
     return null;
   };
 
-  WithPermissionComponent.displayName = `withPermission(${WrappedComponent.displayName || WrappedComponent.name})`;
+  WithPermissionComponent.displayName = `withPermission(${
+    WrappedComponent.displayName || WrappedComponent.name
+  })`;
   return WithPermissionComponent;
 };
 
@@ -171,10 +178,10 @@ export const PermissionGuard: React.FC<{
   children: React.ReactNode;
 }> = ({ permission, fallback, children }) => {
   const { hasPermission } = usePermissions();
-  
+
   if (hasPermission(permission)) {
     return React.createElement(React.Fragment, null, children);
   }
-  
+
   return fallback ? React.createElement(React.Fragment, null, fallback) : null;
-}; 
+};

@@ -174,10 +174,7 @@ const MaterialityAssessmentEngine = () => {
           (report, index) => {
             // Determine if assessment is complete based on status
             const isAssessed = report.reportStatus !== "Not Assessed";
-            console.log(
-              report,
-              "report...........................????????????????????????????????????"
-            );
+        
             // Parse frameworks to extract GRI and IFRS standards
             const frameworks = report.frameworks.split(", ");
             const griStandard =
@@ -228,7 +225,6 @@ const MaterialityAssessmentEngine = () => {
         setError("Failed to fetch reports");
       }
     } catch (err) {
-      console.error("Error fetching reports:", err);
       setError("Failed to fetch reports. Please try again.");
     } finally {
       setLoading(false);
@@ -281,7 +277,6 @@ const MaterialityAssessmentEngine = () => {
       }
       return null;
     } catch (err) {
-      console.error("Error fetching reporting data:", err);
       return null;
     }
   };
@@ -291,7 +286,6 @@ const MaterialityAssessmentEngine = () => {
     reportingData: ReportingData
   ): Promise<boolean> => {
     try {
-      console.log("Adding reporting data:", reportingData);
       const response = await postRequest(
         "reporting/addReporting",
         reportingData,
@@ -299,10 +293,8 @@ const MaterialityAssessmentEngine = () => {
         getToken(),
         "post"
       );
-      console.log("Add reporting response:", response);
       return response.success;
     } catch (err) {
-      console.error("Error adding reporting data:", err);
       return false;
     }
   };
@@ -313,11 +305,6 @@ const MaterialityAssessmentEngine = () => {
     reportingData: ReportingData
   ): Promise<boolean> => {
     try {
-      console.log(
-        "Updating reporting data for reportingId:",
-        reportingId,
-        reportingData
-      );
       let some = { ...reportingData, reportId: undefined };
       const response = await postRequest(
         `reporting/updateReporting/${reportingId}`,
@@ -326,10 +313,8 @@ const MaterialityAssessmentEngine = () => {
         getToken(),
         "put"
       );
-      console.log("Update reporting response:", response);
       return response.success;
     } catch (err) {
-      console.error("Error updating reporting data:", err);
       return false;
     }
   };
@@ -340,10 +325,6 @@ const MaterialityAssessmentEngine = () => {
   }, []);
 
   const calculateMaterialityLevel = (topic: Topic): MaterialityLevel => {
-    console.log(
-      topic,
-      "topic...........................????????????????????????????????????"
-    );
     const impactScore = topic.impactAssessment.overallScore || 0;
     const financialScore = topic.financialAssessment.overallScore || 0;
     const maxScore = Math.max(impactScore, financialScore);
@@ -411,7 +392,6 @@ const MaterialityAssessmentEngine = () => {
     try {
       const topic = topics.find((t) => t.id === topicId);
       if (!topic) {
-        console.error("Topic not found");
         return false;
       }
 
@@ -447,16 +427,10 @@ const MaterialityAssessmentEngine = () => {
         },
       };
 
-      console.log("Sending reporting data:", reportingData);
-
       // Check if this is a new assessment or updating existing one
       let success = false;
       if (currentReportingData && currentReportingData._id) {
         // Update existing reporting using the _id from the stored data
-        console.log(
-          "Updating existing reporting with _id:",
-          currentReportingData._id
-        );
         success = await updateReporting(
           currentReportingData._id,
           reportingData
@@ -469,18 +443,14 @@ const MaterialityAssessmentEngine = () => {
       if (success) {
         // Refresh the reports data to get updated information
         await fetchReports();
-        console.log("Assessment saved successfully");
         return true;
       } else {
-        console.error("Failed to save assessment to API");
         return false;
       }
     } catch (error) {
-      console.error("Error in completeTopicAssessment:", error);
       return false;
     }
   };
-  console.log(topics);
 
   const filteredTopics = topics.filter((topic) => {
     // Filter by status
@@ -595,10 +565,7 @@ const MaterialityAssessmentEngine = () => {
         label: "Status",
         type: "badge" as const,
         render: (value: string, row: any) => {
-          console.log(
-            row,
-            "row...........................????????????????????????????????????"
-          );
+
           // const materiality = calculateMaterialityLevel(row);
           const calculateMateriality = () => {
             if (row.status === "High Material") {
@@ -655,7 +622,7 @@ const MaterialityAssessmentEngine = () => {
                     setAssessmentMode("results");
                     const result = await fetchReportingById(row.reportId);
                     if (result) {
-                      console.log("Reporting data loaded for view:", result);
+                      return;
                     }
                   }}
                   className="p-2 cursor-pointer"
@@ -671,7 +638,7 @@ const MaterialityAssessmentEngine = () => {
                     setAssessmentMode("assess");
                     const result = await fetchReportingById(row.reportId);
                     if (result) {
-                      console.log("Reporting data loaded for edit:", result);
+                      return;
                     }
                   }}
                   className="p-2 cursor-pointer"
@@ -893,11 +860,6 @@ const MaterialityAssessmentEngine = () => {
           1,
       };
 
-      console.log('Setting local state with:', {
-        rationale: newRationale,
-        impact: normalizedNewImpactAssessment,
-        financial: normalizedNewFinancialAssessment
-      });
       setLocalRationale(newRationale);
       setLocalImpactAssessment(normalizedNewImpactAssessment);
       setLocalFinancialAssessment(normalizedNewFinancialAssessment);
@@ -1033,7 +995,6 @@ const MaterialityAssessmentEngine = () => {
                     }
                     onChange={(e) => {
                       const newValue = parseInt(e.target.value);
-                      console.log(`Impact ${criteria.key} changed to:`, newValue);
                       const updatedAssessment = {
                         ...localImpactAssessment,
                         [criteria.key]: newValue,
@@ -1055,8 +1016,6 @@ const MaterialityAssessmentEngine = () => {
                       updatedAssessment.overallScore =
                         scores.reduce((sum, score) => sum + score, 0) /
                         scores.length;
-
-                      console.log('Updated impact assessment:', updatedAssessment);
                       setLocalImpactAssessment(updatedAssessment);
                     }}
                     className="w-full"
@@ -1115,7 +1074,6 @@ const MaterialityAssessmentEngine = () => {
                     }
                     onChange={(e) => {
                       const newValue = parseInt(e.target.value);
-                      console.log(`Financial ${criteria.key} changed to:`, newValue);
                       const updatedAssessment = {
                         ...localFinancialAssessment,
                         [criteria.key]: newValue,
@@ -1137,7 +1095,6 @@ const MaterialityAssessmentEngine = () => {
                       updatedAssessment.overallScore =
                         scores.reduce((sum, score) => sum + score, 0) /
                         scores.length;
-                      console.log('Updated financial assessment:', updatedAssessment);
                       setLocalFinancialAssessment(updatedAssessment);
                     }}
                     className="w-full"
@@ -1250,10 +1207,11 @@ const MaterialityAssessmentEngine = () => {
                   setAssessmentMode("overview");
                 } else {
                   // Show error message to user
+                  return;
                   // alert('Failed to save assessment. Please try again.');
                 }
               } catch (error) {
-                console.error("Error saving assessment:", error);
+                return;
                 // alert('An error occurred while saving the assessment. Please try again.');
               }
             }}

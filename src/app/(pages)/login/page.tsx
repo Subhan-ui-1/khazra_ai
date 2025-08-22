@@ -136,8 +136,7 @@ export default function LoginPage() {
         "Login successful",
         undefined,
         "post"
-      );
-      console.log(response);
+      );        
       if (response.success === true) {
         toast.success(response.message);
         if(response.resetToken){
@@ -154,13 +153,10 @@ export default function LoginPage() {
           router.replace("/dashboard/steps");
         }
       } else {
-        // toast.error(response.message);
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
-      console.log(error.response.message);
-      console.log(error, 'error')
-      // toast.error(error.response.message);
+      return;
     } finally {
       setLoadingBtn(false);
     }

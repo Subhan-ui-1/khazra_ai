@@ -143,7 +143,7 @@ const AssetLevelTargetPlatform = () => {
         }
         } catch (error: any) {
         // toast.error(error.message || "Failed to fetch asset data");
-        console.log(error, 'error')
+       return;
         } finally {
         setLoading(false);
         }
@@ -157,7 +157,7 @@ const AssetLevelTargetPlatform = () => {
         setGranularTargets(response.granularTargets || []);
       }
     } catch (error: any) {
-      console.error('Failed to fetch granular targets:', error);
+      return;
     }
   };
 
@@ -189,7 +189,7 @@ const AssetLevelTargetPlatform = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || 'Failed to save target');
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -464,7 +464,6 @@ const AssetLevelTargetPlatform = () => {
           {data.map((item) => {
             const targetData = getTargetData(item._id);
             const isEditing = editingItem === item._id;
-            console.log(getTargetData(item._id), 'target data...........................')
             
             // Default values if no target data exists
             const baselineEmissions = targetData?.baselineEmissions || 0;

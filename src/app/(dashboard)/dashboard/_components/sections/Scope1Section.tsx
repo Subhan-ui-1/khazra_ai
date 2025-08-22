@@ -139,7 +139,7 @@ export default function Scope1Section() {
         );
       }
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      return;
     }
   };
 
@@ -357,17 +357,17 @@ export default function Scope1Section() {
   ];
 
   const handleAddSource = () => {
-    console.log("Add new source");
+    return;
     // Add new source functionality here
   };
 
   const handleSearch = (query: string) => {
-    console.log("Search query:", query);
+    return;
     // Add search functionality here
   };
 
   const handleFilter = () => {
-    console.log("Filter sources");
+    return;
     // Add filter functionality here
   };
 

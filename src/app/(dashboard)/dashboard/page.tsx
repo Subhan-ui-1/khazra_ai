@@ -98,8 +98,7 @@ export default function DashboardPage() {
               hasVehicles = boundary.vehicleCount > 0;
               hasEquipment = boundary.equipmentCount > 0;
             }
-          } catch (error) {
-            console.error('Error fetching boundary details:', error);
+          } catch (error) { 
             hasBoundary = false;
           }
           
@@ -112,7 +111,6 @@ export default function DashboardPage() {
             );
             hasDepartments = departmentsResponse.success && departmentsResponse.data?.departments?.length > 0;
           } catch (error) {
-            console.error('Error checking departments:', error);
             hasDepartments = false;
           }
           
@@ -140,8 +138,6 @@ export default function DashboardPage() {
           setSetupComplete(true);
         }
       } catch (error) {
-        console.error('Error checking setup status:', error);
-        // If there's an error, assume setup is not complete and redirect to steps
         router.push('/dashboard/steps');
         return;
       } finally {

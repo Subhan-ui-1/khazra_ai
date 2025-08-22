@@ -107,11 +107,11 @@ const FeedbackSection = () => {
         checkIfUserHasSubmitted(response.data.feedbacks || []);
       } else {
         // toast.error(response.message || "Failed to fetch feedbacks");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch feedbacks");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -169,11 +169,11 @@ const FeedbackSection = () => {
          }
        } else {
         //  toast.error(response.message || 'Failed to submit feedback');
-        console.log(response, 'response')
+        return;
        }
     } catch (error: any) {
       // toast.error(error.message || 'Failed to submit feedback');
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }

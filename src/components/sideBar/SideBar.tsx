@@ -96,7 +96,6 @@ const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter()
     const params = usePathname();
-    console.log(params)
 
     return (
         <>

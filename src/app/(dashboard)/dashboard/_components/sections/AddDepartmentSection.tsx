@@ -95,7 +95,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
         `departments/getDepartments?${queryParams}`,
         tokenData.accessToken
       );
-      console.log(response, 'response')
+      
       if (response.success) {
         const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
         if(user.role.name === 'superadmin'){
@@ -116,7 +116,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
   const getOrganizationId = async () => {
     const user = safeLocalStorage.getItem('user');
     const userData = JSON.parse(user || "{}");
-    console.log(userData.organization, 'organisation id')
+    
     return userData.organization;
   }
 
@@ -150,7 +150,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete department");
-      console.log(error, 'error')
+      
     }
   };
 
@@ -224,7 +224,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
       }
     } catch (error: any) {
       // toast.error(error.message || (editingItem ? "Failed to update department" : "Failed to create department"));
-      console.log(error, 'error')
+      
     } finally {
       setSubmitting(false);
     }
@@ -269,7 +269,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
       fetchDepartments();
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete some departments");
-      console.log(error, 'error')
+      
     }
   };
 

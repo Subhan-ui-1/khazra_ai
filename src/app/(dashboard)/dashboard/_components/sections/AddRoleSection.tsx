@@ -115,11 +115,11 @@ const AddRoleSection = () => {
         }
       } else {
         // toast.error(response.message || "Failed to fetch roles");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch roles");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -144,7 +144,7 @@ const AddRoleSection = () => {
       // }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch permissions");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoadingPermissions(false);
     }
@@ -208,7 +208,7 @@ const AddRoleSection = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to save role");
-      console.log(error, 'error')
+      return;
     } finally {
       setSubmitting(false);
     }
@@ -244,7 +244,7 @@ const AddRoleSection = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete role");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -364,7 +364,7 @@ const AddRoleSection = () => {
       //   error.message ||
       //     (editingItem ? "Failed to update role" : "Failed to create role")
       // );
-      console.log(error, 'error')
+      return;
     } finally {
       setSubmitting(false);
     }

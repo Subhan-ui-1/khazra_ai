@@ -201,7 +201,6 @@ export default function StepsPage() {
         completed,
       };
     } catch (error) {
-      console.error('Error checking setup status:', error);
       toast.error('Failed to check setup status. Please try again.');
     } finally {
       setLoading(false);
@@ -256,7 +255,7 @@ export default function StepsPage() {
           }
         }
       } catch (error) {
-        console.error('Error fetching boundary details after completion:', error);
+        return;
       }
     }
     

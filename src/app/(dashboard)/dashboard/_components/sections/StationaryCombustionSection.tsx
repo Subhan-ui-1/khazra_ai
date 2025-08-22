@@ -160,11 +160,9 @@ export default function StationaryCombustionSection() {
             response.dashboardData.totalEquipment +
             response.dashboardData.totalVehicles,
         });
-        
-        console.log(facilities, "facilities");
       }
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      return;
     }
   };
 
@@ -187,12 +185,10 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      console.log(error, "error");
-      // toast.error(error.message || "Failed to fetch facilities");
+      return;
     }
   };
 
@@ -205,12 +201,10 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setEquipments(response.data.equipments || []);
       } else {
-        // toast.error(response.message || "Failed to fetch equipments");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      console.log(error, "error");
-      // toast.error(error.message || "Failed to fetch equipments");
+      return;
     }
   };
 
@@ -223,12 +217,10 @@ export default function StationaryCombustionSection() {
       if (response.success) {
         setFuelTypes(response.data.stationaryFuelTypes || []);
       } else {
-        // toast.error(response.message || "Failed to fetch fuel types");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      console.log(error, "error");
-      // toast.error(error.message || "Failed to fetch fuel types");
+      return;
     }
   };
   const getStationaryTotal = async () => {
@@ -240,12 +232,10 @@ export default function StationaryCombustionSection() {
         // Analyze fuel types and calculate emissions
         analyzeFuelTypes(response.data.stationary);
       } else {
-        // toast.error(response.message || "Failed to fetch stationary total");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      console.log(error, "error");
-      // toast.error(error.message || "Failed to fetch stationary total");
+      return;
     }
   };
 
@@ -269,7 +259,7 @@ export default function StationaryCombustionSection() {
         
         setDataLoaded(true);
       } catch (error) {
-        console.error("Error loading data:", error);
+          return;
       } finally {
         setLoading(false);
       }
@@ -384,14 +374,10 @@ export default function StationaryCombustionSection() {
           useCustomEmissionFactor: false,
         });
       } else {
-        // toast.error(
-        //   response.message || "Failed to add stationary combustion data"
-        // );
-        console.log(response, "response");
+        return; 
       }
     } catch (error: any) {
-      console.log(error, "error");
-      //  toast.error(error.message || "Failed to add stationary combustion data");
+      return;
     } finally {
       setSubmitting(false);
     }
@@ -420,8 +406,6 @@ export default function StationaryCombustionSection() {
       const editingId = editingStationaryData?._id || editingStationaryData?.id;
 
       if (!editingId) {
-        // toast.error("No item ID found for editing");
-        console.log("No item ID found for editing");
         return;
       }
 
@@ -460,16 +444,10 @@ export default function StationaryCombustionSection() {
           useCustomEmissionFactor: false,
         });
       } else {
-        // toast.error(
-        //   response.message || "Failed to update stationary combustion data"
-        // );
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      console.log(error, "error");
-      // toast.error(
-      //   error.message || "Failed to update stationary combustion data"
-      // );
+      return;
     } finally {
       setSubmitting(false);
     }
@@ -502,7 +480,6 @@ export default function StationaryCombustionSection() {
   // Get equipment type name by ID
   const getEquipmentTypeName = (equipmentTypeId: string) => {
     if (!equipmentTypeId) return "N/A";
-    console.log("equipmentTypeId", equipmentTypeId, equipments);
     const equipment = equipments.find((e) => e._id === equipmentTypeId);
     return equipment ? equipment.equipmentName : "Loading...";
   };
@@ -534,7 +511,6 @@ export default function StationaryCombustionSection() {
         ...reviewData,
       };
       setStationaryCombustionData([...stationaryCombustionData, newRow]);
-      console.log("Confirmed: Added new stationary combustion row");
     } else if (
       reviewMode === "edit-stationary" &&
       editingStationaryIndex !== null
@@ -545,7 +521,6 @@ export default function StationaryCombustionSection() {
         ...reviewData,
       };
       setStationaryCombustionData(updatedData);
-      console.log("Confirmed: Updated stationary combustion row");
     }
 
     // Reset review modal
@@ -623,7 +598,6 @@ export default function StationaryCombustionSection() {
     setEditingStationaryIndex(null);
     setIsStationaryModalOpen(false);
   };
-  console.log(dataEmissions, "dataEmissions");
 
   return (
     <div className="space-y-5">

@@ -71,12 +71,10 @@ const Scope2SteamEntry: React.FC = () => {
       if (response.success) {
         setFacilities(response.data.facilities || []);
       } else {
-        // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      // toast.error(error.message || "Failed to fetch facilities");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -89,12 +87,10 @@ const Scope2SteamEntry: React.FC = () => {
       if (response.success) {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
-        // toast.error(response.message || "Failed to fetch energy types");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      // toast.error(error.message || "Failed to fetch energy types");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -107,12 +103,10 @@ const Scope2SteamEntry: React.FC = () => {
       if (response.success) {
         setSteamData(response.data.purchasedElectricity || []);
       } else {
-        // toast.error(response.message || "Failed to fetch steam data");
-        console.log(response, "response");
+        return;
       }
     } catch (error: any) {
-      // toast.error(error.message || "Failed to fetch steam data");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -128,7 +122,7 @@ const Scope2SteamEntry: React.FC = () => {
         ]);
         setDataLoaded(true);
       } catch (error) {
-        console.error("Error loading data:", error);
+        return;
       } finally {
         setLoading(false);
       }
@@ -163,8 +157,6 @@ const Scope2SteamEntry: React.FC = () => {
         const editingId = editingItem?._id || editingItem?.id;
 
         if (!editingId) {
-          // toast.error("No item ID found for editing");
-          console.log("No item ID found for editing");
           return;
         }
 
@@ -185,8 +177,7 @@ const Scope2SteamEntry: React.FC = () => {
           setEditingItem(null);
           resetForm();
         } else {
-          // toast.error(response.message || "Failed to update steam data");
-          console.log(response, "response");
+          return;
         }
       } else {
         // Add new record
@@ -206,13 +197,11 @@ const Scope2SteamEntry: React.FC = () => {
           setShowForm(false);
           resetForm();
         } else {
-          // toast.error(response.message || "Failed to add steam data");
-          console.log(response, "response");
+          return;
         }
       }
     } catch (error: any) {
-      // toast.error(error.message || "Failed to save steam data");
-      console.log(error, "error");
+      return;
     } finally {
       setLoading(false);
     }
@@ -262,8 +251,6 @@ const Scope2SteamEntry: React.FC = () => {
       const editingId = item?._id || item?.id;
 
       if (!editingId) {
-        // toast.error("No item ID found for deletion");
-        console.log("No item ID found for deletion");
         return;
       }
 
@@ -281,12 +268,10 @@ const Scope2SteamEntry: React.FC = () => {
         toast.success("Steam record deleted successfully");
         await getSteamTotal();
       } else {
-        //  toast.error(response.message || "Failed to delete steam record");
-        console.log(response, "response");
+          return;
       }
     } catch (error: any) {
-      // toast.error(error.message || "Failed to delete steam record");
-      console.log(error, "error");
+      return;
     }
   };
 
@@ -613,7 +598,6 @@ const Scope2SteamEntry: React.FC = () => {
                     id="customEmissionFactor"
                     checked={formData.customEmissionFactor}
                     onChange={(e) => {
-                      console.log(e.target.checked, "checked");
                       setFormData((prev: any) => ({
                         ...prev,
                         customEmissionFactor: e.target.checked,

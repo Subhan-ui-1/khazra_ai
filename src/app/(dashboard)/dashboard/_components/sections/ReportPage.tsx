@@ -31,7 +31,6 @@ export default function ReportParagraph({
   const [customText, setCustomText] = useState<string>(''
   );
   const reportRef = useRef<HTMLDivElement>(null);
-console.log({ ...data, ...some }, 'rikaz..................///////////////////')
   const handleSave = () => {
     setEditMode(false);
     onEdit?.();
@@ -41,7 +40,6 @@ console.log({ ...data, ...some }, 'rikaz..................///////////////////')
     const tokens = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
     return tokens.accessToken;
   };
-  console.log(getTokens());
   useEffect(() => {
     const fetchBoundaires = async () => {
       const response = await getRequest(
@@ -93,7 +91,7 @@ console.log({ ...data, ...some }, 'rikaz..................///////////////////')
       // Post the PDF to the server
       await postPDF(pdfBlob, type);
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      return;
     }
   }
 };
@@ -118,7 +116,6 @@ const postPDF = async (pdfBlob: Blob, reportName: "GRI" | "IFRS") => {
       toast.error(response.message);
     }
   } catch (error) {
-    console.error("Error posting PDF:", error);
     toast.error("Failed to upload report");
   }
 };

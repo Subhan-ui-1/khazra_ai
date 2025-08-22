@@ -69,11 +69,11 @@ const Scope2CoolingEntry: React.FC = () => {
         setFacilities(response.data.facilities || []);
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch facilities");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -84,11 +84,11 @@ const Scope2CoolingEntry: React.FC = () => {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
         // toast.error(response.message || "Failed to fetch energy types");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch energy types");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -99,11 +99,11 @@ const Scope2CoolingEntry: React.FC = () => {
         setCoolingData(response.data.purchasedElectricity || []);
       } else {
         // toast.error(response.message || "Failed to fetch cooling data");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch cooling data");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -119,7 +119,7 @@ const Scope2CoolingEntry: React.FC = () => {
         ]);
         setDataLoaded(true);
       } catch (error) {
-        console.error('Error loading data:', error);
+        return;
       } finally {
         setLoading(false);
       }
@@ -181,7 +181,7 @@ const Scope2CoolingEntry: React.FC = () => {
           resetForm();
         } else {
           // toast.error(response.message || "Failed to update cooling data");
-          console.log(response, 'response')
+          return;
         }
       } else {
         // Add new record
@@ -203,12 +203,12 @@ const Scope2CoolingEntry: React.FC = () => {
           resetForm();
         } else {
           // toast.error(response.message || "Failed to add cooling data");
-          console.log(response, 'response')
+          return;
         }
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to save cooling data");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -258,7 +258,6 @@ const Scope2CoolingEntry: React.FC = () => {
       
       if (!editingId) {
         // toast.error("No item ID found for deletion");
-        console.log("No item ID found for deletion")
         return;
       }
 
@@ -277,11 +276,11 @@ const Scope2CoolingEntry: React.FC = () => {
         await getCoolingTotal();
       } else {
         //  toast.error(response.message || "Failed to delete cooling record");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete cooling record");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -545,7 +544,6 @@ const Scope2CoolingEntry: React.FC = () => {
                     id="customEmissionFactor"
                     checked={formData.customEmissionFactor}
                     onChange={(e) => {
-                      console.log(e.target.checked, 'checked')
                       setFormData((prev: any) => ({ 
                       ...prev, 
                       customEmissionFactor: e.target.checked,

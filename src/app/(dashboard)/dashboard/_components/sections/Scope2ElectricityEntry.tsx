@@ -69,11 +69,11 @@ const Scope2ElectricityEntry: React.FC = () => {
         setFacilities(response.data.facilities || []);
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch facilities");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -87,11 +87,11 @@ const Scope2ElectricityEntry: React.FC = () => {
         setEnergyTypes(response.data.energyTypes || []);
       } else {
         // toast.error(response.message || "Failed to fetch energy types");
-        console.log(response, 'response')
+       return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch energy types");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -105,11 +105,11 @@ const Scope2ElectricityEntry: React.FC = () => {
         setElectricityData(response.data.purchasedElectricity || []);
       } else {
         // toast.error(response.message || "Failed to fetch electricity data");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch electricity data");
-      console.log(error, 'error')
+      return;
     }
   };
 
@@ -125,7 +125,7 @@ const Scope2ElectricityEntry: React.FC = () => {
           getElectricityTotal()
         ]);
       } catch (error) {
-        console.error('Error loading data:', error);
+        return;
       } finally {
         setLoading(false);
       }
@@ -144,7 +144,6 @@ const Scope2ElectricityEntry: React.FC = () => {
       
       if (!energyType) {
         // toast.error("Energy type not found");
-        console.log("Energy type not found")
         return;
       }
       
@@ -161,14 +160,12 @@ const Scope2ElectricityEntry: React.FC = () => {
           ? parseFloat(formData.emissionFactor)
           : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
       };
-      console.log(energyTypes, "energyType");
       if (editingItem) {
         // Update existing record
         const editingId = editingItem?._id || editingItem?.id;
 
         if (!editingId) {
           // toast.error("No item ID found for editing");
-          console.log("No item ID found for editing")
           return;
         }
 
@@ -190,7 +187,7 @@ const Scope2ElectricityEntry: React.FC = () => {
           resetForm();
         } else {
           // toast.error(response.message || "Failed to update electricity data");
-          console.log(response, 'response')
+          return;
         }
       } else {
         const response = await postRequest(
@@ -215,12 +212,12 @@ const Scope2ElectricityEntry: React.FC = () => {
           resetForm();
         } else {
           // toast.error(response.message || "Failed to add electricity data");
-          console.log(response, 'response')
+          return;
         }
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to save electricity data");
-      console.log(error, 'error')
+      return;
     } finally {
       setLoading(false);
     }
@@ -271,7 +268,6 @@ const Scope2ElectricityEntry: React.FC = () => {
 
       if (!editingId) {
         // toast.error("No item ID found for deletion");
-        console.log("No item ID found for deletion")
         return;
       }
 
@@ -290,11 +286,11 @@ const Scope2ElectricityEntry: React.FC = () => {
         await getElectricityTotal();
       } else {
         //  toast.error(response.message || "Failed to delete electricity record");
-        console.log(response, 'response')
+        return;
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete electricity record");
-      console.log(error, 'error')
+        return;
     }
   };
 
