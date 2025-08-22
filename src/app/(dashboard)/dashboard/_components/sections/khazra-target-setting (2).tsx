@@ -119,7 +119,6 @@ const FlexibleTargetPlatform = () => {
         "custom-targets/getCustomTargets",
         getToken()
       );
-      console.log(response, "response...........................");
       if (response.success) {
         setCustomTargets(response.customTargets || []);
       } else {
