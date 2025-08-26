@@ -358,10 +358,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             id={field.name}
             name={field.name}
             value={value}
-            max={maxim(field.type)}
+            max={field.type==='date'?maxim(field.type):""}
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={field.placeholder}
-            maxLength={field.maxLength}
             className={baseInputClasses}
             disabled={field.disabled}
           />

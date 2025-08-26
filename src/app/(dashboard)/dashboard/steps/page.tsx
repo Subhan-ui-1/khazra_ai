@@ -126,26 +126,37 @@ export default function StepsPage() {
     return userData.organization;
   };
 
-  // Check setup status - only check boundary once, don't call other APIs
+  // Check setup status with minimal API calls
   const checkSetupStatus = async () => {
     try {
       setLoading(true);
       
-      // Only check boundary - don't call other APIs repeatedly
-      const boundaryResponse = await getRequest('boundaries/getBoundaries', getTokens());
-
+      // Prefer cached boundary from localStorage first to avoid an API call
       let hasBoundary = false;
       let boundaryInfo: BoundaryData | undefined;
-
-      if (boundaryResponse.success && boundaryResponse.data?.boundaries?.length > 0) {
+      const cachedBoundaryRaw = safeLocalStorage.getItem('boundary');
+      const cachedBoundary = cachedBoundaryRaw ? JSON.parse(cachedBoundaryRaw) : undefined;
+      if (cachedBoundary && (cachedBoundary._id || cachedBoundary.vehicleCount !== undefined)) {
         hasBoundary = true;
-        const boundary = boundaryResponse.data.boundaries[0];
         boundaryInfo = {
-          hasVehicles: boundary.vehicleCount > 0 ? 'Yes' : 'No',
-          hasFacilities: boundary.facilityCount > 0 ? 'Yes' : 'No',
-          hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No'
+          hasVehicles: (cachedBoundary.vehicleCount || 0) > 0 ? 'Yes' : 'No',
+          hasFacilities: (cachedBoundary.facilityCount || 0) > 0 ? 'Yes' : 'No',
+          hasEquipment: (cachedBoundary.equipmentCount || 0) > 0 ? 'Yes' : 'No'
         };
         setBoundaryData(boundaryInfo);
+      } else {
+        // Fallback to a single boundary fetch
+        const boundaryResponse = await getRequest('boundaries/getBoundaries', getTokens());
+        if (boundaryResponse?.success && boundaryResponse.data?.boundaries?.length > 0) {
+          hasBoundary = true;
+          const boundary = boundaryResponse.data.boundaries[0];
+          boundaryInfo = {
+            hasVehicles: boundary.vehicleCount > 0 ? 'Yes' : 'No',
+            hasFacilities: boundary.facilityCount > 0 ? 'Yes' : 'No',
+            hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No'
+          };
+          setBoundaryData(boundaryInfo);
+        }
       }
 
       // Check localStorage for existing data instead of calling APIs
@@ -231,56 +242,45 @@ export default function StepsPage() {
     storeStepCompletion(currentStepId, responseData);
     setCompletedSteps(prev => new Set([...prev, currentStepId]));
     
-    // If boundary step was completed, fetch boundary data to update steps
-    if (steps[currentStep].id === 'boundary') {
-      try {
-        const boundaryResponse = await getRequest(
-          'boundaries/getBoundaries',
-          getTokens()
-        );
-        
-        if (boundaryResponse.success && boundaryResponse.data?.boundaries?.length > 0) {
-          const boundary = boundaryResponse.data.boundaries[0];
-          const boundaryInfo: BoundaryData = {
-            hasVehicles: boundary.vehicleCount > 0 ? 'Yes' : 'No',
-            hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No',
-            hasFacilities: boundary.facilityCount > 0 ? 'Yes' : 'No'
-          };
-          setBoundaryData(boundaryInfo);
-          
-          // Show which steps will be available
-          const availableSteps = [];
-          if (boundaryInfo.hasFacilities === 'Yes') availableSteps.push('Facilities');
-          if (boundaryInfo.hasVehicles === 'Yes') availableSteps.push('Vehicles');
-          if (boundaryInfo.hasEquipment === 'Yes') availableSteps.push('Equipment');
-          
-          // if (availableSteps.length > 0) {
-          //   toast.success(`Based on your boundary setup, you'll need to complete: ${availableSteps.join(', ')}`);
-          // } else {
-          //   toast.success('Based on your boundary setup, you only need to complete the main required steps.');
-          // }
-        }
-      } catch (error) {
-        console.error('Error fetching boundary data:', error);
+    // If boundary step was completed, prefer using responseData to update steps immediately
+    if (steps[currentStep].id === 'boundary' && responseData) {
+      const newBoundaryInfo: BoundaryData = {
+        hasVehicles: (responseData.vehicleCount || 0) > 0 ? 'Yes' : 'No',
+        hasFacilities: (responseData.facilityCount || 0) > 0 ? 'Yes' : 'No',
+        hasEquipment: (responseData.equipmentCount || 0) > 0 ? 'Yes' : 'No',
+      };
+      setBoundaryData(newBoundaryInfo);
+
+      // Auto-navigate based on the freshly updated boundary info
+      const currentSteps = getSteps(newBoundaryInfo);
+      const visibleSteps = currentSteps.filter(step => {
+        if (step.id === 'boundary') return true;
+        if (step.id === 'facilities') return newBoundaryInfo.hasFacilities === 'Yes';
+        if (step.id === 'vehicles') return newBoundaryInfo.hasVehicles === 'Yes';
+        if (step.id === 'equipment') return newBoundaryInfo.hasEquipment === 'Yes';
+        if (['departments', 'roles', 'users'].includes(step.id)) return true;
+        return false;
+      });
+      const boundaryIndex = visibleSteps.findIndex(step => step.id === 'boundary');
+      if (boundaryIndex > -1 && boundaryIndex < visibleSteps.length - 1) {
+        const nextStep = visibleSteps[boundaryIndex + 1];
+        const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
+        if (nextStepIndex !== -1) setCurrentStep(nextStepIndex);
       }
+      return;
     }
-    
-    // Auto-navigate to next step after a short delay
+
+    // Default: Auto-navigate to next visible step
     setTimeout(() => {
       const currentSteps = getSteps(boundaryData);
       const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
       const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-      
       if (currentVisibleIndex < visibleSteps.length - 1) {
         const nextStep = visibleSteps[currentVisibleIndex + 1];
         const nextStepIndex = currentSteps.findIndex(step => step.id === nextStep.id);
-        
-        if (nextStepIndex !== -1) {
-          setCurrentStep(nextStepIndex);
-          // toast.success(`Moving to next step: ${nextStep.title}`);
-        }
+        if (nextStepIndex !== -1) setCurrentStep(nextStepIndex);
       }
-    }, 1000);
+    }, 400);
   };
 
   const handleStepSkip = () => {
@@ -357,11 +357,10 @@ export default function StepsPage() {
     return false;
   };
 
-  // Get main required steps for progress calculation
+  // Get main required steps for progress calculation (treat core steps as required if visible)
   const getMainRequiredSteps = () => {
     const currentSteps = getSteps(boundaryData);
     return currentSteps.filter(step => 
-      step.required && 
       ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
       isStepVisible(step.id)
     );
@@ -395,9 +394,7 @@ export default function StepsPage() {
   
   const allRequiredStepsCompleted = (() => {
     const currentStepsDef = getSteps(boundaryData);
-    // Only count main required steps (boundary, facilities, vehicles, equipment)
     const mainRequiredSteps = currentStepsDef.filter(step => 
-      step.required && 
       ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
       isStepVisible(step.id)
     );
@@ -408,7 +405,6 @@ export default function StepsPage() {
   const mainSteps = (() => {
     const currentSteps = getSteps(boundaryData);
     return currentSteps.filter(step => 
-      step.required && 
       ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
       isStepVisible(step.id)
     );

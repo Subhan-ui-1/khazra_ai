@@ -175,7 +175,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
     toast.error("Please login to continue");
     router.push("/login");
   }
-
+  console.log(facilityData, 'facilityData from add facility section.............')
   // Check if user has permission to view facilities
   if (!canView("facilities")) {
     return (

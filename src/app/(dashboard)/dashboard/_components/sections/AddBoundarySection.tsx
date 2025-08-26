@@ -21,7 +21,6 @@ const INDUSTRY_OPTIONS = [
   "Luxury Goods",
   "Finance",
   "Consumer Electronics",
-  "Mining",
   "Oil & Gas",
   "Automotive Manufacturing",
   "Palm Oil",
@@ -744,7 +743,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
           setShowForm(false);
                   // Call onComplete callback if provided (for steps page)
         if (onComplete) {
-          onComplete(response.boundary);
+          await onComplete(response.boundary);
         } else {
             // Stay on the current page to allow follow-up steps instead of forcing navigation
           }
@@ -894,7 +893,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
                 to add your assets (vehicles, facilities, equipment) to start
                 tracking your emissions.
               </p>
-              <PermissionGuard permission="boundaries.update">
+              {/* <PermissionGuard permission="boundaries.update">
                 <button
                   onClick={() => startEdit(boundaryData)}
                   className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
@@ -914,7 +913,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
                   </svg>
                   Edit Boundary
                 </button>
-              </PermissionGuard>
+              </PermissionGuard> */}
             </div>
           </div>
         </div>
