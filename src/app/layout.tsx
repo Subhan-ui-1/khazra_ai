@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
+import { I18nProvider } from "@/i18n/context";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -24,10 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${plusJakartaSans.variable} antialiased`}>
-        <Suspense fallback={<div>Loading dashboard...</div>}>
-        <Toaster />
-        {children}
-        </Suspense>
+        <I18nProvider>
+          <Suspense fallback={<div>Loading dashboard...</div>}>
+            <Toaster />
+            {children}
+          </Suspense>
+        </I18nProvider>
       </body>
     </html>
   );

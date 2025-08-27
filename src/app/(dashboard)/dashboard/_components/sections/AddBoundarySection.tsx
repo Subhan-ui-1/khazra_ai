@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { postRequest, getRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
+import { useI18n } from "@/i18n/context";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 
 // Constants
@@ -159,6 +160,7 @@ interface AddBoundarySectionProps {
 }
 
 const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
+  const { t } = useI18n();
   const [boundaryData, setBoundaryData] = useState<Boundary | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingBoundary, setEditingBoundary] = useState<Boundary | null>(null);
@@ -468,11 +470,11 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     setShowForm(true);
   };
 
-  // Define form fields for DynamicForm
+  // Define form fields for DynamicForm with translations
   const boundaryFormFields: FormField[] = [
     {
       name: "industry",
-      label: "Industry",
+      label: t('boundary.industry'),
       type: "select",
       required: true,
       options: INDUSTRY_OPTIONS.map((option) => ({
@@ -482,7 +484,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "businessNature",
-      label: "Business Nature",
+      label: t('boundary.businessNature'),
       type: "select",
       required: true,
       options: BUSINESS_NATURE_OPTIONS.map((option) => ({
@@ -492,14 +494,14 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "baselineYear",
-      label: "Baseline Year",
+      label: t('boundary.baselineYear'),
       type: "select",
       required: true,
       options: PAST_YEARS.map((year) => ({ value: year, label: year })),
     },
     {
       name: "hasBaselineEmissions",
-      label: "Do you have baseline emissions data?",
+      label: t('boundary.doYouHaveBaselineEmissions'),
       type: "select",
       required: true,
       options: YES_NO_OPTIONS.map((option) => ({
@@ -509,15 +511,15 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "baselineEmissions",
-      label: "Baseline Emissions",
+      label: t('boundary.baselineEmissions'),
       type: "number",
       required: false,
-      placeholder: "Enter baseline emissions",
+      placeholder: t('boundary.enterBaselineEmissions'),
       condition: (formData) => formData.hasBaselineEmissions === "Yes",
     },
     {
       name: "hasVehicles",
-      label: "Do you have vehicles?",
+      label: t('boundary.doYouHaveVehicles'),
       type: "select",
       required: true,
       options: YES_NO_OPTIONS.map((option) => ({
@@ -527,15 +529,15 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "vehicleCount",
-      label: "Vehicle Count",
+      label: t('boundary.vehicleCount'),
       type: "number",
       required: true,
-      placeholder: "Enter vehicle count",
+      placeholder: t('boundary.enterVehicleCount'),
       condition: (formData) => formData.hasVehicles === "Yes",
     },
     {
       name: "hasFacilities",
-      label: "Do you have facilities?",
+      label: t('boundary.doYouHaveFacilities'),
       type: "select",
       required: true,
       options: YES_NO_OPTIONS.map((option) => ({
@@ -545,15 +547,15 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "facilityCount",
-      label: "Facility Count",
+      label: t('boundary.facilityCount'),
       type: "number",
       required: true,
-      placeholder: "Enter facility count",
+      placeholder: t('boundary.enterFacilityCount'),
       condition: (formData) => formData.hasFacilities === "Yes",
     },
     {
       name: "hasEquipment",
-      label: "Do you have equipment?",
+      label: t('boundary.doYouHaveEquipment'),
       type: "select",
       required: true,
       options: YES_NO_OPTIONS.map((option) => ({
@@ -563,33 +565,27 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "equipmentCount",
-      label: "Equipment Count",
+      label: t('boundary.equipmentCount'),
       type: "number",
       required: true,
-      placeholder: "Enter equipment count",
+      placeholder: t('boundary.enterEquipmentCount'),
       condition: (formData) => formData.hasEquipment === "Yes",
     },
     {
       name: "businessFormationDate",
-      label: "Business Formation Date",
+      label: t('boundary.businessFormationDate'),
       type: "date",
       required: true,
     },
     {
       name: "reportingPeriodStartDate",
-      label: "Reporting Period Start Date",
+      label: t('boundary.reportingPeriodStartDate'),
       type: "date",
       required: true,
     },
-    // {
-    //   name: "reportingPeriodEndDate",
-    //   label: "Reporting Period End Date",
-    //   type: "date",
-    //   required: true
-    // },
     {
       name: "primaryFunctionalCurrency",
-      label: "Primary Functional Currency",
+      label: t('boundary.primaryFunctionalCurrency'),
       type: "select",
       required: true,
       options: CURRENCY_OPTIONS.map((currency) => ({
@@ -599,7 +595,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "numberOfEmployees",
-      label: "Number of Employees",
+      label: t('boundary.numberOfEmployees'),
       type: "select",
       required: true,
       options: NUMBER_OF_EMPLOYEES_OPTIONS.map((option) => ({
@@ -609,7 +605,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "secondaryFunctionalCurrency",
-      label: "Secondary Functional Currency",
+      label: t('boundary.secondaryFunctionalCurrency'),
       type: "select",
       required: false,
       options: CURRENCY_OPTIONS.map((currency) => ({
@@ -619,7 +615,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     },
     {
       name: "annualRevenue",
-      label: "Annual Revenue",
+      label: t('boundary.annualRevenue'),
       type: "select",
       required: true,
       options: ANNUAL_REVENUE_OPTIONS.map((option) => ({
@@ -772,7 +768,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">
-            Boundary Management
+            {t('boundary.boundaryManagement')}
           </h1>
         </div>
 
@@ -780,11 +776,11 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-800">
-              Existing Boundary
+              {t('boundary.existingBoundary')}
             </h2>
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg">
-                Active
+                {t('boundary.active')}
               </span>
             </div>
           </div>
@@ -792,13 +788,13 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Industry
+                {t('boundary.industry')}
               </h3>
               <p className="text-sm text-gray-900">{boundaryData.industry}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Business Nature
+                {t('boundary.businessNature')}
               </h3>
               <p className="text-sm text-gray-900">
                 {boundaryData.businessNature}
@@ -806,7 +802,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Baseline Year
+                {t('boundary.baselineYear')}
               </h3>
               <p className="text-sm text-gray-900">
                 {boundaryData.baselineYear}
@@ -814,7 +810,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Primary Currency
+                {t('boundary.primaryCurrency')}
               </h3>
               <p className="text-sm text-gray-900">
                 {boundaryData.primaryFunctionalCurrency}
@@ -822,7 +818,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Number of Employees
+                {t('boundary.numberOfEmployees')}
               </h3>
               <p className="text-sm text-gray-900">
                 {boundaryData.numberOfEmployees}
@@ -830,7 +826,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Annual Revenue
+                {t('boundary.annualRevenue')}
               </h3>
               <p className="text-sm text-gray-900">
                 {boundaryData.annualRevenue}
@@ -838,7 +834,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Business Formation Date
+                {t('boundary.businessFormationDate')}
               </h3>
               <p className="text-sm text-gray-900">
                 {formatDate(boundaryData.businessFormationDate)}
@@ -852,33 +848,33 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
             </div> */}
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-2">
-                International Business Travel
+                {t('boundary.internationalBusinessTravel')}
               </h3>
               <p className="text-sm text-gray-900">
-                {boundaryData.internationalBusinessTraveling ? "Yes" : "No"}
+                {boundaryData.internationalBusinessTraveling ? t('common.yes') : t('common.no')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <h3 className="text-sm font-medium text-gray-500 mb-3">
-              Asset Counts
+              {t('boundary.assetCounts')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500">Vehicles</p>
+                <p className="text-xs text-gray-500">{t('boundary.vehicles')}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {boundaryData.vehicleCount}
                 </p>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500">Facilities</p>
+                <p className="text-xs text-gray-500">{t('boundary.facilities')}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {boundaryData.facilityCount}
                 </p>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500">Equipment</p>
+                <p className="text-xs text-gray-500">{t('boundary.equipment')}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {boundaryData.equipmentCount}
                 </p>
@@ -889,9 +885,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="flex justify-between items-center">
               <p className="text-sm text-gray-600">
-                Your boundary has been successfully created. You can now proceed
-                to add your assets (vehicles, facilities, equipment) to start
-                tracking your emissions.
+                {t('boundary.boundaryCreatedMessage')}
               </p>
               {/* <PermissionGuard permission="boundaries.update">
                 <button
@@ -925,7 +919,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">
-          Boundary Management
+          {t('boundary.boundaryManagement')}
         </h1>
         <PermissionGuard permission="boundaries.create">
           <button
@@ -948,7 +942,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Add Boundary
+            {t('boundary.addNewBoundary')}
           </button>
         </PermissionGuard>
       </div>
@@ -957,7 +951,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
       {showForm && (
         <div>
           <DynamicForm
-            title={editingBoundary ? "Edit Boundary" : "Add New Boundary"}
+            title={editingBoundary ? t('boundary.editBoundary') : t('boundary.addNewBoundary')}
             fields={boundaryFormFields}
             onSubmit={(data) => {
               console.log('DynamicForm onSubmit called with data:', data);
@@ -966,19 +960,19 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
                 handleFormSubmit(data);
               } catch (error) {
                 console.error('Error calling handleFormSubmit:', error);
-                toast.error("An error occurred while submitting the form");
+                toast.error(t('errors.general'));
               }
             }}
             onCancel={resetForm}
             initialData={formData}
             loading={submitting}
-            submitText={editingBoundary ? "Update Boundary" : "Create Boundary"}
-            cancelText="Cancel"
+            submitText={editingBoundary ? t('boundary.updateBoundary') : t('boundary.createBoundary')}
+            cancelText={t('common.cancel')}
             onClose={resetForm}
             confirmationMessage={
               editingBoundary
-                ? "Do you really want to update this boundary?"
-                : "Do you really want to create this boundary?"
+                ? t('boundary.doYouWantToUpdate')
+                : t('boundary.doYouWantToCreate')
             }
           />
         </div>
@@ -1000,7 +994,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
             />
           </svg>
-          <p className="mt-2 text-gray-600">No boundary found</p>
+          <p className="mt-2 text-gray-600">{t('boundary.noBoundaryFound')}</p>
           {/* <button
             onClick={() => setShowForm(true)}
             className="mt-4 bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200"
@@ -1032,7 +1026,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p className="mt-2 text-gray-600">Loading boundary information...</p>
+          <p className="mt-2 text-gray-600">{t('boundary.loadingBoundaryInfo')}</p>
         </div>
       )}
     </div>

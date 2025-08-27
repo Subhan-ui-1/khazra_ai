@@ -6,6 +6,8 @@ import { CheckCircle, Circle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { getRequest } from '@/utils/api';
 import { safeLocalStorage, storeStepCompletion, isStepCompleted, getCompletedSteps } from '@/utils/localStorage';
 import toast from 'react-hot-toast';
+import { useI18n } from '@/i18n/context';
+import GlobalHeader from '@/components/GlobalHeader/GlobalHeader';
 import AddBoundarySection from '../_components/sections/AddBoundarySection';
 import AddDepartmentSection from '../_components/sections/AddDepartmentSection';
 import AddFacilitySection from '../_components/sections/AddFacilitySection';
@@ -98,6 +100,7 @@ const getSteps = (boundaryData?: BoundaryData) => [
 ];
 
 export default function StepsPage() {
+  const { t, isRTL } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
   const [boundaryData, setBoundaryData] = useState<BoundaryData | undefined>();
   const [setupStatus, setSetupStatus] = useState<SetupStatus>({
@@ -384,7 +387,7 @@ export default function StepsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0D5942] mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking your setup...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -412,45 +415,37 @@ export default function StepsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Setup Your Organization</h1>
-            </div>
-                         <div className="flex items-center space-x-4">
-               <span className="text-sm text-gray-500">
-                 {(() => {
-                   const currentSteps = getSteps(boundaryData);
-                   const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-                   const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-                   return `Step ${currentVisibleIndex + 1} of ${visibleSteps.length}`;
-                 })()}
-               </span>
-             </div>
-          </div>
+      <GlobalHeader title={t('dashboard.setupOrganization')}>
+        <div className="ml-8">
+          <span className="text-sm text-gray-500">
+            {(() => {
+              const currentSteps = getSteps(boundaryData);
+              const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+              const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
+              return `${t('dashboard.step')} ${currentVisibleIndex + 1} ${t('common.of')} ${visibleSteps.length}`;
+            })()}
+          </span>
         </div>
-      </div>
+      </GlobalHeader>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Message */}
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome to Khazra.ai Setup
+            {t('dashboard.welcomeKhazra')}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Let's get your organization set up for sustainability tracking. Complete the required steps below to configure your boundaries, facilities, vehicles, and equipment. Additional optional steps are available for departments, roles, and users.
+            {t('dashboard.setupDescription')}
           </p>
           {boundaryData && (
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-2xl mx-auto">
               <p className="text-sm text-blue-800">
-                <strong>Setup Configuration:</strong> Based on your boundary setup, you'll need to complete: 
-                Boundary
-                {boundaryData.hasFacilities === 'Yes' && ' Facilities'}
-                {boundaryData.hasVehicles === 'Yes' && ' Vehicles'}
-                {boundaryData.hasEquipment === 'Yes' && ' Equipment'}
-                {boundaryData.hasFacilities === 'No' && boundaryData.hasVehicles === 'No' && boundaryData.hasEquipment === 'No' && ' (No additional steps required)'}
+                <strong>{t('dashboard.setupConfiguration')}:</strong> {t('dashboard.setupConfigurationDescription')} 
+                {t('dashboard.boundary')}
+                {boundaryData.hasFacilities === 'Yes' && ` ${t('dashboard.facilities')}`}
+                {boundaryData.hasVehicles === 'Yes' && ` ${t('dashboard.vehicles')}`}
+                {boundaryData.hasEquipment === 'Yes' && ` ${t('dashboard.equipment')}`}
+                {boundaryData.hasFacilities === 'No' && boundaryData.hasVehicles === 'No' && boundaryData.hasEquipment === 'No' && ` (${t('dashboard.noAdditionalSteps')})`}
               </p>
             </div>
           )}
@@ -463,7 +458,7 @@ export default function StepsPage() {
               {(() => {
                 const mainRequiredSteps = getMainRequiredSteps();
                 const mainCompleted = mainRequiredSteps.filter(step => completedSteps.has(step.id)).length;
-                return `Main Setup Progress: ${mainCompleted} of ${mainRequiredSteps.length} completed`;
+                return `${t('dashboard.mainSetupProgress')}: ${mainCompleted} ${t('common.of')} ${mainRequiredSteps.length} ${t('common.completed')}`;
               })()}
             </span>
             <span className="text-sm font-medium text-gray-700">
@@ -484,7 +479,7 @@ export default function StepsPage() {
                 {(() => {
                   const optionalSteps = ['departments', 'roles', 'users'];
                   const optionalCompleted = optionalSteps.filter(stepId => completedSteps.has(stepId)).length;
-                  return `Optional Steps: ${optionalCompleted} of ${optionalSteps.length} completed`;
+                  return `${t('dashboard.optionalSteps')}: ${optionalCompleted} ${t('common.of')} ${optionalSteps.length} ${t('common.completed')}`;
                 })()}
               </span>
             </div>
@@ -505,184 +500,152 @@ export default function StepsPage() {
           {/* Steps Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Setup Progress</h2>
-                             <div className="space-y-4">
-                 {(() => {
-                   const currentSteps = getSteps(boundaryData);
-                   return currentSteps.map((step, index) => {
-                     // Only show steps that should be visible based on boundary data
-                     if (!isStepVisible(step.id)) {
-                       return null;
-                     }
-                     
-                     const status = getStepStatus(step.id);
-                     const isCompleted = status === 'completed';
-                     const isCurrent = status === 'current';
-                     
-                     return (
-                       <div
-                         key={step.id}
-                         className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                           isCurrent ? 'bg-green-50 border border-green-200' : ''
-                         }`}
-                       >
-                         <div className="flex-shrink-0">
-                           {isCompleted ? (
-                             <CheckCircle className="h-6 w-6 text-[#0D5942]" />
-                           ) : (
-                             <Circle className={`h-6 w-6 ${
-                               isCurrent ? 'text-[#0D5942]' : 'text-gray-300'
-                             }`} />
-                           )}
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <p className={`text-sm font-medium ${
-                             isCompleted ? 'text-green-900' : isCurrent ? 'text-green-800' : 'text-gray-500'
-                           }`}>
-                             {step.title}
-                             {step.optional && <span className="text-xs text-blue-600 ml-1">(Optional)</span>}
-                             {step.skippable && step.id !== 'boundary' && <span className="text-xs text-orange-600 ml-1">(Skippable)</span>}
-                           </p>
-                           <p className={`text-xs ${
-                             isCompleted ? 'text-green-700' : isCurrent ? 'text-[#0D5942]' : 'text-gray-400'
-                           }`}>
-                             {step.description}
-                           </p>
-                         </div>
-                       </div>
-                     );
-                   });
-                 })()}
-               </div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('dashboard.setupProgress')}</h2>
+              <div className="space-y-4">
+                {(() => {
+                  const currentSteps = getSteps(boundaryData);
+                  return currentSteps.map((step, index) => {
+                    if (!isStepVisible(step.id)) {
+                      return null;
+                    }
+
+                    const isCompleted = completedSteps.has(step.id);
+                    const isCurrent = index === currentStep;
+                    const isOptional = step.optional;
+
+                    return (
+                      <div
+                        key={step.id}
+                        className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                          isCurrent
+                            ? 'bg-[#0D5942] text-white shadow-md'
+                            : isCompleted
+                            ? 'bg-green-50 text-green-700 border border-green-200'
+                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                        }`}
+                        onClick={() => setCurrentStep(index)}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                        ) : (
+                          <Circle className="h-5 w-5 flex-shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${isCurrent ? 'text-white' : ''}`}>
+                            {step.title}
+                          </p>
+                          <p className={`text-xs ${isCurrent ? 'text-white opacity-90' : 'text-gray-500'}`}>
+                            {step.description}
+                          </p>
+                          {isOptional && (
+                            <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                              {t('dashboard.optional')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Main Content Area */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              {/* Step Header */}
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {steps[currentStep].title}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {steps[currentStep].description}
-                    </p>
-                  </div>
-                                     <div className="flex items-center space-x-2">
-                     <span className="text-sm text-gray-500">
-                       {(() => {
-                         const currentSteps = getSteps(boundaryData);
-                         const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-                         const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-                         return `${currentVisibleIndex + 1} of ${visibleSteps.length}`;
-                       })()}
-                     </span>
-                   </div>
-                </div>
-              </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              {(() => {
+                const currentSteps = getSteps(boundaryData);
+                const CurrentStepComponent = currentSteps[currentStep]?.component;
+                
+                if (!CurrentStepComponent) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500">{t('common.error')}</p>
+                    </div>
+                  );
+                }
 
-              {/* Step Content */}
-              <div className="p-6">
-                <CurrentStepComponent onComplete={handleStepComplete} />
-              </div>
-
-              {/* Step Navigation */}
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={handlePrevious}
-                    disabled={currentStep === 0}
-                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                      currentStep === 0
-                        ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200'
-                    }`}
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Previous
-                  </button>
-
-                  <div className="flex items-center space-x-3">
-                    {/* Skip button for all steps except boundary and last step */}
-                    {(() => {
-                      const currentSteps = getSteps(boundaryData);
-                      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-                      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-                      const isLastStep = currentVisibleIndex === visibleSteps.length - 1;
-                      
-                      return steps[currentStep].skippable && 
-                             steps[currentStep].id !== 'boundary' && 
-                             !isLastStep ? (
-                        <button
-                          onClick={handleStepSkip}
-                          className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                        >
-                          Skip This Step
-                        </button>
-                      ) : null;
-                    })()}
-                    
-                    {/* Skip All Steps button */}
-                    <button
-                      onClick={() => {
-                        // Mark all visible steps as completed
-                        const currentSteps = getSteps(boundaryData);
-                        const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-                        
-                        visibleSteps.forEach(step => {
-                          if (!completedSteps.has(step.id)) {
-                            storeStepCompletion(step.id, { skipped: true });
-                          }
-                        });
-                        
-                        // Update completed steps state
-                        const allStepIds = visibleSteps.map(step => step.id);
-                        setCompletedSteps(new Set(allStepIds));
-                        
-                        // Navigate to dashboard
-                        toast.success("All steps skipped successfully!");
-                        router.push('/dashboard');
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-orange-600 border border-orange-300 rounded-md hover:bg-orange-50 transition-colors"
-                    >
-                      Skip All Steps
-                    </button>
-                    
-                    {(() => {
-                      const currentSteps = getSteps(boundaryData);
-                      const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
-                      const currentVisibleIndex = visibleSteps.findIndex(step => step.id === steps[currentStep].id);
-                      
-                      if (currentVisibleIndex < visibleSteps.length - 1) {
-                        return (
-                          <button
-                            onClick={handleNext}
-                            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-[#0D5942] rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            Next
-                            <ArrowRight className="h-4 w-4" />
-                          </button>
-                        );
-                      } else {
-                        return (
-                          <button
-                            onClick={() => allMainRequiredStepsCompleted && router.push('/dashboard')}
-                            disabled={!allMainRequiredStepsCompleted}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${allMainRequiredStepsCompleted ? 'bg-[#0D5942] hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
-                          >
-                            Complete Setup
-                            <CheckCircle className="h-4 w-4" />
-                          </button>
-                        );
-                      }
-                    })()}
-                  </div>
-                </div>
-              </div>
+                return (
+                  <CurrentStepComponent
+                    onComplete={handleStepComplete}
+                  />
+                );
+              })()}
             </div>
+          </div>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="mt-8 flex justify-between">
+          <button
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-colors ${
+              currentStep === 0
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-600 text-white hover:bg-gray-700'
+            }`}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>{t('common.previous')}</span>
+          </button>
+
+          <div className="flex space-x-3">
+            {steps[currentStep]?.skippable && (
+              <button
+                onClick={handleStepSkip}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors"
+              >
+                {t('dashboard.skipThisStep')}
+              </button>
+            )}
+
+            {/* Skip All Steps */}
+            <button
+              onClick={() => {
+                const currentSteps = getSteps(boundaryData);
+                const visibleSteps = currentSteps.filter(step => isStepVisible(step.id));
+                visibleSteps.forEach(step => {
+                  if (!completedSteps.has(step.id)) {
+                    storeStepCompletion(step.id, { skipped: true });
+                  }
+                });
+                const allStepIds = visibleSteps.map(step => step.id);
+                setCompletedSteps(new Set(allStepIds));
+                toast.success(t('dashboard.allStepsSkipped'));
+                router.push('/dashboard');
+              }}
+              className="px-4 py-2 text-orange-700 bg-orange-100 hover:bg-orange-200 rounded-md font-medium transition-colors"
+            >
+              {t('dashboard.skipAllSteps')}
+            </button>
+
+            {/* Complete Setup */}
+            <button
+              onClick={() => allMainRequiredStepsCompleted && router.push('/dashboard')}
+              disabled={!allMainRequiredStepsCompleted}
+              className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                allMainRequiredStepsCompleted
+                  ? 'bg-[#0D5942] text-white hover:bg-[#0A4A37]'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {t('dashboard.completeSetup')}
+            </button>
+            
+            <button
+              onClick={handleNext}
+              disabled={currentStep === steps.length - 1}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-colors ${
+                currentStep === steps.length - 1
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-[#0D5942] text-white hover:bg-[#0A4A37]'
+              }`}
+            >
+              <span>{currentStep === steps.length - 1 ? t('common.finish') : t('common.next')}</span>
+              {currentStep < steps.length - 1 && <ArrowRight className="h-4 w-4" />}
+            </button>
           </div>
         </div>
       </div>

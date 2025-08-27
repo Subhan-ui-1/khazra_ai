@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useI18n } from "@/i18n/context";
 
 export interface FormField {
   name: string;
@@ -69,6 +70,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   onClose,
   confirmationMessage = "Do you really want to perform this action?",
 }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -76,7 +78,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
   // Initialize form data with initial values and update when initialData changes
   useEffect(() => {
-    setFormData((prev) => {
+    setFormData((prev: any) => {
       const updatedFormData = { ...prev };
       fields.forEach((field) => {
         if (initialData[field.name] !== undefined) {
@@ -230,7 +232,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     setShowConfirmation(false);
     setPendingFormData(null);
   };
-  const maxim = (type)=>{
+  const maxim = (type: string): string | undefined => {
     const today = new Date();
     const year = today.getFullYear();
     let month = today.getMonth() + 1; // Months are 0-indexed
@@ -238,16 +240,17 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
     // Pad month and day with leading zeros if necessary
     if (month < 10) {
-        month = '0' + month;
+        month = Number('0' + month);
     }
     if (day < 10) {
-        day = '0' + day;
+        day = Number('0' + day);
     }
 
     const maxDate = `${year}-${month}-${day}`;
     if(type === 'date'){
       return maxDate;
     } 
+    return undefined;
   }
 
   const renderField = (field: FormField) => {
@@ -460,7 +463,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Loading...
+                  {t('common.loading')}
                 </>
               ) : (
                 <>
@@ -516,7 +519,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
               </div>
               <div className="ml-3">
                 <h3 className="text-lg font-medium text-gray-900">
-                  Confirm Action
+                  {t('boundary.confirmAction')}
                 </h3>
               </div>
             </div>
@@ -529,14 +532,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 onClick={handleCancelSubmit}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
-                No, Cancel
+                {t('boundary.noCancel')}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmSubmit}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
-                Yes, Continue
+                {t('boundary.yesContinue')}
               </button>
             </div>
           </div>

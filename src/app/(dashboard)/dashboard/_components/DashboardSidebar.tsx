@@ -6,6 +6,7 @@ import { usePermissions } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import Link from "next/link";
 import Image from "next/image";
+import { useI18n } from "@/i18n/context";
 
 interface DashboardSidebarProps {
   activeSection: string;
@@ -29,6 +30,7 @@ export default function DashboardSidebar({
   activeSection,
   onSectionChange,
 }: DashboardSidebarProps) {
+  const { t } = useI18n();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
@@ -73,8 +75,8 @@ export default function DashboardSidebar({
         {
           section: "Overview",
           items: [
-            { id: "overview", icon: "📊", label: "Dashboard Overview" },
-            { id: "data-collection", icon: "📥", label: "Data Collection" },
+            { id: "overview", icon: "📊", label: t("dashboard.dashboardOverview") },
+            { id: "data-collection", icon: "📥", label: t("dashboard.dataCollection") },
           ],
         },
         {

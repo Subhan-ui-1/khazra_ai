@@ -7,6 +7,7 @@ import { icons } from "@/components/icons/icons";
 import Link from 'next/link';
 import { IoClose } from 'react-icons/io5';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import LanguageSwitcher from '@/components/languageSwitcher/LanguageSwitcher';
 
 const sidebarItems = [
     {
@@ -158,6 +159,11 @@ const Sidebar = () => {
                     )}
                     </SidebarItem>
                 ))}
+            </div>
+
+            {/* Language Switcher */}
+            <div className="px-3 mb-4">
+                <LanguageSwitcher />
             </div>
 
             {/* Bottom Profile */}
