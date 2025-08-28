@@ -15,6 +15,7 @@ import AddVehicleSection from '../_components/sections/AddVehicleSection';
 import AddEquipmentSection from '../_components/sections/AddEquipmentSection';
 import AddRoleSection from '../_components/sections/AddRoleSection';
 import AddUserSection from '../_components/sections/AddUserSection';
+import AddEmissionSection from '../_components/sections/AddEmissionSection';
 
 interface SetupStatus {
   hasBoundary: boolean;
@@ -28,6 +29,7 @@ interface BoundaryData {
   hasVehicles: string;
   hasFacilities: string;
   hasEquipment: string;
+  hasBaselineEmissions?: string;
 }
 
 // Dynamic steps based on boundary responses
@@ -38,6 +40,16 @@ const getSteps = (boundaryData?: BoundaryData) => [
     description: 'Set up your organization boundaries and baseline information',
     component: AddBoundarySection,
     required: true
+  },
+  {
+    id: 'emissions',
+    title: 'Baseline Emissions',
+    description: 'Add your baseline emissions (Optional - if selected in boundary)',
+    component: AddEmissionSection,
+    required: false,
+    show: boundaryData?.hasBaselineEmissions === 'Yes',
+    optional: true,
+    skippable: true
   },
   {
     id: 'facilities',
@@ -66,37 +78,37 @@ const getSteps = (boundaryData?: BoundaryData) => [
     show: boundaryData?.hasEquipment === 'Yes',
     skippable: true
   },
-  // Optional steps that don't affect main progress
-  {
-    id: 'departments',
-    title: 'Add Departments',
-    description: 'Create organizational departments and structure (Optional)',
-    component: AddDepartmentSection,
-    required: false,
-    show: true,
-    optional: true,
-    skippable: true
-  },
-  {
-    id: 'roles',
-    title: 'Add Roles',
-    description: 'Define user roles and permissions (Optional)',
-    component: AddRoleSection,
-    required: false,
-    show: true,
-    optional: true,
-    skippable: true
-  },
-  {
-    id: 'users',
-    title: 'Add Users',
-    description: 'Invite team members to your organization (Optional)',
-    component: AddUserSection,
-    required: false,
-    show: true,
-    optional: true,
-    skippable: true
-  }
+  // // Optional steps that don't affect main progress
+  // {
+  //   id: 'departments',
+  //   title: 'Add Departments',
+  //   description: 'Create organizational departments and structure (Optional)',
+  //   component: AddDepartmentSection,
+  //   required: false,
+  //   show: true,
+  //   optional: true,
+  //   skippable: true
+  // },
+  // {
+  //   id: 'roles',
+  //   title: 'Add Roles',
+  //   description: 'Define user roles and permissions (Optional)',
+  //   component: AddRoleSection,
+  //   required: false,
+  //   show: true,
+  //   optional: true,
+  //   skippable: true
+  // },
+  // {
+  //   id: 'users',
+  //   title: 'Add Users',
+  //   description: 'Invite team members to your organization (Optional)',
+  //   component: AddUserSection,
+  //   required: false,
+  //   show: true,
+  //   optional: true,
+  //   skippable: true
+  // }
 ];
 
 export default function StepsPage() {
@@ -144,7 +156,8 @@ export default function StepsPage() {
         boundaryInfo = {
           hasVehicles: (cachedBoundary.vehicleCount || 0) > 0 ? 'Yes' : 'No',
           hasFacilities: (cachedBoundary.facilityCount || 0) > 0 ? 'Yes' : 'No',
-          hasEquipment: (cachedBoundary.equipmentCount || 0) > 0 ? 'Yes' : 'No'
+          hasEquipment: (cachedBoundary.equipmentCount || 0) > 0 ? 'Yes' : 'No',
+          hasBaselineEmissions: (cachedBoundary.baselineEmissions || 0) > 0 || cachedBoundary.baselineEmissionsAvailable ? 'Yes' : 'No'
         };
         setBoundaryData(boundaryInfo);
       } else {
@@ -156,7 +169,8 @@ export default function StepsPage() {
           boundaryInfo = {
             hasVehicles: boundary.vehicleCount > 0 ? 'Yes' : 'No',
             hasFacilities: boundary.facilityCount > 0 ? 'Yes' : 'No',
-            hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No'
+            hasEquipment: boundary.equipmentCount > 0 ? 'Yes' : 'No',
+            hasBaselineEmissions: (boundary.baselineEmissions || 0) > 0 || boundary.baselineEmissionsAvailable ? 'Yes' : 'No'
           };
           setBoundaryData(boundaryInfo);
         }
@@ -200,6 +214,7 @@ export default function StepsPage() {
       const isVisibleWith = (bd: BoundaryData | undefined, id: string) => {
         if (id === 'boundary') return true;
         if (!bd) return false;
+        if (id === 'emissions') return bd.hasBaselineEmissions === 'Yes';
         if (id === 'facilities') return bd.hasFacilities === 'Yes';
         if (id === 'vehicles') return bd.hasVehicles === 'Yes';
         if (id === 'equipment') return bd.hasEquipment === 'Yes';
@@ -258,6 +273,7 @@ export default function StepsPage() {
       const currentSteps = getSteps(newBoundaryInfo);
       const visibleSteps = currentSteps.filter(step => {
         if (step.id === 'boundary') return true;
+        if (step.id === 'emissions') return newBoundaryInfo.hasBaselineEmissions === 'Yes';
         if (step.id === 'facilities') return newBoundaryInfo.hasFacilities === 'Yes';
         if (step.id === 'vehicles') return newBoundaryInfo.hasVehicles === 'Yes';
         if (step.id === 'equipment') return newBoundaryInfo.hasEquipment === 'Yes';
@@ -350,6 +366,7 @@ export default function StepsPage() {
     if (!boundaryData) return false;
     
     // Main required steps based on boundary data
+    if (stepId === 'emissions') return boundaryData.hasBaselineEmissions === 'Yes';
     if (stepId === 'facilities') return boundaryData.hasFacilities === 'Yes';
     if (stepId === 'vehicles') return boundaryData.hasVehicles === 'Yes';
     if (stepId === 'equipment') return boundaryData.hasEquipment === 'Yes';
@@ -364,7 +381,7 @@ export default function StepsPage() {
   const getMainRequiredSteps = () => {
     const currentSteps = getSteps(boundaryData);
     return currentSteps.filter(step => 
-      ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+      ['boundary', 'emissions', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
       isStepVisible(step.id)
     );
   };
@@ -398,7 +415,7 @@ export default function StepsPage() {
   const allRequiredStepsCompleted = (() => {
     const currentStepsDef = getSteps(boundaryData);
     const mainRequiredSteps = currentStepsDef.filter(step => 
-      ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+      ['boundary', 'emissions', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
       isStepVisible(step.id)
     );
     return mainRequiredSteps.every(step => completedSteps.has(step.id));
@@ -408,7 +425,7 @@ export default function StepsPage() {
   const mainSteps = (() => {
     const currentSteps = getSteps(boundaryData);
     return currentSteps.filter(step => 
-      ['boundary', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
+      ['boundary', 'emissions', 'facilities', 'vehicles', 'equipment'].includes(step.id) &&
       isStepVisible(step.id)
     );
   })();

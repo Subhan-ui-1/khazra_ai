@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-import { getRequest, postRequest } from '@/utils/api';
-import { usePermissions, PermissionGuard } from '@/utils/permissions';
-import { safeLocalStorage } from '@/utils/localStorage';
-import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
-import { Edit3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { getRequest, postRequest } from "@/utils/api";
+import { usePermissions, PermissionGuard } from "@/utils/permissions";
+import { safeLocalStorage } from "@/utils/localStorage";
+import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
+import { Edit3, Paperclip } from "lucide-react";
+import FileUploadModal from "@/components/FileUploadModal";
 
 interface UserFormData {
   firstName: string;
@@ -55,54 +56,68 @@ interface User {
   updatedAt: string;
   createdBy?: {
     firstName: string;
-  }
+  };
 }
 
 // Country code options for Saudi Arabia and UAE
 const countryCodes = [
-  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
-  { code: '+971', country: 'UAE', flag: '🇦🇪' }
+  { code: "+966", country: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+971", country: "UAE", flag: "🇦🇪" },
 ];
 
 // Phone number validation patterns
 const phoneValidationPatterns = {
-  '+966': /^5[0-9]{8}$/, // Saudi Arabia: 5XXXXXXXX (9 digits starting with 5)
-  '+971': /^5[0-9]{8}$/  // UAE: 5XXXXXXXX (9 digits starting with 5)
+  "+966": /^5[0-9]{8}$/, // Saudi Arabia: 5XXXXXXXX (9 digits starting with 5)
+  "+971": /^5[0-9]{8}$/, // UAE: 5XXXXXXXX (9 digits starting with 5)
 };
 
 // Phone validation function
-const validatePhoneNumber = (countryCode: string, phoneNumber: string): { isValid: boolean; message: string } => {
+const validatePhoneNumber = (
+  countryCode: string,
+  phoneNumber: string
+): { isValid: boolean; message: string } => {
   // Handle undefined/null values
-  if (!phoneNumber || typeof phoneNumber !== 'string') {
-    return { isValid: true, message: '' }; // Phone is optional
+  if (!phoneNumber || typeof phoneNumber !== "string") {
+    return { isValid: true, message: "" }; // Phone is optional
   }
 
   const trimmedPhone = phoneNumber.trim();
   if (!trimmedPhone) {
-    return { isValid: true, message: '' }; // Phone is optional
+    return { isValid: true, message: "" }; // Phone is optional
   }
 
   if (!countryCode) {
-    return { isValid: false, message: 'Please select a country code' };
+    return { isValid: false, message: "Please select a country code" };
   }
 
-  const pattern = phoneValidationPatterns[countryCode as keyof typeof phoneValidationPatterns];
+  const pattern =
+    phoneValidationPatterns[
+      countryCode as keyof typeof phoneValidationPatterns
+    ];
   if (!pattern) {
-    return { isValid: false, message: 'Invalid country code' };
+    return { isValid: false, message: "Invalid country code" };
   }
 
   // Remove any non-digit characters from phone number
-  const cleanPhone = trimmedPhone.replace(/\D/g, '');
-  
+  const cleanPhone = trimmedPhone.replace(/\D/g, "");
+
   if (!pattern.test(cleanPhone)) {
-    if (countryCode === '+966') {
-      return { isValid: false, message: 'Saudi Arabia phone number must be 9 digits starting with 5 (e.g., 501234567)' };
-    } else if (countryCode === '+971') {
-      return { isValid: false, message: 'UAE phone number must be 9 digits starting with 5 (e.g., 501234567)' };
+    if (countryCode === "+966") {
+      return {
+        isValid: false,
+        message:
+          "Saudi Arabia phone number must be 9 digits starting with 5 (e.g., 501234567)",
+      };
+    } else if (countryCode === "+971") {
+      return {
+        isValid: false,
+        message:
+          "UAE phone number must be 9 digits starting with 5 (e.g., 501234567)",
+      };
     }
   }
 
-  return { isValid: true, message: '' };
+  return { isValid: true, message: "" };
 };
 
 const AddUserSection = () => {
@@ -111,6 +126,7 @@ const AddUserSection = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [loadingRoles, setLoadingRoles] = useState(false);
@@ -118,16 +134,16 @@ const AddUserSection = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
-  
-  const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
-  
+
+  const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
+
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
-    router.push('/login');
+    router.push("/login");
   }
 
   // Check if user has permission to view users
-  if (!canView('user')) {
+  if (!canView("user")) {
     return (
       <div className="p-8 text-center text-gray-500">
         You don't have permission to view users.
@@ -136,24 +152,24 @@ const AddUserSection = () => {
   }
 
   const [formData, setFormData] = useState<UserFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNo: '',
-    countryCode: '',
-    departmentId: '',
-    roleId: ''
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNo: "",
+    countryCode: "",
+    departmentId: "",
+    roleId: "",
   });
 
   const [filters, setFilters] = useState<FilterState>({
-    search: '',
-    sortBy: 'createdAt',
-    sortOrder: 'asc',
+    search: "",
+    sortBy: "createdAt",
+    sortOrder: "asc",
     page: 1,
     limit: 10,
-    department: '',
-    role: '',
-    isVerified: ''
+    department: "",
+    role: "",
+    isVerified: "",
   });
 
   // Fetch users, departments, and roles on component mount
@@ -168,29 +184,31 @@ const AddUserSection = () => {
     if (showForm) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [showForm]);
 
   const getOrganizationId = () => {
-    const user = safeLocalStorage.getItem('user');
+    const user = safeLocalStorage.getItem("user");
     const userData = JSON.parse(user || "");
     return userData.organization;
-  }
+  };
 
   const fetchUsers = async () => {
     try {
-      const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
+      const user = JSON.parse(safeLocalStorage.getItem("user") || "");
       setLoading(true);
-      
 
       const queryParams = new URLSearchParams({
         page: filters.page.toString(),
         limit: filters.limit.toString(),
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
-        department: user.department.name.toLowerCase()==='administration'?"":user.department._id,
+        department:
+          user.department.name.toLowerCase() === "administration"
+            ? ""
+            : user.department._id,
         ...(filters.search && { search: filters.search }),
         ...(filters.department && { department: filters.department }),
         ...(filters.role && { role: filters.role }),
@@ -201,7 +219,7 @@ const AddUserSection = () => {
         `user/getUsers?${queryParams}`,
         tokenData.accessToken
       );
-      
+
       if (response.success) {
         setUserData(response.data.users || []);
       } else {
@@ -220,16 +238,20 @@ const AddUserSection = () => {
     try {
       setLoadingDepartments(true);
       const response = await getRequest(
-        'departments/getDepartments?limit=100',
+        "departments/getDepartments?limit=100",
         tokenData.accessToken
       );
-      
+
       if (response.success) {
-        const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
-        if(user.role.name === 'superadmin'){
+        const user = JSON.parse(safeLocalStorage.getItem("user") || "");
+        if (user.role.name === "superadmin") {
           setDepartments(response.data.departments || []);
-        }else{
-          setDepartments(response.data.departments.filter((e:any)=>e.name !== 'Administration') || []);
+        } else {
+          setDepartments(
+            response.data.departments.filter(
+              (e: any) => e.name !== "Administration"
+            ) || []
+          );
         }
       } else {
         // toast.error(response.message || "Failed to fetch departments");
@@ -247,16 +269,19 @@ const AddUserSection = () => {
     try {
       setLoadingRoles(true);
       const response = await getRequest(
-        'roles/getRoles?limit=100',
+        "roles/getRoles?limit=100",
         tokenData.accessToken
       );
-      
+
       if (response.success) {
-        const user = JSON.parse(safeLocalStorage.getItem('user')|| '')
-        if(user.role.name === 'superadmin'){
+        const user = JSON.parse(safeLocalStorage.getItem("user") || "");
+        if (user.role.name === "superadmin") {
           setRoles(response.data.roles || []);
-        }else{
-          setRoles(response.data.roles.filter((e:any)=>e.name !== 'superadmin') || []);
+        } else {
+          setRoles(
+            response.data.roles.filter((e: any) => e.name !== "superadmin") ||
+              []
+          );
         }
       } else {
         // toast.error(response.message || "Failed to fetch roles");
@@ -271,25 +296,26 @@ const AddUserSection = () => {
   };
 
   const getBoundaryId = () => {
-    const user = safeLocalStorage.getItem('user');
+    const user = safeLocalStorage.getItem("user");
     const userData = JSON.parse(user || "");
     return userData.boundary;
-  }
+  };
 
   const handleEdit = (user: User) => {
     // Extract country code from phone number if it exists
-    const phoneParts = user.phoneNo?.split(' ') || [];
-    const countryCode = phoneParts.length > 1 ? phoneParts[0] : '';
-    const phoneNumber = phoneParts.length > 1 ? phoneParts.slice(1).join(' ') : user.phoneNo;
-    
+    const phoneParts = user.phoneNo?.split(" ") || [];
+    const countryCode = phoneParts.length > 1 ? phoneParts[0] : "";
+    const phoneNumber =
+      phoneParts.length > 1 ? phoneParts.slice(1).join(" ") : user.phoneNo;
+
     setFormData({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       phoneNo: phoneNumber,
       countryCode: countryCode,
-      departmentId: user.department?._id || '',
-      roleId: user.role?._id || ''
+      departmentId: user.department?._id || "",
+      roleId: user.role?._id || "",
     });
     setEditingUser(user);
     setShowForm(true);
@@ -308,7 +334,7 @@ const AddUserSection = () => {
         tokenData.accessToken,
         "delete"
       );
-      
+
       if (response.success) {
         toast.success("User deleted successfully");
         fetchUsers();
@@ -321,114 +347,132 @@ const AddUserSection = () => {
 
   const resetForm = () => {
     setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phoneNo: '',
-      countryCode: '',
-      departmentId: '',
-      roleId: ''
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNo: "",
+      countryCode: "",
+      departmentId: "",
+      roleId: "",
     });
     setEditingUser(null);
     setShowForm(false);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const createDP = (name: string) => {
-    return name.split(' ').map((e:string)=>e.charAt(0).toUpperCase()).join('');
-  }
+    return name
+      .split(" ")
+      .map((e: string) => e.charAt(0).toUpperCase())
+      .join("");
+  };
 
   // Form fields configuration
   const userFormFields: FormField[] = [
     {
-      name: 'firstName',
-      label: 'First Name',
-      type: 'text',
+      name: "firstName",
+      label: "First Name",
+      type: "text",
       required: true,
-      placeholder: 'Enter first name'
+      placeholder: "Enter first name",
     },
     {
-      name: 'lastName',
-      label: 'Last Name',
-      type: 'text',
+      name: "lastName",
+      label: "Last Name",
+      type: "text",
       required: true,
-      placeholder: 'Enter last name'
+      placeholder: "Enter last name",
     },
     {
-      name: 'email',
-      label: 'Email Address (Work email only)',
-      type: 'email',
+      name: "email",
+      label: "Email Address (Work email only)",
+      type: "email",
       required: true,
-      placeholder: 'Enter work email address',
+      placeholder: "Enter work email address",
       validation: {
         pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        message: 'Please enter a valid email address'
-      }
+        message: "Please enter a valid email address",
+      },
     },
     {
-      name: 'phoneNo',
-      label: 'Phone Number',
-      type: 'phone',
-      placeholder: 'Enter phone number',
+      name: "phoneNo",
+      label: "Phone Number",
+      type: "phone",
+      placeholder: "Enter phone number",
       maxLength: 9,
       options: [
-        { value: '+966', label: 'Saudi Arabia', flag: '🇸🇦', code: '+966' },
-        { value: '+971', label: 'UAE', flag: '🇦🇪', code: '+971' }
+        { value: "+966", label: "Saudi Arabia", flag: "🇸🇦", code: "+966" },
+        { value: "+971", label: "UAE", flag: "🇦🇪", code: "+971" },
       ],
       validation: {
-        custom: ({ countryCode, phoneNumber }: { countryCode: string; phoneNumber: string }) => {
+        custom: ({
+          countryCode,
+          phoneNumber,
+        }: {
+          countryCode: string;
+          phoneNumber: string;
+        }) => {
           return validatePhoneNumber(countryCode, phoneNumber);
-        }
-      }
+        },
+      },
     },
     {
-      name: 'departmentId',
-      label: 'Department',
-      type: 'select',
+      name: "departmentId",
+      label: "Department",
+      type: "select",
       required: true,
-      placeholder: 'Select Department',
-      options: departments.map(dept => ({ value: dept._id, label: dept.name }))
+      placeholder: "Select Department",
+      options: departments.map((dept) => ({
+        value: dept._id,
+        label: dept.name,
+      })),
     },
     {
-      name: 'roleId',
-      label: 'Role',
-      type: 'select',
+      name: "roleId",
+      label: "Role",
+      type: "select",
       required: true,
-      placeholder: 'Select Role',
-      options: roles.map(role => ({ value: role._id, label: role.name }))
-    }
+      placeholder: "Select Role",
+      options: roles.map((role) => ({ value: role._id, label: role.name })),
+    },
   ];
 
   const handleFormSubmit = async (data: any) => {
     setSubmitting(true);
     try {
       // Safely format phone number with country code if provided
-      let formattedPhoneNo = '';
-      if (data.phoneNo && typeof data.phoneNo === 'string' && data.phoneNo.trim()) {
-        const countryCode = data.countryCode || '';
-        formattedPhoneNo = countryCode ? `${countryCode} ${data.phoneNo.trim()}` : data.phoneNo.trim();
+      let formattedPhoneNo = "";
+      if (
+        data.phoneNo &&
+        typeof data.phoneNo === "string" &&
+        data.phoneNo.trim()
+      ) {
+        const countryCode = data.countryCode || "";
+        formattedPhoneNo = countryCode
+          ? `${countryCode} ${data.phoneNo.trim()}`
+          : data.phoneNo.trim();
       }
-      
+
       const userData = {
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        email: data.email || '',
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        email: data.email || "",
         phoneNo: formattedPhoneNo,
-        departmentId: data.departmentId || '',
-        roleId: data.roleId || '',
+        departmentId: data.departmentId || "",
+        roleId: data.roleId || "",
         organizationId: getOrganizationId(),
-        boundaryId: getBoundaryId()
+        boundaryId: getBoundaryId(),
       };
 
       let response;
-      
+
       if (editingUser) {
         // Update existing user
         response = await postRequest(
@@ -448,9 +492,13 @@ const AddUserSection = () => {
           "post"
         );
       }
-      
+
       if (response.success) {
-        toast.success(editingUser ? "User updated successfully" : "User created successfully");
+        toast.success(
+          editingUser
+            ? "User updated successfully"
+            : "User created successfully"
+        );
         resetForm();
         fetchUsers();
       }
@@ -465,7 +513,7 @@ const AddUserSection = () => {
   // Selection handlers
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUsers(userData.map(user => user._id));
+      setSelectedUsers(userData.map((user) => user._id));
     } else {
       setSelectedUsers([]);
     }
@@ -473,19 +521,23 @@ const AddUserSection = () => {
 
   const handleSelectUser = (userId: string, checked: boolean) => {
     if (checked) {
-      setSelectedUsers(prev => [...prev, userId]);
+      setSelectedUsers((prev) => [...prev, userId]);
     } else {
-      setSelectedUsers(prev => prev.filter(id => id !== userId));
+      setSelectedUsers((prev) => prev.filter((id) => id !== userId));
     }
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedUsers.length} selected users?`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${selectedUsers.length} selected users?`
+      )
+    ) {
       return;
     }
 
     try {
-      const deletePromises = selectedUsers.map(userId => 
+      const deletePromises = selectedUsers.map((userId) =>
         postRequest(
           `user/deleteUser/${userId}`,
           {},
@@ -507,7 +559,7 @@ const AddUserSection = () => {
 
   const handleBulkVerify = async () => {
     try {
-      const verifyPromises = selectedUsers.map(userId => 
+      const verifyPromises = selectedUsers.map((userId) =>
         postRequest(
           `user/verifyUser/${userId}`,
           {},
@@ -523,68 +575,116 @@ const AddUserSection = () => {
       fetchUsers();
     } catch (error: any) {
       //  toast.error(error.message || "Failed to verify some users");
-        return;
+      return;
     }
   };
-
+  const inputRef = useRef<HTMLInputElement | null>(null);
   return (
-    <div className='flex flex-col gap-6'>
-      <div className='flex justify-between items-center'>
-        <h1 className='text-2xl font-bold text-gray-800'>User Management</h1>
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
         <PermissionGuard permission="user.create">
-          <button
-            onClick={() => setShowForm(true)}
-            className='bg-[#0D5942] hover:bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add User
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowFileModal(true)}
+              className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+            >
+              <Paperclip className="w-5 h-5" />
+              Import Multiple Users
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              disabled={showForm}
+              className="disabled:opacity-50 disabled:cursor-not-allowed bg-[#0D5942] hover:bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add User
+            </button>
+          </div>
         </PermissionGuard>
       </div>
 
       {/* Search and Filter Section */}
-      <div className='bg-white p-4 rounded-lg shadow-sm border border-gray-200'>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <input
-              type='text'
-              placeholder='Search users...'
+              type="text"
+              placeholder="Search users..."
               value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  search: e.target.value,
+                  page: 1,
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             />
           </div>
           <div>
             <select
               value={filters.department}
-              onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value, page: 1 }))}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  department: e.target.value,
+                  page: 1,
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept._id} value={dept._id}>{dept.name}</option>
+                <option key={dept._id} value={dept._id}>
+                  {dept.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
             <select
               value={filters.role}
-              onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value, page: 1 }))}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  role: e.target.value,
+                  page: 1,
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             >
               <option value="">All Roles</option>
               {roles.map((role) => (
-                <option key={role._id} value={role._id}>{role.name}</option>
+                <option key={role._id} value={role._id}>
+                  {role.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
             <select
               value={filters.isVerified}
-              onChange={(e) => setFilters(prev => ({ ...prev, isVerified: e.target.value, page: 1 }))}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  isVerified: e.target.value,
+                  page: 1,
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             >
               <option value="">All Users</option>
               <option value="true">Verified</option>
@@ -592,11 +692,13 @@ const AddUserSection = () => {
             </select>
           </div>
         </div>
-        <div className='flex gap-2 mt-4'>
+        <div className="flex gap-2 mt-4">
           <select
             value={filters.sortBy}
-            onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-            className='px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+            onChange={(e) =>
+              setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
+            }
+            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
           >
             <option value="createdAt">Created Date</option>
             <option value="firstName">First Name</option>
@@ -605,8 +707,10 @@ const AddUserSection = () => {
           </select>
           <select
             value={filters.sortOrder}
-            onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value }))}
-            className='px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500'
+            onChange={(e) =>
+              setFilters((prev) => ({ ...prev, sortOrder: e.target.value }))
+            }
+            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
@@ -616,18 +720,19 @@ const AddUserSection = () => {
 
       {/* Bulk Actions */}
       {selectedUsers.length > 0 && (
-        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-blue-900'>
-                {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedUsers.length} user{selectedUsers.length > 1 ? "s" : ""}{" "}
+                selected
               </span>
             </div>
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
               <PermissionGuard permission="user.update">
                 <button
                   onClick={handleBulkVerify}
-                  className='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
                 >
                   Verify Selected
                 </button>
@@ -635,14 +740,14 @@ const AddUserSection = () => {
               <PermissionGuard permission="user.delete">
                 <button
                   onClick={handleBulkDelete}
-                  className='bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
                 >
                   Delete Selected
                 </button>
               </PermissionGuard>
               <button
                 onClick={() => setSelectedUsers([])}
-                className='bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200'
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
               >
                 Clear Selection
               </button>
@@ -651,117 +756,160 @@ const AddUserSection = () => {
         </div>
       )}
 
-     
-
       {/* Users List */}
-      <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'>
-        <div className='px-6 py-4 border-b border-gray-200'>
-          <h3 className='text-lg font-semibold text-gray-800'>Users</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800">Users</h3>
         </div>
-        
+
         {loading ? (
-          <div className='p-8 text-center'>
-            <svg className="animate-spin h-8 w-8 mx-auto text-green-600" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <div className="p-8 text-center">
+            <svg
+              className="animate-spin h-8 w-8 mx-auto text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
-            <p className='mt-2 text-gray-600'>Loading users...</p>
+            <p className="mt-2 text-gray-600">Loading users...</p>
           </div>
         ) : userData.length === 0 ? (
-          <div className='p-8 text-center'>
-            <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+          <div className="p-8 text-center">
+            <svg
+              className="w-16 h-16 mx-auto text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+              />
             </svg>
-            <p className='mt-2 text-gray-600'>No users found</p>
+            <p className="mt-2 text-gray-600">No users found</p>
             <button
               onClick={() => setShowForm(true)}
-              className='mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200'
+              className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
             >
               Add your first user
             </button>
           </div>
         ) : (
-          <div className='overflow-x-auto'>
-            <table className='w-full'>
-              <thead className='bg-gray-50'>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <input
                       type="checkbox"
-                      checked={selectedUsers.length === userData.length && userData.length > 0}
+                      checked={
+                        selectedUsers.length === userData.length &&
+                        userData.length > 0
+                      }
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                     />
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ID
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Phone
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Department
                   </th>
-                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                      Role
-                    </th>
-                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                      Created By
-                    </th>
-                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                      Created At
-                    </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created At
+                  </th>
                   {/* <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                     Status
                   </th> */}
-                  
-                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className='bg-white divide-y divide-gray-200'>
-                {userData.map((user,i) => (
-                  <tr key={user._id} className='hover:bg-gray-50'>
-                    <td className='px-6 py-4 whitespace-nowrap'>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {userData.map((user, i) => (
+                  <tr key={user._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={selectedUsers.includes(user._id)}
-                        onChange={(e) => handleSelectUser(user._id, e.target.checked)}
+                        onChange={(e) =>
+                          handleSelectUser(user._id, e.target.checked)
+                        }
                         className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                       />
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm font-medium text-gray-900'>US-{i+1}</div>
-                    </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm font-medium text-gray-900'>
-                        <span className='bg-gray-300 rounded-full text-gray-600 p-2 mr-1 text-xs size-8'>{createDP(`${user.firstName} ${user.lastName}`)}</span> {user.firstName} {user.lastName}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        US-{i + 1}
                       </div>
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm text-gray-900'>{user.email}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        <span className="bg-gray-300 rounded-full text-gray-600 p-2 mr-1 text-xs size-8">
+                          {createDP(`${user.firstName} ${user.lastName}`)}
+                        </span>{" "}
+                        {user.firstName} {user.lastName}
+                      </div>
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm text-gray-500'>{user.phoneNo || 'N/A'}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.email}</div>
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm text-gray-900'>{user.department?.name || 'N/A'}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {user.phoneNo || "N/A"}
+                      </div>
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm text-gray-900'>{user.role?.name || 'N/A'}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {user.department?.name || "N/A"}
+                      </div>
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm text-gray-900'>{user.createdBy?.firstName || 'N/A'}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {user.role?.name || "N/A"}
+                      </div>
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <div className='text-sm text-gray-900'>{formatDate(user.createdAt)}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {user.createdBy?.firstName || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(user.createdAt)}
+                      </div>
                     </td>
 
                     {/* <td className='px-6 py-4 whitespace-nowrap'>
@@ -773,16 +921,16 @@ const AddUserSection = () => {
                         {!user.isVerified ? 'Verified' : 'Pending'}
                       </span>
                     </td> */}
-                    
-                    <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
-                      <div className='flex gap-2'>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex gap-2">
                         <PermissionGuard permission="user.update">
                           <button
                             onClick={() => handleEdit(user)}
-                            className='text-green-600 hover:text-green-900 transition-colors duration-200'
+                            className="text-green-600 hover:text-green-900 transition-colors duration-200"
                             title="Edit User"
                           >
-                           <Edit3 className="w-4 h-4" />  
+                            <Edit3 className="w-4 h-4" />
                           </button>
                         </PermissionGuard>
                         {/* <PermissionGuard permission="user.delete">
@@ -806,21 +954,37 @@ const AddUserSection = () => {
         )}
       </div>
 
-       {/* Form Section */}
-       {showForm && (
+      {/* Form Section */}
+      {showForm && (
         <DynamicForm
-          title={editingUser ? 'Edit User' : 'Add New User'}
+          title={editingUser ? "Edit User" : "Add New User"}
           fields={userFormFields}
           onSubmit={handleFormSubmit}
           onCancel={resetForm}
           initialData={formData}
           loading={submitting}
-          submitText={editingUser ? 'Update User' : 'Create User'}
+          submitText={editingUser ? "Update User" : "Create User"}
           cancelText="Cancel"
           onClose={resetForm}
-          confirmationMessage={editingUser ? 'Do you really want to update this user?' : 'Do you really want to create this user?'}
+          confirmationMessage={
+            editingUser
+              ? "Do you really want to update this user?"
+              : "Do you really want to create this user?"
+          }
         />
       )}
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          toast.success(`File "${file.name}" selected successfully`);
+        }}
+        acceptedTypes={[".csv", ".xlsx", ".xls"]}
+        maxSize={10}
+        title="Import Multiple Users"
+        description="Upload a CSV or Excel file with user data"
+      />
     </div>
   );
 };

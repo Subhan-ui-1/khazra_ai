@@ -69,17 +69,22 @@ export const postRequest = async (
 ) => {
   try {
     let response;
+    const headers = getHeaders(token);
+    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+    if (isFormData) {
+      // Let the browser set the multipart boundary automatically
+      // Axios will honor this header for FormData payloads
+      (headers as any)["Content-Type"] = "multipart/form-data";
+    }
     if (method === "delete") {
       // For DELETE requests, headers go in the second parameter
       response = await axios.delete(`${BASE_URLs}${endPoint}`, {
-        headers: getHeaders(token),
+        headers,
         data: data, // DELETE requests can have a body, but it's passed as 'data' in config
       });
     } else {
       // For POST, PUT, PATCH requests
-      response = await axios[method](`${BASE_URLs}${endPoint}`, data, {
-        headers: getHeaders(token),
-      });
+      response = await axios[method](`${BASE_URLs}${endPoint}`, data, { headers });
     }
 
     if (response.status >= 200 && response.status < 300) {

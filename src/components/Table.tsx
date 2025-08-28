@@ -16,6 +16,7 @@ interface TableAction {
   onClick: (row: any) => void;
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
   disabled?: boolean;
+  show?: (row: any) => boolean;
 }
 
 interface TableProps {
@@ -315,22 +316,24 @@ const Table: React.FC<TableProps> = ({
                   {actions.length > 0 && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center space-x-2">
-                        {actions.map((action, actionIndex) => (
-                          <button
-                            key={actionIndex}
-                            onClick={() => action.onClick(row)}
-                            disabled={action.disabled}
-                            className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                              action.disabled
-                                ? 'text-gray-400 cursor-not-allowed'
-                                : getActionVariantClasses(action.variant || 'secondary')
-                            }`}
-                            title={action.label}
-                          >
-                            {action.icon}
-                            <span>{action.label}</span>
-                          </button>
-                        ))}
+                        {actions
+                          .filter((action) => (action.show ? action.show(row) : true))
+                          .map((action, actionIndex) => (
+                            <button
+                              key={actionIndex}
+                              onClick={() => action.onClick(row)}
+                              disabled={action.disabled}
+                              className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                action.disabled
+                                  ? 'text-gray-400 cursor-not-allowed'
+                                  : getActionVariantClasses(action.variant || 'secondary')
+                              }`}
+                              title={action.label}
+                            >
+                              {action.icon}
+                              <span>{action.label}</span>
+                            </button>
+                          ))}
                       </div>
                     </td>
                   )}

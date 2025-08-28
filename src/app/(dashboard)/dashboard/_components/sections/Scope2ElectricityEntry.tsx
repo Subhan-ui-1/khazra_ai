@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Plus, X, Save, Edit3, Trash2, Zap } from "lucide-react";
+import { Plus, X, Save, Edit3, Trash2, Zap, Paperclip } from "lucide-react";
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
 import { scope2EnergyTypes } from "@/constants/scope2EnergyType";
+import FileUploadModal from "@/components/FileUploadModal";
 
 interface Facility {
   _id: string;
@@ -31,6 +32,7 @@ interface ElectricityFormData {
   amountOfConsumption: string;
   emissionFactor: string;
   customEmissionFactor: boolean;
+  attachment?: File|null;
 }
 
 const Scope2ElectricityEntry: React.FC = () => {
@@ -40,6 +42,8 @@ const Scope2ElectricityEntry: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [showAttachment, setShowAttachment] = useState(true);
 
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -55,6 +59,7 @@ const Scope2ElectricityEntry: React.FC = () => {
     amountOfConsumption: "",
     emissionFactor: "",
     customEmissionFactor: false,
+    attachment: null,
   });
 
   const getToken = () => {
@@ -66,14 +71,20 @@ const Scope2ElectricityEntry: React.FC = () => {
   const fetchFacilities = async () => {
     try {
       const facilities = safeLocalStorage.getItem("facilities");
-      if(facilities){
+      if (facilities) {
         setFacilities(JSON.parse(facilities));
         return;
       }
-      const response = await getRequest("facilities/getFacilities?status=Active", getToken());
+      const response = await getRequest(
+        "facilities/getFacilities?status=Active",
+        getToken()
+      );
       if (response.success) {
         setFacilities(response.data.facilities || []);
-        safeLocalStorage.setItem("facilities", JSON.stringify(response.data.facilities));
+        safeLocalStorage.setItem(
+          "facilities",
+          JSON.stringify(response.data.facilities)
+        );
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
         return;
@@ -96,8 +107,8 @@ const Scope2ElectricityEntry: React.FC = () => {
     //     getToken()
     //   );
     //   if (response.success) {
-        setEnergyTypes(scope2EnergyTypes);
-        // setEnergyTypes(response.data.energyTypes || []);
+    setEnergyTypes(scope2EnergyTypes);
+    // setEnergyTypes(response.data.energyTypes || []);
     //   } else {
     //     // toast.error(response.message || "Failed to fetch energy types");
     //    return;
@@ -111,7 +122,7 @@ const Scope2ElectricityEntry: React.FC = () => {
   const getElectricityTotal = async () => {
     try {
       const electricityTotal = safeLocalStorage.getItem("electricityTotal");
-      if(electricityTotal){
+      if (electricityTotal) {
         setElectricityData(JSON.parse(electricityTotal));
         return;
       }
@@ -121,7 +132,10 @@ const Scope2ElectricityEntry: React.FC = () => {
       );
       if (response.success) {
         setElectricityData(response.data.purchasedElectricity || []);
-        safeLocalStorage.setItem("electricityTotal", JSON.stringify(response.data.purchasedElectricity||[]));
+        safeLocalStorage.setItem(
+          "electricityTotal",
+          JSON.stringify(response.data.purchasedElectricity || [])
+        );
       } else {
         // toast.error(response.message || "Failed to fetch electricity data");
         return;
@@ -141,7 +155,7 @@ const Scope2ElectricityEntry: React.FC = () => {
         await Promise.all([
           fetchFacilities(),
           fetchEnergyTypes(),
-          getElectricityTotal()
+          getElectricityTotal(),
         ]);
       } catch (error) {
         return;
@@ -149,9 +163,25 @@ const Scope2ElectricityEntry: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
+
+  const handleFileUploadOnAPI = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      getToken(),
+      "post"
+    );
+    if (response.success) {
+      return response.attachment;
+    }
+    return null;
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -160,12 +190,12 @@ const Scope2ElectricityEntry: React.FC = () => {
       const energyType = energyTypes.find(
         (e) => e.energyType === "Purchased Electricity"
       );
-      
+
       if (!energyType) {
         // toast.error("Energy type not found");
         return;
       }
-      
+
       // Prepare the data according to the API specification
       const requestData = {
         month: parseInt(formData.month),
@@ -178,6 +208,7 @@ const Scope2ElectricityEntry: React.FC = () => {
         emissionFactor: formData.customEmissionFactor
           ? parseFloat(formData.emissionFactor)
           : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
+          attachment: null,
       };
       if (editingItem) {
         // Update existing record
@@ -194,18 +225,23 @@ const Scope2ElectricityEntry: React.FC = () => {
           "Electricity data updated successfully",
           getToken(),
           "put",
-          true, 
-          'purchasedElectricity'
+          true,
+          "purchasedElectricity"
         );
 
         if (response.success) {
           toast.success("Electricity data updated successfully");
           const electricityTotal = safeLocalStorage.getItem("electricityTotal");
-          if(electricityTotal){
-            const electricityData = JSON.parse(electricityTotal) ||[];
-            const index = electricityData.findIndex((item:any)=>item._id == editingId);
+          if (electricityTotal) {
+            const electricityData = JSON.parse(electricityTotal) || [];
+            const index = electricityData.findIndex(
+              (item: any) => item._id == editingId
+            );
             electricityData[index] = response.purchasedElectricity;
-            safeLocalStorage.setItem("electricityTotal", JSON.stringify(electricityData));
+            safeLocalStorage.setItem(
+              "electricityTotal",
+              JSON.stringify(electricityData)
+            );
           }
           await getElectricityTotal();
           setShowForm(false);
@@ -216,28 +252,38 @@ const Scope2ElectricityEntry: React.FC = () => {
           return;
         }
       } else {
+        if (formData.attachment) {
+          const attachment = await handleFileUploadOnAPI(formData.attachment);
+          if (attachment) {
+            requestData.attachment = attachment;
+          } else {
+            return;
+          }
+        }
         const response = await postRequest(
           "purchased-electricity/addPurchasedElectricity",
           {
             ...requestData,
             scope: "scope2",
             scopeType: "electricity",
-           
           },
           "Electricity data added successfully",
           getToken(),
           "post",
           true,
-          'purchasedElectricity'
+          "purchasedElectricity"
         );
 
         if (response.success) {
           toast.success("Electricity data added successfully");
           const electricityTotal = safeLocalStorage.getItem("electricityTotal");
-          if(electricityTotal){
-            const electricityData = JSON.parse(electricityTotal) ||[];
+          if (electricityTotal) {
+            const electricityData = JSON.parse(electricityTotal) || [];
             electricityData.push(response.purchasedElectricity);
-            safeLocalStorage.setItem("electricityTotal", JSON.stringify(electricityData));
+            safeLocalStorage.setItem(
+              "electricityTotal",
+              JSON.stringify(electricityData)
+            );
           }
           await getElectricityTotal();
           setShowForm(false);
@@ -266,10 +312,12 @@ const Scope2ElectricityEntry: React.FC = () => {
       amountOfConsumption: "",
       emissionFactor: "",
       customEmissionFactor: false,
+      attachment: null,
     });
   };
 
   const startEdit = (item: any) => {
+    setShowAttachment(false);
     setEditingItem(item);
     setFormData({
       month: item.month?.toString() || "",
@@ -289,7 +337,7 @@ const Scope2ElectricityEntry: React.FC = () => {
     if (showForm) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [showForm]);
@@ -310,17 +358,22 @@ const Scope2ElectricityEntry: React.FC = () => {
         getToken(),
         "delete",
         true,
-        'purchasedElectricity'
+        "purchasedElectricity"
       );
 
       if (response.success) {
         toast.success("Electricity record deleted successfully");
         const electricityTotal = safeLocalStorage.getItem("electricityTotal");
-        if(electricityTotal){
-          const electricityData = JSON.parse(electricityTotal) ||[];
-          const index = electricityData.findIndex((item:any)=>item._id == editingId);
+        if (electricityTotal) {
+          const electricityData = JSON.parse(electricityTotal) || [];
+          const index = electricityData.findIndex(
+            (item: any) => item._id == editingId
+          );
           electricityData.splice(index, 1);
-          safeLocalStorage.setItem("electricityTotal", JSON.stringify(electricityData));
+          safeLocalStorage.setItem(
+            "electricityTotal",
+            JSON.stringify(electricityData)
+          );
         }
         await getElectricityTotal();
       } else {
@@ -329,21 +382,29 @@ const Scope2ElectricityEntry: React.FC = () => {
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete electricity record");
-        return;
+      return;
     }
+  };
+
+  const handleFileSelect = (file: File) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      attachment: file,
+    }));
+    toast.success(`File "${file.name}" selected successfully`);
   };
 
   // Helper functions to get names from IDs
   const getFacilityName = (facilityId: string) => {
     if (!facilityId) return "N/A";
     const facility = facilities.find((f) => f._id === facilityId);
-    return facility ? facility.facilityName : (loading ? "N/A" : "Loading...");
+    return facility ? facility.facilityName : loading ? "N/A" : "Loading...";
   };
 
   const getEnergyTypeName = (energyTypeId: string) => {
     if (!energyTypeId) return "N/A";
     const energyType = energyTypes.find((e) => e._id === energyTypeId);
-    return energyType ? energyType.energyType : (loading ? "N/A" : "Loading...");
+    return energyType ? energyType.energyType : loading ? "N/A" : "Loading...";
   };
 
   const generateYearOptions = () => {
@@ -381,7 +442,7 @@ const Scope2ElectricityEntry: React.FC = () => {
 
   return (
     <div className="space-y-6">
-       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <Table
           title="Purchased Electricity"
           data={filteredData}
@@ -399,7 +460,9 @@ const Scope2ElectricityEntry: React.FC = () => {
             {
               key: "facility",
               label: "Facility",
-              render: (value, row) => <span>{getFacilityName(row.facility)}</span>,
+              render: (value, row) => (
+                <span>{getFacilityName(row.facility)}</span>
+              ),
             },
             {
               key: "gridLocation",
@@ -430,20 +493,40 @@ const Scope2ElectricityEntry: React.FC = () => {
             {
               key: "totalEmissions",
               label: "Total Emissions",
-              render: (value, row) => <span>{row.totalEmissions.toFixed(1)}</span>,
+              render: (value, row) => (
+                <span>{row.totalEmissions.toFixed(1)}</span>
+              ),
             },
           ]}
           actions={[
             {
               label: "",
               icon: <Edit3 className="w-4 h-4 text-green-500" />,
-              onClick: (row) => startEdit(row),
+              onClick: (row) => {
+                setShowAttachment(false);
+                startEdit(row);
+              },
+              variant: "primary",
+            },
+            {
+              label: "",
+              icon: <Paperclip className="w-4 h-4 text-green-500" />,
+              show: (row) => !!(row?.attachment && row.attachment.url),
+              onClick: (row) =>{
+                if (row?.attachment?.url) {
+                  window.open(row.attachment.url, '_blank', 'noopener,noreferrer');
+                  return;
+                }
+              },
               variant: "primary",
             },
           ]}
           showAddButton={true}
           addButtonLabel="Add Electricity Record"
-          onAddClick={() => setShowForm(true)}
+          onAddClick={() => {
+            setShowAttachment(true);
+            setShowForm(true);
+          }}
           emptyMessage="No electricity records found."
           rowKey="_id"
         />
@@ -621,51 +704,91 @@ const Scope2ElectricityEntry: React.FC = () => {
                   required
                 />
               </div>
-              <div className="col-span-2">
-                <div className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    id="customEmissionFactor"
-                    checked={formData.customEmissionFactor}
-                    onChange={(e) => {
-                      const isChecked = e.target.checked;
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        customEmissionFactor: isChecked,
-                        emissionFactor: isChecked ? "" : "",
-                      }));
-                    }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="customEmissionFactor"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    Use Custom Emission Factor
-                  </label>
-                </div>
-              </div>
-              {formData.customEmissionFactor && (
+              {showAttachment && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Emission Factor *
+                    Attachment (optional)
                   </label>
-                  <input
-                    type="number"
-                    value={formData.emissionFactor}
-                    onChange={(e) =>
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        emissionFactor: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter custom emission factor"
-                    required
-                  />
+
+                  <div className="flex items-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowFileModal(true)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                    >
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      {formData.attachment ? "Change File" : "Upload File"}
+                    </button>
+
+                    {formData.attachment && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">Selected:</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {formData.attachment.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              attachment: "",
+                            }))
+                          }
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
+            <div className="col-span-2">
+              <div className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id="customEmissionFactor"
+                  checked={formData.customEmissionFactor}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      customEmissionFactor: isChecked,
+                      emissionFactor: isChecked ? "" : "",
+                    }));
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="customEmissionFactor"
+                  className="ml-2 block text-sm text-gray-700"
+                >
+                  Use Custom Emission Factor
+                </label>
+              </div>
+            </div>
+            {formData.customEmissionFactor && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom Emission Factor *
+                </label>
+                <input
+                  type="number"
+                  value={formData.emissionFactor}
+                  onChange={(e) =>
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      emissionFactor: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter custom emission factor"
+                  required
+                />
+              </div>
+            )}
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -693,7 +816,25 @@ const Scope2ElectricityEntry: React.FC = () => {
           </div>
         </div>
       )}
-     
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={handleFileSelect}
+        acceptedTypes={[
+          ".pdf",
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".csv",
+          ".xlsx",
+          ".xls",
+        ]}
+        maxSize={10}
+        title="Upload Attachment"
+        description="Drag and drop your file here or click to browse"
+      />
     </div>
   );
 };

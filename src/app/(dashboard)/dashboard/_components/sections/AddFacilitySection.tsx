@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   Save,
@@ -10,12 +10,14 @@ import {
   Building2,
   Search,
   Filter,
+  Paperclip,
 } from "lucide-react";
 import { postRequest, getRequest } from "@/utils/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
+import FileUploadModal from "@/components/FileUploadModal";
 
 // Define TypeScript interfaces
 interface FacilityFormData {
@@ -158,6 +160,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
+  const [showFileModal, setShowFileModal] = useState(false);
   const [stateOptions, setStateOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
@@ -705,6 +708,8 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
     });
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div className="space-y-6">
       {onComplete ? null : (
@@ -716,13 +721,21 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             </h3>
           </div>
           <PermissionGuard permission="facilities.create">
+          <div className='flex items-center gap-3'>
+          <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
+            <Paperclip className="w-5 h-5" />
+            Import Multiple Facilities
+          </button>
+          
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
+              disabled={showForm}
+              className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Add Facility</span>
             </button>
+              </div>
           </PermissionGuard>
         </div>
       )}
@@ -1249,6 +1262,21 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
           </form>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          toast.success(`File "${file.name}" selected successfully`);
+          // Here you can add logic to process the CSV/Excel file
+          // For now, just showing a success message
+        }}
+        acceptedTypes={['.csv', '.xlsx', '.xls']}
+        maxSize={10}
+        title="Import Multiple Facilities"
+        description="Upload a CSV or Excel file with facility data"
+      />
     </div>
   );
 };

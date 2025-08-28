@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Plus,
   Save,
@@ -8,11 +8,13 @@ import {
   Car,
   Search,
   Filter,
+  Paperclip,
 } from "lucide-react";
 import { postRequest, getRequest } from "@/utils/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
+import FileUploadModal from "@/components/FileUploadModal";
 import { safeLocalStorage } from "@/utils/localStorage";
 
 const formatDate = (dateString: string) => {
@@ -542,6 +544,9 @@ if(!formData.annualMileageValue){
     }
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [showFileModal, setShowFileModal] = useState(false);
+
   return (
     <div className="space-y-6">
       {onComplete ? null : (
@@ -553,16 +558,36 @@ if(!formData.annualMileageValue){
             </h3>
           </div>
           <PermissionGuard permission="vehicle.create">
+            <div className='flex items-center gap-3'>
+              <button onClick={()=>setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
+                <Paperclip className="w-5 h-5" />
+                Import Multiple Vehicles
+              </button>
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg transition-colors"
+              disabled={showForm}
+              className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Add Vehicle</span>
             </button>
+            </div>
           </PermissionGuard>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          toast.success(`File "${file.name}" selected successfully`);
+        }}
+        acceptedTypes={[".csv", ".xlsx", ".xls"]}
+        maxSize={10}
+        title="Import Multiple Vehicles"
+        description="Upload a CSV or Excel file with vehicle data"
+      />
 
       {/* Search and Filter Section */}
       {onComplete ? null : (

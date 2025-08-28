@@ -3,10 +3,11 @@
 import Table from "@/components/Table";
 import { getRequest, postRequest } from "@/utils/api";
 import { useState, useEffect } from "react";
-import { Edit3, Trash2, Eye, Plus } from "lucide-react";
+import { Edit3, Trash2, Eye, Plus, Paperclip, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { stationaryFuelTypes } from "@/constants/stationaryFuelType";
+import FileUploadModal from "@/components/FileUploadModal";
 
 interface Facility {
   _id: string;
@@ -39,12 +40,18 @@ interface StationaryFormData {
   quantityOfFuelUsed: string;
   emissionFactor: number;
   useCustomEmissionFactor: boolean;
+  attachment?: File|null;
 }
 
 const getOrgId = () => {
   const id = safeLocalStorage.getItem("user");
   const userData = JSON.parse(id || "");
   return userData.organization;
+};
+
+const handleFileSelect = (file: File) => {
+  // This will be used in the component
+  return file.name;
 };
 
 export default function StationaryCombustionSection() {
@@ -62,6 +69,8 @@ export default function StationaryCombustionSection() {
   const [submitting, setSubmitting] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataEmissions, setDataEmissions] = useState<any>(null);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [showAttachment, setShowAttachment] = useState(true);
 
   // Add state for fuel type analysis
   const [fuelTypeAnalysis, setFuelTypeAnalysis] = useState<{
@@ -91,6 +100,7 @@ export default function StationaryCombustionSection() {
       quantityOfFuelUsed: "",
       emissionFactor: 0,
       useCustomEmissionFactor: false,
+      attachment: null,
     });
 
   // State for Stationary Combustion table data array
@@ -354,13 +364,29 @@ export default function StationaryCombustionSection() {
     }
   }, [fuelTypes, stationaryCombustionData]);
 
+    const handleFileUploadOnAPI = async (file:File)=>{
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      getToken(),
+      "post",
+    );
+    if(response.success){
+      return response.attachment;
+    }
+    return null;
+  }
+
   const handleStationarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
       // Prepare the data according to the API specification
-      const requestData = {
+      const requestData: any = {
         scope: "scope1",
         scopeType: "stationary",
         month: stationaryFormData.month,
@@ -372,6 +398,14 @@ export default function StationaryCombustionSection() {
         quantityOfFuelUsed: parseFloat(stationaryFormData.quantityOfFuelUsed),
         emissionFactor: stationaryFormData.emissionFactor,
       };
+      if(stationaryFormData.attachment){
+        const attachment = await handleFileUploadOnAPI(stationaryFormData.attachment);
+        if(attachment){
+          requestData.attachment = attachment;
+        } else{
+          return;
+        }
+      }
 
       const response = await postRequest(
         "stationary/addStationary",
@@ -410,6 +444,7 @@ export default function StationaryCombustionSection() {
           quantityOfFuelUsed: "",
           emissionFactor: 0,
           useCustomEmissionFactor: false,
+          attachment: null,
         });
       } else {
         return;
@@ -795,19 +830,41 @@ export default function StationaryCombustionSection() {
           {
             // label: 'Edit',
             icon: <Edit3 className="w-4 h-4 text-green-500" />,
-            onClick: (row) =>
+            onClick: (row) =>{
+              setShowAttachment(false);
               handleEditStationary(
                 row,
                 stationaryCombustionData.findIndex(
                   (item) => item._id === row._id
                 )
-              ),
+              )},
+            variant: "primary",
+          },
+          {
+            // label: 'Edit',
+            icon: <Paperclip className="w-4 h-4 text-green-500" />,
+            show: (row) => !!(row?.attachment && row.attachment.url),
+            onClick: (row) =>{
+              if (row?.attachment?.url) {
+                window.open(row.attachment.url, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              setShowAttachment(false);
+              handleEditStationary(
+                row,
+                stationaryCombustionData.findIndex(
+                  (item) => item._id === row._id
+                )
+              )},
             variant: "primary",
           },
         ]}
         showAddButton={true}
         addButtonLabel="Add Stationary Combustion"
-        onAddClick={() => setIsStationaryModalOpen(true)}
+        onAddClick={() => {
+          setShowAttachment(true);
+          setIsStationaryModalOpen(true);
+        }}
         showSearch={true}
         // showFilter={true}
         rowKey="_id"
@@ -1036,6 +1093,38 @@ export default function StationaryCombustionSection() {
                   required
                 />
               </div>
+             {showAttachment&& <div>
+                <label
+                  htmlFor="attachment"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Attachment
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFileModal(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                  >
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    {stationaryFormData.attachment ? 'Change File' : 'Upload File'}
+                  </button>
+                  
+                  {stationaryFormData.attachment && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">Selected:</span>
+                      <span className="text-sm font-medium text-gray-900">{stationaryFormData.attachment?.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setStationaryFormData({ ...stationaryFormData, attachment: null })}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -1380,6 +1469,23 @@ export default function StationaryCombustionSection() {
           </div>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          setStationaryFormData({
+            ...stationaryFormData,
+            attachment: file,
+          });
+          toast.success(`File "${file.name}" selected successfully`);
+        }}
+        acceptedTypes={['.pdf', '.png', '.jpg', '.jpeg', '.csv', '.xlsx', '.xls']}
+        maxSize={10}
+        title="Upload Attachment"
+        description="Drag and drop your file here or click to browse"
+      />
     </div>
   );
 }

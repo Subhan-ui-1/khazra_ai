@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { getRequest, postRequest } from "@/utils/api";
-import { Edit3, Trash2, Eye, Plus } from "lucide-react";
+import { Edit3, Trash2, Eye, Plus, Paperclip, X } from "lucide-react";
 import Table from "@/components/Table";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { mobileFuelTypes as fuelTypesOfMobile } from "@/constants/mobileFuelType";
+import FileUploadModal from "@/components/FileUploadModal";
 
 interface Facility {
   _id: string;
@@ -44,7 +45,8 @@ interface MobileFormData {
   emissionFactor: string;
   useCustomEmissionFactor: boolean;
   total: string;
-}
+  attachment?: File|null;
+  }
 
 const getTokens = () => {
   const token = safeLocalStorage.getItem("tokens");
@@ -77,6 +79,8 @@ export default function MobileCombustionSection() {
   const [mobileFuelTypes, setMobileFuelTypes] = useState<MobileFuelType[]>([]);
   const [data, setData] = useState<any>(null);
   const [dataEmissions, setDataEmissions] = useState<any>(null);
+  const [showFileModal, setShowFileModal] = useState(false);
+  const [showAttachment, setShowAttachment] = useState(true);
 
   // Add state for fuel type analysis
   const [fuelTypeAnalysis, setFuelTypeAnalysis] = useState<{
@@ -126,7 +130,8 @@ export default function MobileCombustionSection() {
     emissionFactor: "",
     useCustomEmissionFactor: false,
     total: "",
-  });
+    attachment: null,
+    });
 
   // State for Mobile Combustion table data array
   const [mobileCombustionData, setMobileCombustionData] = useState<any[]>([]);
@@ -322,6 +327,22 @@ export default function MobileCombustionSection() {
     loadData();
   }, []);
 
+  const handleFileUploadOnAPI = async (file:File)=>{
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      getToken(),
+      "post",
+    );
+    if(response.success){
+      return response.attachment;
+    }
+    return null;
+  }
+
   const handleMobileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -340,7 +361,18 @@ export default function MobileCombustionSection() {
         fuelConsumed: parseFloat(mobileFormData.fuelConsumed),
         amountOfFuelUsed: parseFloat(mobileFormData.amountOfFuelUsed),
         emissionFactor: parseFloat(mobileFormData.emissionFactor),
+        attachment: null,
       };
+
+      if(mobileFormData.attachment){
+        const attachment = await handleFileUploadOnAPI(mobileFormData.attachment);
+        if(attachment){
+        requestData.attachment = attachment;
+        }
+        else{
+          return;
+        }
+      }
 
       const response = await postRequest(
         "mobile/addMobile",
@@ -379,6 +411,7 @@ export default function MobileCombustionSection() {
           emissionFactor: "",
           useCustomEmissionFactor: false,
           total: "",
+          attachment: null,
         });
       } else {
         // toast.error(
@@ -479,6 +512,7 @@ export default function MobileCombustionSection() {
   };
 
   const handleEditMobile = (rowData: any, index: number) => {
+    setShowAttachment(false);
     setEditingMobileData(rowData);
     setEditingMobileIndex(index);
     setMobileFormData({
@@ -759,11 +793,30 @@ export default function MobileCombustionSection() {
           {
             // label: 'Edit',
             icon: <Edit3 className="w-4 h-4 text-green-500" />,
-            onClick: (row) =>
+            onClick: (row) =>{
+              setShowAttachment(false);
               handleEditMobile(
                 row,
                 mobileCombustionData.findIndex((item) => item._id === row._id)
-              ),
+              )},
+            variant: "primary",
+          },
+          {
+            // label: 'Edit',
+            icon: <Paperclip className="w-4 h-4 text-green-500" />,
+            show: (row) => !!(row?.attachment && row.attachment.url),
+            onClick: (row) =>{
+              if (row?.attachment?.url) {
+                window.open(row.attachment.url, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              setShowAttachment(false);
+              handleEditMobile(
+                row,
+                mobileCombustionData.findIndex(
+                  (item) => item._id === row._id
+                )
+              )},
             variant: "primary",
           },
 
@@ -776,7 +829,10 @@ export default function MobileCombustionSection() {
         ]}
         showAddButton={true}
         addButtonLabel="Add Mobile Combustion"
-        onAddClick={() => setIsMobileModalOpen(true)}
+        onAddClick={() => {
+          setShowAttachment(true);
+          setIsMobileModalOpen(true);
+        }}
         showSearch={true}
         // showFilter={true}
         rowKey="_id"
@@ -1020,6 +1076,38 @@ export default function MobileCombustionSection() {
                   required
                 />
               </div>
+              {showAttachment&& <div>
+                <label
+                    htmlFor="attachment"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Attachment
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFileModal(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                  >
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    {mobileFormData.attachment ? 'Change File' : 'Upload File'}
+                  </button>
+                  
+                  {mobileFormData.attachment && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">Selected:</span>
+                      <span className="text-sm font-medium text-gray-900">{mobileFormData.attachment.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setMobileFormData({ ...mobileFormData, attachment: null })}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -1381,6 +1469,23 @@ export default function MobileCombustionSection() {
           </div>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          setMobileFormData({
+            ...mobileFormData,
+            attachment: file,
+          });
+          toast.success(`File "${file.name}" selected successfully`);
+        }}
+        acceptedTypes={['.pdf', '.png', '.jpg', '.jpeg', '.csv', '.xlsx', '.xls']}
+        maxSize={10}
+        title="Upload Attachment"
+        description="Drag and drop your file here or click to browse"
+      />
     </div>
   );
 }

@@ -657,6 +657,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
               data.hasBaselineEmissions === "Yes"
                 ? data.baselineEmissions || 0
                 : 0,
+            baselineEmissionsAvailable: data.hasBaselineEmissions === "Yes",
             vehicleCount:
               data.hasVehicles === "Yes" ? parseInt(data.vehicleCount) || 0 : 0,
             facilityCount:

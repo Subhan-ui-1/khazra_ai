@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { getRequest, postRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
-import { Edit3 } from "lucide-react";
+import { Edit3, Paperclip } from "lucide-react";
+import FileUploadModal from "@/components/FileUploadModal";
 
 interface RoleFormData {
   name: string;
   description: string;
   permissions: string[];
+  departments: string[];
 }
 
 interface FilterState {
@@ -34,21 +36,30 @@ interface Role {
   name: string;
   description: string;
   permissions: Permission[];
+  departments?: { _id: string; name: string }[];
   createdAt: string;
   updatedAt: string;
   createdBy?: {
     firstName: string;
-  }
+  };
+}
+
+interface Department {
+  _id: string;
+  name: string;
 }
 
 const AddRoleSection = () => {
   const [roleData, setRoleData] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
 
@@ -71,6 +82,7 @@ const AddRoleSection = () => {
     name: "",
     description: "",
     permissions: [],
+    departments: [],
   });
 
   const [filters, setFilters] = useState<FilterState>({
@@ -81,10 +93,13 @@ const AddRoleSection = () => {
     limit: 100,
   });
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   // Fetch roles and permissions on component mount
   useEffect(() => {
     fetchRoles();
     fetchPermissions();
+    fetchDepartments();
   }, [filters]);
 
   const fetchRoles = async () => {
@@ -150,11 +165,29 @@ const AddRoleSection = () => {
     }
   };
 
+  const fetchDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+      const response = await getRequest(
+        `departments/getDepartments?limit=100`,
+        tokenData.accessToken
+      );
+      if (response?.success) {
+        const list = (response.data?.departments || []).map((d: any) => ({ _id: d._id, name: d.name }));
+        setDepartments(list);
+      }
+    } catch (e) {
+      return;
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
+
   useEffect(() => {
     if (showForm) {
       window.scrollTo({
         top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [showForm]);
@@ -175,11 +208,15 @@ const AddRoleSection = () => {
 
     setSubmitting(true);
     try {
+      const payload = {
+        ...formData,
+        organizationId: await getOrganizationId(),
+      };
       if (editingItem) {
         // Update existing role
         const response = await postRequest(
           `roles/updateRole/${editingItem._id}`,
-          { ...formData },
+          payload,
           "Role updated successfully",
           tokenData.accessToken,
           "put"
@@ -194,7 +231,7 @@ const AddRoleSection = () => {
         // Add new role
         const response = await postRequest(
           "roles/addRole",
-          formData,
+          payload,
           "Role added successfully",
           tokenData.accessToken,
           "post"
@@ -220,6 +257,7 @@ const AddRoleSection = () => {
       name: role.name,
       description: role.description || "",
       permissions: role.permissions.map((p) => p._id),
+      departments: (role.departments || []).map((d) => d._id),
     });
     setShowForm(true);
   };
@@ -249,7 +287,7 @@ const AddRoleSection = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", permissions: [] });
+    setFormData({ name: "", description: "", permissions: [], departments: [] });
     setEditingItem(null);
     setShowForm(false);
   };
@@ -268,6 +306,11 @@ const AddRoleSection = () => {
         ? prev.permissions.filter((id) => id !== permissionId)
         : [...prev.permissions, permissionId],
     }));
+  };
+
+  const handleDepartmentsSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected: string[] = Array.from(e.target.selectedOptions).map((o) => o.value);
+    setFormData((prev) => ({ ...prev, departments: selected }));
   };
 
   const handleSelectAll = () => {
@@ -375,25 +418,35 @@ const AddRoleSection = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Role Management</h1>
         <PermissionGuard permission="role.create">
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowFileModal(true)}
+              className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add Role
-          </button>
+              <Paperclip className="w-5 h-5" />
+              Import Multiple Roles
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              disabled={showForm}
+              className="disabled:opacity-50 disabled:cursor-not-allowed bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add Role
+            </button>
+          </div>
         </PermissionGuard>
       </div>
 
@@ -510,6 +563,9 @@ const AddRoleSection = () => {
                     Permissions
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Departments
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created By
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -563,11 +619,40 @@ const AddRoleSection = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{role.createdBy?.firstName || 'N/A'}</div>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 max-w-xs">
+                        {role.departments && role.departments.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {role.departments
+                              .slice(0, 3)
+                              .map((dept, index) => (
+                                <span
+                                  key={dept._id}
+                                  className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  🏢 {dept.name}
+                                </span>
+                              ))}
+                            {role.departments.length > 3 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-800">
+                                +{role.departments.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">No departments</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatDate(role.createdAt)}</div>
+                      <div className="text-sm text-gray-900">
+                        {role.createdBy?.firstName || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(role.createdAt)}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2">
@@ -748,23 +833,24 @@ const AddRoleSection = () => {
                         icon: "💬",
                       },
                       organization: { label: "Organization", icon: "💬" },
-                    };
+                    } as const;
+                    type ResourceKey = keyof typeof resourceMappings;
 
                     // Get available actions from permissions
-                    const availableActions = new Set();
-                    const availableResources = new Set();
+                    const availableActions = new Set<string>();
+                    const availableResources = new Set<ResourceKey>();
 
                     permissions.forEach((permission: any) => {
-                      const [resource, action] = permission.name.split(".");
-                      if (resourceMappings[resource]) {
+                      const name: string = permission?.name || "";
+                      const [resource, action] = name.split(".");
+                      if ((resource as string) in resourceMappings && action) {
                         availableActions.add(action);
-                        availableResources.add(resource);
+                        availableResources.add(resource as ResourceKey);
                       }
                     });
 
-                    const sortedActions = Array.from(availableActions).sort();
-                    const sortedResources =
-                      Array.from(availableResources).sort();
+                    const sortedActions: string[] = Array.from(availableActions).sort();
+                    const sortedResources: ResourceKey[] = Array.from(availableResources).sort();
 
                     if (sortedResources.length === 0) {
                       return (
@@ -781,7 +867,7 @@ const AddRoleSection = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
                               Resource
                             </th>
-                            {sortedActions.map((action: any) => (
+                            {sortedActions.map((action: string) => (
                               <th
                                 key={action}
                                 className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200"
@@ -793,7 +879,7 @@ const AddRoleSection = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {sortedResources.map((resource: string) => {
+                          {sortedResources.map((resource) => {
                             const resourceInfo = resourceMappings[resource];
                             return (
                               <tr key={resource} className="hover:bg-gray-50">
@@ -807,7 +893,7 @@ const AddRoleSection = () => {
                                     </span>
                                   </div>
                                 </td>
-                                {sortedActions.map((action) => {
+                                {sortedActions.map((action: string) => {
                                   const permissionName = `${resource}.${action}`;
                                   const permission = permissions.find(
                                     (p) => p.name === permissionName
@@ -854,6 +940,125 @@ const AddRoleSection = () => {
               {formData.permissions.length > 0 && (
                 <p className="text-xs text-gray-500 mt-2">
                   {formData.permissions.length} permission(s) selected
+                </p>
+              )}
+            </div>
+
+            <div>
+              <div className=" text-sm font-medium text-gray-700 mb-2 flex justify-between items-center">
+                Departments
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Select All</span>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      checked={
+                        formData.departments.length === departments.length &&
+                        departments.length > 0
+                      }
+                      onChange={() => {
+                        if (formData.departments.length === departments.length) {
+                          setFormData(prev => ({ ...prev, departments: [] }));
+                        } else {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            departments: departments.map(d => d._id) 
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
+                  {formData.departments.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, departments: [] }))
+                      }
+                      className="text-xs text-red-600 hover:text-red-800 underline"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+              </div>
+              {loadingDepartments ? (
+                <div className="flex items-center gap-2 text-gray-500">
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Loading departments...
+                </div>
+              ) : (
+                <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-md">
+                  {departments.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      No departments available
+                    </div>
+                  ) : (
+                    <table className="w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                            Department
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                            Select
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {departments.map((dept) => (
+                          <tr key={dept._id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <span className="text-lg mr-2">🏢</span>
+                                <span className="text-sm font-medium text-gray-900">
+                                  {dept.name}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <input
+                                type="checkbox"
+                                checked={formData.departments.includes(dept._id)}
+                                onChange={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    departments: prev.departments.includes(dept._id)
+                                      ? prev.departments.filter(id => id !== dept._id)
+                                      : [...prev.departments, dept._id]
+                                  }));
+                                }}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+              {formData.departments.length > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {formData.departments.length} department(s) selected
                 </p>
               )}
             </div>
@@ -917,6 +1122,21 @@ const AddRoleSection = () => {
           </form>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          toast.success(`File "${file.name}" selected successfully`);
+          // Here you can add logic to process the CSV/Excel file
+          // For now, just showing a success message
+        }}
+        acceptedTypes={['.csv', '.xlsx', '.xls']}
+        maxSize={10}
+        title="Import Multiple Roles"
+        description="Upload a CSV or Excel file with role data"
+      />
     </div>
   );
 };

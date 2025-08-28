@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit3, Trash2, Thermometer } from 'lucide-react';
+import { Plus, X, Edit3, Trash2, Thermometer, Paperclip } from 'lucide-react';
 import { getRequest, postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from '@/utils/localStorage';
 import Table from "@/components/Table";
 import { scope2EnergyTypes } from '@/constants/scope2EnergyType';
+import FileUploadModal from '@/components/FileUploadModal';
 
 interface Facility {
   _id: string;
@@ -31,6 +32,7 @@ interface HeatingFormData {
   amountOfConsumption: string;
   emissionFactor: string;
   customEmissionFactor: boolean;
+  attachment?: File|null;
 }
 
 const Scope2HeatingEntry: React.FC = () => {
@@ -40,7 +42,8 @@ const Scope2HeatingEntry: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-
+  const [showAttachment, setShowAttachment] = useState(true);
+  const [showFileModal, setShowFileModal] = useState(false);
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [energyTypes, setEnergyTypes] = useState<EnergyType[]>([]);
@@ -54,7 +57,8 @@ const Scope2HeatingEntry: React.FC = () => {
     consumedUnits: '',
     amountOfConsumption: '',
     emissionFactor: '',
-    customEmissionFactor: false
+    customEmissionFactor: false,
+    attachment: null,
   });
 
   const getToken = () => {
@@ -126,6 +130,22 @@ const Scope2HeatingEntry: React.FC = () => {
     loadData();
   }, []);
 
+  const handleFileUploadOnAPI = async (file:File)=>{
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      getToken(),
+      "post",
+    );
+    if(response.success){
+      return response.attachment;
+    }
+    return null;
+  }
+
   const handleSubmit = async () => {
     setLoading(true);
 
@@ -144,6 +164,7 @@ const Scope2HeatingEntry: React.FC = () => {
         emissionFactor: formData.customEmissionFactor
         ? parseFloat(formData.emissionFactor)
         : parseFloat(energyType?.emissionFactorC02?.toString() || ""),
+        attachment: null,
       };
       if (editingItem) {
         // Update existing record
@@ -180,6 +201,15 @@ const Scope2HeatingEntry: React.FC = () => {
           return;
         }
       } else {
+        if(formData.attachment){
+          const attachment = await handleFileUploadOnAPI(formData.attachment);
+          if(attachment){
+            requestData.attachment = attachment;
+          }
+          else{
+            return;
+          }
+        }
         // Add new record
         const response = await postRequest(
           "purchased-electricity/addPurchasedElectricity",
@@ -224,7 +254,8 @@ const Scope2HeatingEntry: React.FC = () => {
       consumedUnits: '',
       amountOfConsumption: '',
       emissionFactor: '',
-      customEmissionFactor: false
+      customEmissionFactor: false,
+      attachment: null,
     });
   };
 
@@ -239,7 +270,8 @@ const Scope2HeatingEntry: React.FC = () => {
       consumedUnits: item.consumedUnits?.toString() || '',
       amountOfConsumption: item.amountOfConsumption?.toString() || '',
       emissionFactor: item.emissionFactor?.toString() || '',
-      customEmissionFactor: false
+      customEmissionFactor: false,
+      attachment: null,
     });
     setShowForm(true);
   };
@@ -287,6 +319,14 @@ const Scope2HeatingEntry: React.FC = () => {
     } catch (error: any) {
       return;
     }
+  };
+
+  const handleFileSelect = (file: File) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      attachment: file,
+    }));
+    toast.success(`File "${file.name}" selected successfully`);
   };
 
   // Helper functions to get names from IDs
@@ -383,13 +423,32 @@ const Scope2HeatingEntry: React.FC = () => {
             {
               label: "",
               icon: <Edit3 className="w-4 h-4 text-green-500" />,
-              onClick: (row) => startEdit(row),
+              onClick: (row) => {
+                setShowAttachment(false);
+                startEdit(row);
+              },
               variant: "primary",
             },
+            {
+              label: "",
+              icon: <Paperclip className="w-4 h-4 text-green-500" />,
+              show: (row) => !!(row?.attachment && row.attachment.url),
+              onClick: (row) =>{
+                if (row?.attachment?.url) {
+                  window.open(row.attachment.url, '_blank', 'noopener,noreferrer');
+                  return;
+                }
+              },
+              variant: "primary",
+            },
+              
           ]}
           showAddButton={true}
           addButtonLabel="Add Heating Record"
-          onAddClick={() => setShowForm(true)}
+          onAddClick={() => {
+            setShowAttachment(true);
+            setShowForm(true);
+          }}
           emptyMessage="No heating records found."
           rowKey="_id"
         />
@@ -523,6 +582,36 @@ const Scope2HeatingEntry: React.FC = () => {
                   required
                 />
               </div>
+              {showAttachment&& <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Attachment (optional)
+                </label>
+
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFileModal(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                  >
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    {formData.attachment ? 'Change File' : 'Upload File'}
+                  </button>
+                  
+                  {formData.attachment && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">Selected:</span>
+                      <span className="text-sm font-medium text-gray-900">{formData.attachment.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev: any) => ({ ...prev, attachment: null }))}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>}
               {formData.customEmissionFactor && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Custom Emission Factor *</label>
@@ -581,6 +670,16 @@ const Scope2HeatingEntry: React.FC = () => {
           </div>
         </div>
       )}
+       {/* File Upload Modal */}
+       <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={handleFileSelect}
+        acceptedTypes={['.pdf', '.png', '.jpg', '.jpeg', '.csv', '.xlsx', '.xls']}
+        maxSize={10}
+        title="Upload Attachment"
+        description="Drag and drop your file here or click to browse"
+      />
     </div>
   );
 };

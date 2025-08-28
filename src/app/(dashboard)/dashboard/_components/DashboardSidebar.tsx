@@ -196,6 +196,11 @@ export default function DashboardSidebar({
             resource: "boundaries",
           },
           {
+            id: "add-emission",
+            icon: "🏭",
+            label: "Baseline Emissions",
+          },
+          {
             id: "add-department",
             icon: "🏭",
             label: "Department",

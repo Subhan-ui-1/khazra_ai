@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef  } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { getRequest, postRequest } from '@/utils/api';
 import { usePermissions, PermissionGuard } from '@/utils/permissions';
 import { safeLocalStorage } from '@/utils/localStorage';
 import DynamicForm, { FormField } from '@/components/forms/DynamicForm';
-import { Edit3 } from 'lucide-react';
+import { Edit3, Paperclip } from 'lucide-react';
+import FileUploadModal from "@/components/FileUploadModal";
 
 interface DepartmentFormData {
   name: string;
@@ -44,9 +45,10 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [showFileModal, setShowFileModal] = useState(false);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
-  
+  const inputRef = useRef<HTMLInputElement>(null);
   const tokenData = JSON.parse(safeLocalStorage.getItem('tokens') || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
@@ -279,15 +281,23 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
       <div className='flex justify-between items-center'>
         <h1 className='text-2xl font-bold text-gray-800'>Department Management</h1>
         <PermissionGuard permission="department.create">
+          <div className='flex items-center gap-3'>
+          <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
+            <Paperclip className="w-5 h-5" />
+            Import Multiple Departments
+          </button>
+
           <button
             onClick={() => setShowForm(true)}
-            className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2'
+            disabled={showForm}
+            className='disabled:opacity-50 disabled:cursor-not-allowed bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add Department
           </button>
+          </div>
         </PermissionGuard>
       </div>
 
@@ -378,7 +388,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
             <p className='mt-2 text-gray-600'>No departments found</p>
             <button
               onClick={() => setShowForm(true)}
-              className='mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors duration-200'
+              className='mt-4 bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200'
             >
               Add your first department
             </button>
@@ -481,6 +491,21 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
           onClose={resetForm}
         />
       )}
+
+      {/* File Upload Modal */}
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onFileSelect={(file) => {
+          toast.success(`File "${file.name}" selected successfully`);
+          // Here you can add logic to process the CSV/Excel file
+          // For now, just showing a success message
+        }}
+        acceptedTypes={['.csv', '.xlsx', '.xls']}
+        maxSize={10}
+        title="Import Multiple Departments"
+        description="Upload a CSV or Excel file with department data"
+      />
     </div>
   );
 };
