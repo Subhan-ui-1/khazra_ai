@@ -34,6 +34,7 @@ interface FacilityFormData {
   country: string;
   stateProvince: string;
   city: string;
+  attachment?: File | null;
 }
 
 interface FilterState {
@@ -161,6 +162,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [showFileModal, setShowFileModal] = useState(false);
+  const [showAttachmentFileModal, setShowAttachmentFileModal] = useState(false);
   const [stateOptions, setStateOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
@@ -172,13 +174,17 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const [selectedCity, setSelectedCity] = useState<string>("");
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
+  const [showAttachment, setShowAttachment] = useState(false);
 
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
     toast.error("Please login to continue");
     router.push("/login");
   }
-  console.log(facilityData, 'facilityData from add facility section.............')
+  console.log(
+    facilityData,
+    "facilityData from add facility section............."
+  );
   // Check if user has permission to view facilities
   if (!canView("facilities")) {
     return (
@@ -257,7 +263,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
     try {
       const user = JSON.parse(safeLocalStorage.getItem("user") || "{}");
       return user.organization || "";
-    } catch (error) { 
+    } catch (error) {
       return "";
     }
   };
@@ -291,20 +297,6 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         return [];
     }
   };
-
-  const NUMBER_OF_EMPLOYEES_OPTIONS = [
-    "1-10",
-    "11-50",
-    "51-100",
-    "101-500",
-    "501-1000",
-    "1001-5000",
-    "5001-10000",
-    "10001-50000",
-    "50001-100000",
-    "100001-500000",
-    "500001-1000000",
-  ];
 
   // Handle form field changes
   const handleFormChange = (field: string, value: string) => {
@@ -375,6 +367,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       );
       if (response.success) {
         setFacilityData(response.data.facilities || []);
+        return response.data.facilities;
       } else {
         // toast.error(response.message || "Failed to fetch facilities");
         return;
@@ -408,10 +401,24 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       return;
     }
   };
+  const handleFileUploadOnAPI = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      tokenData.accessToken,
+      "post"
+    );
+    if (response.success) {
+      return response.attachment;
+    }
+    return null;
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     // Prepare facility data
     const facilityData = {
       facilityName: formData.facilityName,
@@ -430,6 +437,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       floorArea: parseInt(formData.floorArea),
       numberOfEmployees: parseInt(formData.numberOfEmployees) || 0,
       status: formData.status,
+      attachment: null,
     };
 
     try {
@@ -445,21 +453,40 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
           tokenData.accessToken,
           "put"
         );
-        if(response.success){
+        if (response.success) {
           const facilities = safeLocalStorage.getItem("facilities");
-        if(facilities){
-          const facilitiesData = JSON.parse(facilities)||[]
-          const index = facilitiesData.findIndex((e:any)=>e._id === facilityId);
-          if(index !== -1){
-            facilitiesData[index] = response.facilities;
+          if (facilities) {
+            const facilitiesData = JSON.parse(facilities) || [];
+            const index = facilitiesData.findIndex(
+              (e: any) => e._id === facilityId
+            );
+            if (index !== -1) {
+              facilitiesData[index] = response.facilities;
+            }
+            safeLocalStorage.setItem(
+              "facilities",
+              JSON.stringify(facilitiesData)
+            );
+          } else {
+            safeLocalStorage.setItem(
+              "facilities",
+              JSON.stringify([response.facilities])
+            );
           }
-          safeLocalStorage.setItem("facilities", JSON.stringify(facilitiesData));
-        } else{
-          safeLocalStorage.setItem("facilities", JSON.stringify([response.facilities])); 
-        }
         }
       } else {
         // Add new facility
+
+        if (formData.attachment) {
+          const attachment = await handleFileUploadOnAPI(
+            formData.attachment as File
+          );
+          if (attachment) {
+            facilityData.attachment = attachment;
+          } else {
+            return;
+          }
+        }
         response = await postRequest(
           "facilities/createFacilities",
           { ...facilityData, organizationId: getOrganizationId() },
@@ -467,15 +494,21 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
           tokenData.accessToken,
           "post"
         );
-        if(response.success){
+        if (response.success) {
           const facilities = safeLocalStorage.getItem("facilities");
-        if(facilities){
-          const facilitiesData = JSON.parse(facilities)||[]
-          facilitiesData.push(response.facilities);
-          safeLocalStorage.setItem("facilities", JSON.stringify(facilitiesData));
-        } else{
-          safeLocalStorage.setItem("facilities", JSON.stringify([response.facilities]));
-        }
+          if (facilities) {
+            const facilitiesData = JSON.parse(facilities) || [];
+            facilitiesData.push(response.facilities);
+            safeLocalStorage.setItem(
+              "facilities",
+              JSON.stringify(facilitiesData)
+            );
+          } else {
+            safeLocalStorage.setItem(
+              "facilities",
+              JSON.stringify([response.facilities])
+            );
+          }
         }
       }
 
@@ -567,6 +600,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       city: item.city || "",
     });
     setShowForm(true);
+    setShowAttachment(false);
   };
 
   const getFacilityTypeColor = (type: string) => {
@@ -695,7 +729,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       fetchFacilities();
     } catch (error: any) {
       //  toast.error(error.message || "Failed to update some facilities");
-        return;
+      return;
     }
   };
 
@@ -721,21 +755,27 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             </h3>
           </div>
           <PermissionGuard permission="facilities.create">
-          <div className='flex items-center gap-3'>
-          <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
-            <Paperclip className="w-5 h-5" />
-            Import Multiple Facilities
-          </button>
-          
-            <button
-              onClick={() => setShowForm(true)}
-              disabled={showForm}
-              className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Facility</span>
-            </button>
-              </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowFileModal(true)}
+                className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <Paperclip className="w-5 h-5" />
+                Import Multiple Facilities
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowForm(true);
+                  setShowAttachment(true);
+                }}
+                disabled={showForm}
+                className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Facility</span>
+              </button>
+            </div>
           </PermissionGuard>
         </div>
       )}
@@ -976,6 +1016,23 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
                               <Edit3 className="w-4 h-4" />
                             </button>
                           </PermissionGuard>
+                          {facility.attachment && facility.attachment.url && (
+                            <button
+                              onClick={() => {
+                                if (facility?.attachment?.url) {
+                                  window.open(
+                                    facility.attachment.url,
+                                    "_blank",
+                                    "noopener,noreferrer"
+                                  );
+                                  return;
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-900 transition-colors duration-200"
+                            >
+                              <Paperclip className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -993,24 +1050,26 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             <h2 className="text-xl font-semibold text-gray-800">
               {editingItem ? "Edit Facility" : "Add Facility"}
             </h2>
-           {onComplete?null:<button
-              onClick={resetForm}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {onComplete ? null : (
+              <button
+                onClick={resetForm}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>}
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -1228,6 +1287,45 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
                   ))}
                 </select>
               </div>
+              {showAttachment && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Attachment (optional)
+                  </label>
+
+                  <div className="flex items-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAttachmentFileModal(true)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                    >
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      {formData.attachment ? "Change File" : "Upload File"}
+                    </button>
+
+                    {formData.attachment && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">Selected:</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {(formData as any).attachment?.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              attachment: null,
+                            }))
+                          }
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -1251,31 +1349,69 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
                 </svg>
                 {editingItem ? "Update Facility" : "Save Facility"}
               </button>
-             {onComplete?null:<button
-                type="button"
-                onClick={resetForm}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
-              >
-                Cancel
-              </button>}
+              {onComplete ? null : (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
         </div>
       )}
 
-      {/* File Upload Modal */}
+      {/* Import Facilities Modal */}
       <FileUploadModal
         isOpen={showFileModal}
         onClose={() => setShowFileModal(false)}
-        onFileSelect={(file) => {
-          toast.success(`File "${file.name}" selected successfully`);
+        onFileSelect={async(file) => {
+          if(file){
+            const formData = new FormData();
+            formData.append("file", file);
+            const response = await postRequest('upload-attachment/upload-csv', formData, "", tokenData.accessToken, "post");
+            if(response.success){
+              const facilities = await fetchFacilities();
+              if(facilities){
+                safeLocalStorage.setItem("facilities", JSON.stringify(facilities));
+              }
+            }
+          } else{
+            toast.error("Please select a file");
+            return;
+          }
           // Here you can add logic to process the CSV/Excel file
           // For now, just showing a success message
         }}
-        acceptedTypes={['.csv', '.xlsx', '.xls']}
+        acceptedTypes={[".csv",]} // ".xlsx", ".xls"
         maxSize={10}
         title="Import Multiple Facilities"
         description="Upload a CSV or Excel file with facility data"
+      />
+
+      {/* Attachment Modal for single facility form */}
+      <FileUploadModal
+        isOpen={showAttachmentFileModal}
+        onClose={() => setShowAttachmentFileModal(false)}
+        onFileSelect={(file) => {
+          setFormData((prev: any) => ({ ...prev, attachment: file }));
+          setShowAttachmentFileModal(false);
+          toast.success('File "' + file.name + '" selected successfully');
+        }}
+        acceptedTypes={[
+          ".pdf",
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".csv",
+          ".xlsx",
+          ".xls",
+        ]}
+        maxSize={10}
+        title="Upload Attachment"
+        description="Drag and drop your file here or click to browse"
       />
     </div>
   );

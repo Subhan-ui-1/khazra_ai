@@ -201,6 +201,22 @@ export default function DashboardSidebar({
             label: "Baseline Emissions",
           },
           {
+            id: "GHGManage",
+            icon: "🏭",
+            label: "GHG Manage",
+          },
+            {
+              id: "boundary-setup",
+              icon: "🏭",
+              label: "Boundary Setup",
+              resource: "boundaries",
+            },
+            {
+              id: "section9",
+              icon: "🏭",
+              label: "Section 9",
+            },
+          {
             id: "add-department",
             icon: "🏭",
             label: "Department",

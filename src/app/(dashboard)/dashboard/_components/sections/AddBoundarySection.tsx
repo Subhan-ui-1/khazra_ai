@@ -11,39 +11,30 @@ import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 
 // Constants
 const INDUSTRY_OPTIONS = [
-  "Technology",
-  "Manufacturing",
-  "Automotive",
-  "Information Technology",
-  "Electronics",
-  "Agriculture",
-  "Energy",
-  "Natural Resources",
-  "Luxury Goods",
-  "Finance",
-  "Consumer Electronics",
+"Energy & Utilities",
   "Oil & Gas",
-  "Automotive Manufacturing",
-  "Palm Oil",
-  "Fashion",
-  "Textiles",
-  "Apparel",
-  "Mining", // Appears twice intentionally (common in different countries)
-  "Agribusiness"
+  "Manufacturing",
+  "Financial Services",
+  "Real Estate & Construction",
+  "Hospitality & Tourism",
+  "Transportation & Logistics",
+  "Technology",
+  "Healthcare",
+  "Retail & Consumer Goods",
+  "Agriculture",
+  "Government/Public Sector",
+  "Education",
+  "Other"
 ];
 
 const NUMBER_OF_EMPLOYEES_OPTIONS = [
   "1-10",
   "11-50",
-  "51-100",
-  "101-500",
-  "501-1000",
-  "1001-5000",
-  "5001-10000",
-  "10001-50000",
-  "50001-100000",
-  "100001-500000",
-  "500001-1000000",
+  "51-250",
+  "251-1,000",
+  "1,001-5,000",
+  "5,001-10,000",
+  "10,001+"
 ];
 
 const CURRENCY_OPTIONS = [
@@ -77,20 +68,25 @@ const CURRENCY_OPTIONS = [
 ];
 
 const ANNUAL_REVENUE_OPTIONS = [
-  "1-100000",
-  "100001-500000",
-  "500001-1000000",
-  "1000001-5000000",
-  "5000001-10000000",
-  "10000001-50000000",
-  "50000001-100000000",
-  "100000001-500000000",
-  "500000001-1000000000",
-  "1000000001-5000000000",
-  "5000000001-10000000000",
+  "Under AED 1 Million",
+"AED 1M - 10M",
+"AED 10M - 50M",
+"AED 50M - 250M",
+"AED 250M - 1B",
+"AED 1B - 5B",
+"Over AED 5B" 
+
 ];
 
-const BUSINESS_NATURE_OPTIONS = ["Hybrid", "Remote", "Onsite"];
+const BUSINESS_NATURE_OPTIONS = ["Publicly Listed Company",
+  "Private Company",
+  "Government Entity/Public Sector",
+  "State-Owned Enterprise",
+  "Non-Profit Organization",
+  "Partnership/Joint Venture",
+  "Subsidiary/Division",
+  "Free Zone Entity",
+  "Branch Office"];
 const YES_NO_OPTIONS = ["No", "Yes"];
 
 // Generate past years for dropdown (from current year back to 2 years ago)
@@ -888,7 +884,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
               <p className="text-sm text-gray-600">
                 {t('boundary.boundaryCreatedMessage')}
               </p>
-              {/* <PermissionGuard permission="boundaries.update">
+              <PermissionGuard permission="boundaries.update">
                 <button
                   onClick={() => startEdit(boundaryData)}
                   className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
@@ -908,7 +904,7 @@ const AddBoundarySection = ({ onComplete }: AddBoundarySectionProps) => {
                   </svg>
                   Edit Boundary
                 </button>
-              </PermissionGuard> */}
+              </PermissionGuard>
             </div>
           </div>
         </div>
