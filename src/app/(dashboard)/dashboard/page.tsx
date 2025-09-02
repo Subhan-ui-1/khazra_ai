@@ -40,6 +40,9 @@ import ReportGeneration from './_components/sections/ReportGeneration';
 import { getRequest } from '@/utils/api';
 import { safeLocalStorage } from '@/utils/localStorage';
 import AddEmissionSection from './_components/sections/AddEmissionSection';
+import GHGManage from './_components/sections/GHGManage';
+import BoundarySetupSteps from './_components/sections/BoundarySetupSteps';
+import Section9 from './_components/sections/OrganizationSetup/Section9';
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState('overview');
@@ -190,6 +193,9 @@ export default function DashboardPage() {
     reporting: <MaterialityAssessmentEngine />,
     'ReportGeneration': <ReportGeneration />,
     feedback: <FeedbackSection />,
+    'GHGManage': <GHGManage />,
+    'boundary-setup': <BoundarySetupSteps />,
+    // 'section9':<Section9 />,""
     'add-emission': <AddEmissionSection />,
     'add-facility': <PermissionGuard permission="facilities.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view facilities.</div>}>
       <AddFacilitySection />

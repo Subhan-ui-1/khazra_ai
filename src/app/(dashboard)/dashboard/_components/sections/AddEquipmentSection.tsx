@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Plus,
   Save,
@@ -32,6 +32,7 @@ interface EquipmentFormData {
   installationYear: string;
   status: string;
   notes: string;
+  attachment?: File | null;
 }
 
 interface FilterState {
@@ -144,6 +145,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
     installationYear: "",
     status: "",
     notes: "",
+    attachment: null,
   });
 
   const [filters, setFilters] = useState<FilterState>({
@@ -227,8 +229,8 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
     }
   };
 
-  // Form fields configuration
-  const equipmentFormFields: FormField[] = [
+  // Form fields configuration (memoized to avoid resetting DynamicForm state)
+  const equipmentFormFields: FormField[] = useMemo(() => [
     {
       name: "facilityId",
       label: "Facility",
@@ -325,7 +327,34 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
       placeholder: "Enter additional notes",
       rows: 3,
     },
-  ];
+    ...(!editingItem
+      ? [{
+          name: "attachment",
+          label: "Attachment",
+          type: "file" as const,
+          placeholder: "Upload attachment",
+          acceptedTypes: [".pdf", ".png", ".jpg", ".jpeg", ".csv", ".xlsx", ".xls"],
+          maxSize: 10,
+          showAttachment: true,
+        }]
+      : []),
+  ], [facilities, equipmentTypeData, editingItem]);
+
+  const handleFileUploadOnAPI = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      tokenData.accessToken,
+      "post"
+    );
+    if (response.success) {
+      return response.attachment;
+    }
+    return null;
+  };
 
   const handleFormSubmit = async (data: any) => {
     try {
@@ -333,6 +362,17 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         ...data,
         // organizationId: await getOrganizationId()
       };
+
+      if(!editingItem){
+        if(formData.attachment){
+          const attachment = await handleFileUploadOnAPI(formData.attachment as File);
+          if(attachment){
+            equipmentData.attachment = attachment;
+          } else{
+            return;
+          }
+        }
+      }
 
       const response = await postRequest(
         editingItem
@@ -699,10 +739,10 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
           <input type='file' className='hidden' id='uploadEquipmentsCSV' accept='.csv,.xlsx,.xls' ref={inputRef}/>
           <PermissionGuard permission="equipment.create">
             <div className='flex items-center gap-3'>
-              <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
+              {/* <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
                 <Paperclip className="w-5 h-5" />
                 Import Multiple Equipments
-            </button>
+            </button> */}
             <button
               onClick={() => setShowForm(true)}
               disabled={showForm}
@@ -986,6 +1026,9 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
           onClose={resetForm}
           showCancelButton={onComplete ? false : true}
           showCloseButton={onComplete ? false : true}
+          onFileChange={(file)=>{
+            setFormData((prev)=>({ ...prev, attachment: file }))
+          }}
         />
       )}
 

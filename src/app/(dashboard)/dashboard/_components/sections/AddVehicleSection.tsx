@@ -48,6 +48,7 @@ interface VehicleFormData {
   averageSpeed: string;
   dataSource: string;
   notes: string;
+  attachment?: File | null;
 }
 let empty: VehicleFormData = {
   vehicleType: "",
@@ -202,6 +203,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
 
   // In the component
   const [purchaseYears, setPurchaseYears] = useState<number[]>([]);
+  const [showAttachmentFileModal, setShowAttachmentFileModal] = useState(false);
 
   // 2. Add useEffect to update purchase years
   useEffect(() => {
@@ -258,6 +260,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
       );
       if (response.success) {
         setVehicleData(response.data.vehicles || []);
+        return response.data.vehicles;
       } else {
         //toast.error(response.message || "Failed to fetch vehicles");
         return;
@@ -292,16 +295,32 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
     }
   };
 
+  const handleFileUploadOnAPI = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await postRequest(
+      "upload-attachment/uploadAttachment",
+      formData,
+      "",
+      tokenData.accessToken,
+      "post"
+    );
+    if (response.success) {
+      return response.attachment;
+    }
+    return null;
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-if(!formData.purchaseYear){
-  toast.error("Please select a purchase year");
-  return;
-}
-if(!formData.annualMileageValue){
-  toast.error("Please select a annual mileage");
-  return;
-}
+    if (!formData.purchaseYear) {
+      toast.error("Please select a purchase year");
+      return;
+    }
+    if (!formData.annualMileageValue) {
+      toast.error("Please select a annual mileage");
+      return;
+    }
     // Prepare the request body according to the API specification
     const requestBody = {
       vehicleType: formData.vehicleType,
@@ -334,6 +353,7 @@ if(!formData.annualMileageValue){
       region: formData.region || "",
       dataSource: formData.dataSource || "Manufacturer Specs",
       notes: formData.notes || "",
+      attachment: null,
     };
 
     try {
@@ -350,6 +370,14 @@ if(!formData.annualMileageValue){
           "put"
         );
       } else {
+        if (formData.attachment) {
+          const attachment = await handleFileUploadOnAPI(formData.attachment as File);
+          if (attachment) {
+            requestBody.attachment = attachment;
+          } else {
+            return;
+          }
+        }
         // Add new vehicle
         response = await postRequest(
           "vehicles/addVehicle",
@@ -362,17 +390,22 @@ if(!formData.annualMileageValue){
 
       if (response.success) {
         const vehicles = safeLocalStorage.getItem("vehicles");
-        if(vehicles){
-          const vehiclesData = JSON.parse(vehicles)||[]
-          const index = vehiclesData.findIndex((e:any)=>e._id === response.vehicle._id);
-          if(index !== -1){
+        if (vehicles) {
+          const vehiclesData = JSON.parse(vehicles) || [];
+          const index = vehiclesData.findIndex(
+            (e: any) => e._id === response.vehicle._id
+          );
+          if (index !== -1) {
             vehiclesData[index] = response.vehicle;
-          } else{
+          } else {
             vehiclesData.push(response.vehicle);
           }
           safeLocalStorage.setItem("vehicles", JSON.stringify(vehiclesData));
-        } else{
-          safeLocalStorage.setItem("vehicles", JSON.stringify([response.vehicle]));
+        } else {
+          safeLocalStorage.setItem(
+            "vehicles",
+            JSON.stringify([response.vehicle])
+          );
         }
         toast.success(
           editingItem
@@ -394,7 +427,7 @@ if(!formData.annualMileageValue){
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
-        return;
+      return;
     }
   };
 
@@ -558,19 +591,22 @@ if(!formData.annualMileageValue){
             </h3>
           </div>
           <PermissionGuard permission="vehicle.create">
-            <div className='flex items-center gap-3'>
-              <button onClick={()=>setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowFileModal(true)}
+                className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+              >
                 <Paperclip className="w-5 h-5" />
                 Import Multiple Vehicles
               </button>
-            <button
-              onClick={() => setShowForm(true)}
-              disabled={showForm}
-              className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Vehicle</span>
-            </button>
+              <button
+                onClick={() => setShowForm(true)}
+                disabled={showForm}
+                className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Vehicle</span>
+              </button>
             </div>
           </PermissionGuard>
         </div>
@@ -580,10 +616,24 @@ if(!formData.annualMileageValue){
       <FileUploadModal
         isOpen={showFileModal}
         onClose={() => setShowFileModal(false)}
-        onFileSelect={(file) => {
-          toast.success(`File "${file.name}" selected successfully`);
+        onFileSelect={async(file) => {
+          if(file){
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("model", "vehicles");
+            const response = await postRequest('upload-attachment/upload-csv', formData, "", tokenData.accessToken, "post");
+            if(response.success){
+              const vehicles = await fetchVehicles();
+              if(vehicles){
+                safeLocalStorage.setItem("vehicles", JSON.stringify(vehicles));
+              }
+            }
+          } else{
+            toast.error("Please select a file");
+            return;
+          }
         }}
-        acceptedTypes={[".csv", ".xlsx", ".xls"]}
+        acceptedTypes={[".csv",]} // ".xlsx", ".xls"
         maxSize={10}
         title="Import Multiple Vehicles"
         description="Upload a CSV or Excel file with vehicle data"
@@ -819,16 +869,23 @@ if(!formData.annualMileageValue){
                               <Edit3 className="w-4 h-4" />
                             </button>
                           </PermissionGuard>
-                          {/* <PermissionGuard permission="vehicle.delete">
-                          <button
-                            onClick={() =>
-                              deleteVehicle(vehicle.id || vehicle._id)
-                            }
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </PermissionGuard> */}
+                          {vehicle.attachment && vehicle.attachment.url && (
+                            <button
+                              onClick={() => {
+                                if (vehicle?.attachment?.url) {
+                                  window.open(
+                                    vehicle.attachment.url,
+                                    "_blank",
+                                    "noopener,noreferrer"
+                                  );
+                                  return;
+                                }
+                              }}
+                              className="text-red-600 hover:text-red-900 transition-colors duration-200"
+                            >
+                              <Paperclip className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -845,24 +902,26 @@ if(!formData.annualMileageValue){
             <h2 className="text-xl font-semibold text-gray-800">
               {editingItem ? "Edit Vehicle" : "Add Vehicle"}
             </h2>
-           {onComplete?null:<button
-              onClick={resetForm}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {onComplete ? null : (
+              <button
+                onClick={resetForm}
+                className="text-gray-500 hover:text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>}
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -1257,6 +1316,36 @@ if(!formData.annualMileageValue){
               </div>
             </div>
 
+            {/* Attachment */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Attachment (optional)
+              </label>
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAttachmentFileModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                >
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  Upload File
+                </button>
+                {formData.attachment && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">Selected:</span>
+                      <span className="text-sm font-medium text-gray-900">{formData.attachment.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev: any) => ({ ...prev, attachment: null }))}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+              </div>
+            </div>
+
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
@@ -1277,17 +1366,42 @@ if(!formData.annualMileageValue){
                 </svg>
                 {editingItem ? "Update Vehicle" : "Save Vehicle"}
               </button>
-              {onComplete?null:<button
-                type="button"
-                onClick={resetForm}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
-              >
-                Cancel
-              </button>}
+              {onComplete ? null : (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
         </div>
       )}
+      {/* Attachment Modal for single vehicle form */}
+      <FileUploadModal
+        isOpen={showAttachmentFileModal}
+        onClose={() => setShowAttachmentFileModal(false)}
+        onFileSelect={(file) => {
+          // Keep selection local without changing submit body
+          toast.success(`File "${file.name}" selected successfully`);
+          setFormData((prev)=>({...prev,attachment:file}));
+          setShowAttachmentFileModal(false);
+        }}
+        acceptedTypes={[
+          ".pdf",
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".csv",
+          ".xlsx",
+          ".xls",
+        ]}
+        maxSize={10}
+        title="Upload Attachment"
+        description="Drag and drop your file here or click to browse"
+      />
     </div>
   );
 };

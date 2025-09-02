@@ -1,652 +1,1120 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
+import StepWizard, { Step } from "@/components/StepWizard";
+import Section9 from "./OrganizationSetup/Section9";
+import {
+  CheckCircle,
+  BarChart3,
+  Globe,
+  Target,
+  Edit,
+  Eye,
+  Save,
+  X,
+  TrendingUp,
+  Calendar,
+} from "lucide-react";
+import { postRequest, getRequest } from "@/utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
-import { getRequest, postRequest } from "@/utils/api";
+import WorkingConditionalForm, {
+  ConditionalField,
+} from "@/components/forms/WorkingConditionalForm";
 
-type InputMode =
+type baselineCategory =
   | "scopeTotals"
   | "scopeCategory"
   | "scopeCategoryFacility"
   | "comprehensive";
 
-interface AddEmissionSectionProps {
-  onComplete?: (data?: any) => void;
-  apiBasePath?: string; // e.g., "emissions" or "emissions/summaries"
-  useApi?: boolean; // enable when backend is ready
-}
-
-// Small helper so user only needs to provide the base path
-const createApiHelper = (basePath: string, token?: string) => {
-  const build = (suffix?: string) =>
-    suffix ? `${basePath}/${suffix}` : basePath;
-  return {
-    fetch: (suffix?: string) => getRequest(build(suffix), token),
-    create: (payload: any, suffix?: string) =>
-      postRequest(build(suffix), payload, undefined, token, "post"),
-    update: (id: string, payload: any, suffix?: string) =>
-      postRequest(
-        build(suffix ? `${suffix}/${id}` : id),
-        payload,
-        undefined,
-        token,
-        "put"
-      ),
-    remove: (id: string, suffix?: string) =>
-      postRequest(
-        build(suffix ? `${suffix}/${id}` : id),
-        {},
-        undefined,
-        token,
-        "delete"
-      ),
+interface BaselineData {
+  _id: string;
+  // Step 1: Emission Data
+  baselineCategory: baselineCategory;
+  scope1TotalEmissions?: number;
+  scope2TotalEmissions?: number;
+  facility?: string;
+  scope1?: {
+    stationary: number;
+    mobile: number;
   };
-};
-
-const SCOPE_OPTIONS = [
-  { value: "1", label: "Scope 1" },
-  { value: "2", label: "Scope 2" },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: "stationary", label: "Stationary" },
-  { value: "mobile", label: "Mobile" },
-  { value: "electricity", label: "Purchased Electricity" },
-  { value: "heating", label: "Heating" },
-  { value: "cooling", label: "Cooling" },
-  { value: "steam", label: "Steam" },
-];
-
-const MODE_OPTIONS = [
-  { value: "scopeTotals", label: "Scope wise - 1, 2 total" },
-  { value: "scopeCategory", label: "Scope and category wise" },
-  {
-    value: "scopeCategoryFacility",
-    label: "Scope, category and facility wise",
-  },
-  {
-    value: "comprehensive",
-    label:
-      "Comprehensive (Scope 1 stationary, facility, equipment/vehicle, etc.)",
-  },
-];
-
-interface EmissionSummary {
-  _id?: string;
-  mode: InputMode;
-  // Generic capture for UI preview card
-  data: Record<string, any>;
-  createdAt?: string;
-  updatedAt?: string;
+  scope2?: {
+    electricity: number;
+    heating: number;
+    cooling: number;
+    steam: number;
+  };
+  totals?: {
+    facilities: number;
+    equipment: number;
+    vehicles: number;
+  };
+  // Step 2: Baseline & Reporting Configuration
+  baselineYear: string;
+  reasonChooseBaselineYear: string;
+  scope1Stationary: number;
+  baselineDataCompleteness: string;
+  baselineYearSelectionCriteria: string[];
+  baselineRecalculationPolicy: string;
+  baselineRecalculationTriggers: string[];
+  changeManagementProcessEstablished: string;
+  // financialYearPeriod: {
+  //   startDate: string;
+  //   endDate: string;
+  // };
+  financialYearPeriodEnd: string;
+  financialYearPeriodStart: string;
+  environmentalReportingPeriod: string;
+  dataCollectionFrequency: string;
+  historicalDataRetentionPeriod: string;
+  dataArchivingAndRetrievalSystem: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({
-  onComplete,
-  apiBasePath = "",
-  useApi = false,
-}) => {
+const AddEmissionSection: React.FC = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [baselineData, setBaselineData] = useState<BaselineData | null>(null);
   const router = useRouter();
-
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
-  if (!tokenData.accessToken) {
-    toast.error("Please login to continue");
-    router.push("/login");
-  }
 
-  const [existing, setExisting] = useState<EmissionSummary | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [editing, setEditing] = useState<EmissionSummary | null>(null);
-  const [mode, setMode] = useState<InputMode | "">("");
+  // State to track form completion for each step
+  const [formCompletionStatus, setFormCompletionStatus] = useState({
+    step1: false,
+    step2: false,
+  });
 
-  const api = useMemo(
-    () =>
-      apiBasePath ? createApiHelper(apiBasePath, tokenData.accessToken) : null,
-    [apiBasePath, tokenData.accessToken]
-  );
+  // State to store form data for each step
+  const [formData, setFormData] = useState({
+    step1: {},
+    step2: {},
+  });
+
+  const steps: Step[] = [
+    {
+      id: 1,
+      title: "Emission Data",
+      description: "Configure your emission data and scope breakdown",
+      icon: <TrendingUp className="w-5 h-5" />,
+    },
+    {
+      id: 2,
+      title: "Baseline & Reporting Configuration",
+      description: "Set up baseline year and reporting parameters",
+      icon: <Calendar className="w-5 h-5" />,
+    },
+  ];
+
+  // Fetch existing baseline data
+  const fetchBaselineData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getRequest(
+        "baseline/getBaseline",
+        tokenData.accessToken
+      );
+      if (
+        response.success &&
+        response.data.baseline &&
+        response.data.baseline.length > 0
+      ) {
+        console.log("response.data.baseline", response.data.baseline);
+        const raw = response.data.baseline[0];
+
+        // Normalize incoming API data to a consistent internal shape
+        const normalized = {
+          ...raw,
+          scope1: {
+            stationary:
+              raw.scope1?.stationary ?? raw.scope1Stationary ?? undefined,
+            mobile: raw.scope1?.mobile ?? raw.scope1Mobile ?? undefined,
+          },
+          scope2: {
+            electricity:
+              raw.scope2?.electricity ??
+              raw.scope2PurchasedElectricity ??
+              undefined,
+            heating: raw.scope2?.heating ?? raw.scope2Heating ?? undefined,
+            cooling: raw.scope2?.cooling ?? raw.scope2Cooling ?? undefined,
+            steam: raw.scope2?.steam ?? raw.scope2Steam ?? undefined,
+          },
+          totals: {
+            facilities:
+              raw.totals?.facilities ?? raw.facilitiesTotal ?? undefined,
+            equipment: raw.totals?.equipment ?? raw.equipmentTotal ?? undefined,
+            vehicles: raw.totals?.vehicles ?? raw.vehiclesTotal ?? undefined,
+          },
+        } as BaselineData;
+
+        setBaselineData(normalized);
+
+        // Pre-populate form data for edit mode
+        setFormData({
+          step1: {
+            baselineCategory: normalized.baselineCategory,
+            scope1TotalEmissions:
+              normalized.scope1TotalEmissions ?? raw.scope1TotalEmissions,
+            scope2TotalEmissions:
+              normalized.scope2TotalEmissions ?? raw.scope2TotalEmissions,
+            // facility: normalized.facility,
+            scope1Stationary:
+              normalized.scope1?.stationary ?? raw.scope1Stationary,
+            scope1Mobile: normalized.scope1?.mobile ?? raw.scope1Mobile,
+            scope2PurchasedElectricity:
+              normalized.scope2?.electricity ?? raw.scope2PurchasedElectricity,
+            scope2Heating: normalized.scope2?.heating ?? raw.scope2Heating,
+            scope2Cooling: normalized.scope2?.cooling ?? raw.scope2Cooling,
+            scope2Steam: normalized.scope2?.steam ?? raw.scope2Steam,
+            facilitiesTotal:
+              normalized.totals?.facilities ?? raw.facilitiesTotal,
+            equipmentTotal: normalized.totals?.equipment ?? raw.equipmentTotal,
+            vehiclesTotal: normalized.totals?.vehicles ?? raw.vehiclesTotal,
+            baselineYear: normalized.baselineYear,
+            reasonChooseBaselineYear: normalized.reasonChooseBaselineYear,
+          },
+          step2: {
+            baselineDataCompleteness: normalized.baselineDataCompleteness,
+            baselineYearSelectionCriteria:
+              normalized.baselineYearSelectionCriteria,
+            baselineRecalculationPolicy: normalized.baselineRecalculationPolicy,
+            baselineRecalculationTriggers:
+              normalized.baselineRecalculationTriggers,
+            changeManagementProcessEstablished:
+              normalized.changeManagementProcessEstablished,
+            financialYearPeriodStart: normalized.financialYearPeriodStart,
+            financialYearPeriodEnd: normalized.financialYearPeriodEnd,
+            environmentalReportingPeriod:
+              normalized.environmentalReportingPeriod,
+            dataCollectionFrequency: normalized.dataCollectionFrequency,
+            historicalDataRetentionPeriod:
+              normalized.historicalDataRetentionPeriod,
+            dataArchivingAndRetrievalSystem:
+              normalized.dataArchivingAndRetrievalSystem,
+          },
+        });
+
+        // Mark all steps as completed since data exists
+        setFormCompletionStatus({
+          step1: true,
+          step2: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching baseline data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!useApi || !api) return;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await api.fetch();
-        if (res?.success && res?.data) {
-          setExisting({
-            mode: res.data.mode as InputMode,
-            data: res.data,
-            _id: res.data._id,
-            createdAt: res.data.createdAt,
-            updatedAt: res.data.updatedAt,
-          });
+    fetchBaselineData();
+  }, []);
+
+  // Handle form submission for each step
+  const handleStepFormSubmit = (step: number, data: any) => {
+    console.log(`Step ${step} form submitted:`, data);
+
+    // Update form data
+    setFormData((prev) => ({
+      ...prev,
+      [`step${step}`]: data,
+    }));
+
+    // Mark step as completed
+    setFormCompletionStatus((prev) => ({
+      ...prev,
+      [`step${step}`]: true,
+    }));
+
+    // Automatically proceed to next step if not the last step
+    if (step < steps.length) {
+      setCurrentStep(step + 1);
+    }
+  };
+
+  // Step validation function
+  const validateStep = (step: number): boolean | string => {
+    switch (step) {
+      case 1:
+        if (!formCompletionStatus.step1) {
+          return "Please complete the Emission Data configuration before proceeding";
         }
-      } catch (e) {
-        // Silent for now
-      } finally {
-        setLoading(false);
+        return true;
+
+      case 2:
+        if (!formCompletionStatus.step2) {
+          return "Please complete the Baseline & Reporting Configuration before proceeding";
+        }
+        return true;
+
+      default:
+        return true;
+    }
+  };
+
+  // Handle step change with validation
+  const handleStepChange = (step: number) => {
+    // Free navigation between steps
+    setCurrentStep(step);
+  };
+
+  // Handle wizard completion
+  const handleComplete = async () => {
+    if (formCompletionStatus.step1 && formCompletionStatus.step2) {
+      console.log("All baseline setup steps completed!", formData);
+      const { step1, step2 } = formData;
+
+      const endpoint =
+        isEditMode && baselineData
+          ? `baseline/updateBaseline/${baselineData._id}`
+          : "baseline/addBaseline";
+
+      const method = isEditMode ? "put" : "post";
+      const successMessage = isEditMode
+        ? "Baseline setup updated successfully!"
+        : "Baseline setup completed successfully!";
+
+      // Build payload from both steps
+      const payload = buildPayload(step1, step2);
+
+      const response = await postRequest(
+        endpoint,
+        payload,
+        successMessage,
+        tokenData.accessToken,
+        method
+      );
+
+      if (response.success) {
+        setIsEditMode(false);
+        await fetchBaselineData(); // Refresh data
+        router.push("/dashboard?section=add-emission");
       }
+    }
+  };
+
+  // Build payload from form data
+  const buildPayload = (step1Data: any, step2Data: any) => {
+    const payload: any = {
+      // baselineCategory: step1Data.baselineCategory,
+      ...step1Data,
+      ...step2Data, // Include all step2 data
     };
-    load();
-  }, [useApi, api]);
 
-  // Emission section is visible to all authenticated users for now (no permission gating)
+    // Convert the separate date fields back to the expected structure
+    // if (
+    //   step2Data.financialYearPeriodStart &&
+    //   step2Data.financialYearPeriodEnd
+    // ) {
+    //   // payload.financialYearPeriod = {
+    //   //   startDate: step2Data.financialYearPeriodStart,
+    //   //   endDate: step2Data.financialYearPeriodEnd,
+    //   // };
+    //   // Remove the separate fields to avoid duplication
+    //   delete payload.financialYearPeriodStart;
+    //   delete payload.financialYearPeriodEnd;
+    // }
 
-  const resetForm = () => {
-    setShowForm(false);
-    setEditing(null);
-    setMode("");
+    // Add step1 data based on input mode
+    // switch (step1Data.baselineCategory as baselineCategory) {
+    //   case "scopeTotals": {
+    //     payload.scope1TotalEmissions = Number(
+    //       step1Data.scope1TotalEmissions || 0
+    //     );
+    //     payload.scope2TotalEmissions = Number(
+    //       step1Data.scope2TotalEmissions || 0
+    //     );
+    //     break;
+    //   }
+    //   case "scopeCategory": {
+    //     payload.scope1 = {
+    //       stationary: Number(step1Data.scope1Stationary || 0),
+    //       mobile: Number(step1Data.scope1Mobile || 0),
+    //     };
+    //     payload.scope2 = {
+    //       electricity: Number(step1Data.scope2PurchasedElectricity || 0),
+    //       heating: Number(step1Data.scope2Heating || 0),
+    //       cooling: Number(step1Data.scope2Cooling || 0),
+    //       steam: Number(step1Data.scope2Steam || 0),
+    //     };
+    //     break;
+    //   }
+    //   case "scopeCategoryFacility": {
+    //     // payload.facility = step1Data.facility;
+    //     payload.scope1 = {
+    //       stationary: Number(step1Data.scope1Stationary || 0),
+    //       mobile: Number(step1Data.scope1Mobile || 0),
+    //     };
+    //     payload.scope2 = {
+    //       electricity: Number(step1Data.scope2PurchasedElectricity || 0),
+    //       heating: Number(step1Data.scope2Heating || 0),
+    //       cooling: Number(step1Data.scope2Cooling || 0),
+    //       steam: Number(step1Data.scope2Steam || 0),
+    //     };
+    //     break;
+    //   }
+    //   case "comprehensive": {
+    //     payload.scope1 = {
+    //       stationary: Number(step1Data.scope1Stationary || 0),
+    //       mobile: Number(step1Data.scope1Mobile || 0),
+    //     };
+    //     payload.scope2 = {
+    //       electricity: Number(step1Data.scope2PurchasedElectricity || 0),
+    //       heating: Number(step1Data.scope2Heating || 0),
+    //       cooling: Number(step1Data.scope2Cooling || 0),
+    //       steam: Number(step1Data.scope2Steam || 0),
+    //     };
+    //     payload.totals = {
+    //       facilities: Number(step1Data.facilitiesTotal || 0),
+    //       equipment: Number(step1Data.equipmentTotal || 0),
+    //       vehicles: Number(step1Data.vehiclesTotal || 0),
+    //     };
+    //     break;
+    //   }
+    // }
+    return payload;
   };
 
-  const startEdit = (data: EmissionSummary) => {
-    setEditing(data);
-    setMode(data.mode);
-    setShowForm(true);
+  // Handle edit mode toggle
+  const handleEditMode = () => {
+    setIsEditMode(true);
+    setCurrentStep(1);
   };
 
-  const fields: FormField[] = useMemo(() => {
-    const list: FormField[] = [
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setCurrentStep(1);
+    // Reset form data to original values
+    if (baselineData) {
+      const data = baselineData;
+      setFormData({
+        step1: {
+          baselineCategory: data.baselineCategory,
+          scope1TotalEmissions: data.scope1TotalEmissions,
+          scope2TotalEmissions: data.scope2TotalEmissions,
+          scope1Stationary: data.scope1?.stationary,
+          scope1Mobile: data.scope1?.mobile,
+          scope2PurchasedElectricity: data.scope2?.electricity,
+          scope2Heating: data.scope2?.heating,
+          scope2Cooling: data.scope2?.cooling,
+          scope2Steam: data.scope2?.steam,
+          facilitiesTotal: data.totals?.facilities,
+          equipmentTotal: data.totals?.equipment,
+          vehiclesTotal: data.totals?.vehicles,
+        },
+        step2: {
+          baselineYear: data.baselineYear,
+          reasonChooseBaselineYear: data.reasonChooseBaselineYear,
+          baselineDataCompleteness: data.baselineDataCompleteness,
+          baselineYearSelectionCriteria: data.baselineYearSelectionCriteria,
+          baselineRecalculationPolicy: data.baselineRecalculationPolicy,
+          baselineRecalculationTriggers: data.baselineRecalculationTriggers,
+          changeManagementProcessEstablished:
+            data.changeManagementProcessEstablished,
+          financialYearPeriodStart: data.financialYearPeriodStart,
+          financialYearPeriodEnd: data.financialYearPeriodEnd,
+          environmentalReportingPeriod: data.environmentalReportingPeriod,
+          dataCollectionFrequency: data.dataCollectionFrequency,
+          historicalDataRetentionPeriod: data.historicalDataRetentionPeriod,
+          dataArchivingAndRetrievalSystem: data.dataArchivingAndRetrievalSystem,
+        },
+      });
+    }
+  };
+
+  // Step 1 fields for emission data
+  const getStep1Fields = (): ConditionalField[] => {
+    return [
       {
-        name: "inputMode",
-        label: "Select Input Mode",
-        type: "select",
+        name: "baselineYear",
+        label: "Baseline year for emissions tracking",
+        type: "dropdown",
         required: true,
-        options: MODE_OPTIONS,
-        onChange: (val) => setMode(val as InputMode),
-        defaultValue: editing?.mode || "",
+        placeholder: "Select the Baseline year",
+        options: [
+          { label: "2024", value: "2024" },
+          { label: "2023", value: "2023" },
+          { label: "2022", value: "2022" },
+          { label: "2021", value: "2021" },
+          { label: "2020", value: "2020" },
+          { label: "2019", value: "2019" },
+          { label: "2018", value: "2018" },
+          { label: "Other", value: "Other" },
+        ],
       },
-      // Mode 1: Scope totals (show three number inputs)
       {
-        name: "scope1Total",
+        name: "reasonChooseBaselineYear",
+        label: "Why did you choose this baseline year? ",
+        type: "dropdown",
+        required: true,
+        placeholder: "Select the reason for baseline year",
+        options: [
+          {
+            label: "Most recent year with complete data",
+            value: "Most recent year with complete data",
+          },
+          {
+            label: "First year of comprehensive tracking",
+            value: "First year of comprehensive tracking",
+          },
+          {
+            label: "Aligns with corporate targets/strategy",
+            value: "Aligns with corporate targets/strategy",
+          },
+          { label: "Regulatory requirement", value: "Regulatory requirement" },
+          {
+            label: "Representative of normal operations",
+            value: "Representative of normal operations",
+          },
+          { label: "Other", value: "Other" },
+        ],
+      },
+      {
+        name: "baselineCategory",
+        label: "Select Input Mode",
+        type: "dropdown",
+        required: true,
+        placeholder: "Select your input mode",
+        options: [
+          { value: "scopeTotals", label: "Scope wise - 1, 2 total" },
+          { value: "scopeCategory", label: "Scope and category wise" },
+          {
+            value: "scopeCategoryFacility",
+            label: "Scope, category and facility wise",
+          },
+          {
+            value: "comprehensive",
+            label:
+              "Comprehensive (Scope 1 stationary, facility, equipment/vehicle, etc.)",
+          },
+        ],
+      },
+      // Mode 1: Scope totals
+      {
+        name: "scope1TotalEmissions",
         label: "Scope 1 Total Emissions (tCO2e)",
         type: "number",
         required: true,
-        condition: (fd) => fd.inputMode === "scopeTotals",
+        showWhen: [{ field: "baselineCategory", value: "scopeTotals" }],
       },
       {
-        name: "scope2Total",
+        name: "scope2TotalEmissions",
         label: "Scope 2 Total Emissions (tCO2e)",
         type: "number",
         required: true,
-        condition: (fd) => fd.inputMode === "scopeTotals",
+        showWhen: [{ field: "baselineCategory", value: "scopeTotals" }],
       },
+      // Facility field for scopeCategoryFacility mode
+      // {
+      //   name: "facility",
+      //   label: "Facility",
+      //   type: "input",
+      //   required: true,
+      //   placeholder: "Enter facility name",
+      //   showWhen: [{ field: "baselineCategory", value: "scopeCategoryFacility" }],
+      // },
+      // Comprehensive fields
       {
-        name: "facility",
-        label: "Facility",
-        type: "text",
-        required: true,
-        placeholder: "Enter facility name",
-        condition: (fd) => fd.inputMode === "scopeCategoryFacility",
-      },
-      // Mode 4: Comprehensive
-      {
-        name: "comp_scope1_stationary",
+        name: "scope1Stationary",
         label: "Scope 1 - Stationary (tCO2e)",
         type: "number",
         required: true,
-        condition: (fd) =>
-          fd.inputMode === "scopeCategory" ||
-          fd.inputMode === "comprehensive" ||
-          fd.inputMode === "scopeCategoryFacility",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategory" },
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+          { field: "baselineCategory", value: "comprehensive" },
+        ],
       },
       {
-        name: "comp_scope1_mobile",
+        name: "scope1Mobile",
         label: "Scope 1 - Mobile (tCO2e)",
         type: "number",
         required: true,
-        condition: (fd) =>
-          fd.inputMode === "scopeCategory" ||
-          fd.inputMode === "comprehensive" ||
-          fd.inputMode === "scopeCategoryFacility",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategory" },
+          { field: "baselineCategory", value: "comprehensive" },
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+        ],
       },
       {
-        name: "comp_scope2_electricity",
+        name: "scope2PurchasedElectricity",
         label: "Scope 2 - Purchased Electricity (tCO2e)",
         type: "number",
         required: true,
-        condition: (fd) =>
-          fd.inputMode === "scopeCategory" ||
-          fd.inputMode === "comprehensive" ||
-          fd.inputMode === "scopeCategoryFacility",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategory" },
+          { field: "baselineCategory", value: "comprehensive" },
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+        ],
       },
       {
-        name: "comp_scope2_heating",
+        name: "scope2Heating",
         label: "Scope 2 - Heating (tCO2e)",
         type: "number",
         required: false,
-        condition: (fd) =>
-          fd.inputMode === "scopeCategory" ||
-          fd.inputMode === "comprehensive" ||
-          fd.inputMode === "scopeCategoryFacility",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategory" },
+          { field: "baselineCategory", value: "comprehensive" },
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+        ],
       },
       {
-        name: "comp_scope2_cooling",
+        name: "scope2Cooling",
         label: "Scope 2 - Cooling (tCO2e)",
         type: "number",
         required: false,
-        condition: (fd) =>
-          fd.inputMode === "scopeCategory" ||
-          fd.inputMode === "comprehensive" ||
-          fd.inputMode === "scopeCategoryFacility",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategory" },
+          { field: "baselineCategory", value: "comprehensive" },
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+        ],
       },
       {
-        name: "comp_scope2_steam",
+        name: "scope2Steam",
         label: "Scope 2 - Steam (tCO2e)",
         type: "number",
         required: false,
-        condition: (fd) =>
-          fd.inputMode === "scopeCategory" ||
-          fd.inputMode === "comprehensive" ||
-          fd.inputMode === "scopeCategoryFacility",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategory" },
+          { field: "baselineCategory", value: "comprehensive" },
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+        ],
       },
+      // Comprehensive totals
       {
-        name: "totalFacilities",
+        name: "facilitiesTotal",
         label: "Facilities Total",
         type: "number",
         required: false,
-        condition: (fd) => fd.inputMode === "comprehensive",
+        showWhen: [
+          { field: "baselineCategory", value: "scopeCategoryFacility" },
+          { field: "baselineCategory", value: "comprehensive" },
+        ],
       },
       {
-        name: "totalEquipment",
+        name: "equipmentTotal",
         label: "Equipment Total",
         type: "number",
         required: false,
-        condition: (fd) => fd.inputMode === "comprehensive",
+        showWhen: [{ field: "baselineCategory", value: "comprehensive" }],
       },
       {
-        name: "totalVehicles",
+        name: "vehiclesTotal",
         label: "Vehicle Total",
         type: "number",
         required: false,
-        condition: (fd) => fd.inputMode === "comprehensive",
+        showWhen: [{ field: "baselineCategory", value: "comprehensive" }],
       },
     ];
-    return list;
-  }, [editing]);
+  };
 
-  const buildPayload = useCallback((data: any) => {
-    const payload: any = { mode: data.inputMode };
-    switch (data.inputMode as InputMode) {
-      case "scopeTotals": {
-        payload.scope1Total = Number(data.scope1Total || 0);
-        payload.scope2Total = Number(data.scope2Total || 0);
-        break;
-      }
-      case "scopeCategory": {
-        // Using detailed breakdown (same fields as comprehensive)
-        payload.scope1 = {
-          stationary: Number(data.comp_scope1_stationary || 0),
-          mobile: Number(data.comp_scope1_mobile || 0),
-        };
-        payload.scope2 = {
-          electricity: Number(data.comp_scope2_electricity || 0),
-          heating: Number(data.comp_scope2_heating || 0),
-          cooling: Number(data.comp_scope2_cooling || 0),
-          steam: Number(data.comp_scope2_steam || 0),
-        };
-        break;
-      }
-      case "scopeCategoryFacility": {
-        payload.facility = data.facility;
-        payload.scope1 = {
-          stationary: Number(data.comp_scope1_stationary || 0),
-          mobile: Number(data.comp_scope1_mobile || 0),
-        };
-        payload.scope2 = {
-          electricity: Number(data.comp_scope2_electricity || 0),
-          heating: Number(data.comp_scope2_heating || 0),
-          cooling: Number(data.comp_scope2_cooling || 0),
-          steam: Number(data.comp_scope2_steam || 0),
-        };
-        break;
-      }
-      case "comprehensive": {
-        payload.scope1 = {
-          stationary: Number(data.comp_scope1_stationary || 0),
-          mobile: Number(data.comp_scope1_mobile || 0),
-        };
-        payload.scope2 = {
-          electricity: Number(data.comp_scope2_electricity || 0),
-          heating: Number(data.comp_scope2_heating || 0),
-          cooling: Number(data.comp_scope2_cooling || 0),
-          steam: Number(data.comp_scope2_steam || 0),
-        };
-        payload.totals = {
-          facilities: Number(data.totalFacilities || 0),
-          equipment: Number(data.totalEquipment || 0),
-          vehicles: Number(data.totalVehicles || 0),
-        };
-        break;
-      }
-    }
-    return payload;
-  }, []);
+  // Render step content
+  const renderStepContent = () => {
+    const step1Fields = getStep1Fields();
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="space-y-8  ">
+              <WorkingConditionalForm
+                fields={step1Fields.filter((f) =>
+                  ["baselineYear", "reasonChooseBaselineYear"].includes(f.name)
+                )}
+                onSubmit={(data) => handleStepFormSubmit(1, data)}
+                submitText="Save & Continue"
+                title="Baseline Setup"
+                className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                initialData={formData.step1}
+              />
+              <WorkingConditionalForm
+                fields={step1Fields.filter(
+                  (f) =>
+                    !["baselineYear", "reasonChooseBaselineYear"].includes(
+                      f.name
+                    )
+                )}
+                onSubmit={(data) => handleStepFormSubmit(1, data)}
+                submitText="Save & Continue"
+                title="Emission Configuration"
+                className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                initialData={formData.step1}
+              />
+            </div>
+            {/* {formCompletionStatus.step1 && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm text-green-700 font-medium">
+                    Step 1 completed successfully! You can now proceed to the
+                    next step.
+                  </span>
+                </div>
+              </div>
+            )} */}
+          </div>
+        );
 
-  const onSubmit = async (form: any) => {
-    try {
-      if (!form?.inputMode) {
-        toast.error("Please select an input mode");
-        return;
-      }
-      setSubmitting(true);
-      const payload = buildPayload(form);
+      case 2:
+        return (
+          <div className="space-y-6">
+            <Section9
+              onFormSubmit={(data) => handleStepFormSubmit(2, data)}
+              isCompleted={formCompletionStatus.step2}
+              initialData={formData.step2}
+            />
 
-      if (useApi && api) {
-        const res = editing?._id
-          ? await api.update(editing._id as string, payload)
-          : await api.create(payload);
-        if (res?.success) {
-          toast.success(editing ? "Emissions updated" : "Emissions created");
-          setExisting({
-            mode: payload.mode,
-            data: res.data || payload,
-            _id: res.data?._id,
-          });
-          setShowForm(false);
-          setEditing(null);
-          if (onComplete) onComplete(res.data);
-          return;
-        }
-      }
+            {/* {formCompletionStatus.step2 && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm text-green-700 font-medium">
+                    Step 2 completed successfully! You can now complete the
+                    setup.
+                  </span>
+                </div>
+              </div>
+            )} */}
+          </div>
+        );
 
-      // Mock success path when API is disabled or not ready
-      toast.success("Saved locally (API not enabled)");
-      setExisting({ mode: payload.mode, data: payload });
-      setShowForm(false);
-      setEditing(null);
-      if (onComplete) onComplete(payload);
-    } catch (e) {
-      // No-op; toasts already handled by api.ts
-    } finally {
-      setSubmitting(false);
+      default:
+        return <div>Step not found</div>;
     }
   };
 
-  const renderExisting = () => {
-    if (!existing || showForm) return null;
+  // Check if user can proceed to next step
+  const canProceedToNextStep = () => {
+    switch (currentStep) {
+      case 1:
+        return formCompletionStatus.step1;
+      case 2:
+        return formCompletionStatus.step2;
+      default:
+        return false;
+    }
+  };
+
+  // Check if user can go back
+  const canGoBack = () => {
+    return currentStep > 1;
+  };
+
+  // Render data display component
+  const renderDataDisplay = () => {
+    if (!baselineData) return null;
+
+    const formatArray = (arr: string[] | undefined) => {
+      if (!arr || arr.length === 0) return "None";
+      return arr.join(", ");
+    };
+
+    const formatDate = (dateString: string) => {
+      return new Date(dateString).toLocaleDateString();
+    };
+
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Existing Emission Summary
-          </h2>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg">
-              Active
-            </span>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-8">
+        {/* Header with actions */}
+        <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Mode</h3>
-            <p className="text-sm text-gray-900">{existing.mode}</p>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Baseline Configuration
+            </h2>
+            <p className="text-gray-600 mt-1">
+              Your organization's emission data and baseline setup
+            </p>
           </div>
-
-          {/* Scope totals */}
-          {existing?.data?.scope1Total !== undefined && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Scope 1 Total
-              </h3>
-              <p className="text-sm text-gray-900">
-                {existing.data.scope1Total}
-              </p>
-            </div>
-          )}
-          {existing?.data?.scope2Total !== undefined && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Scope 2 Total
-              </h3>
-              <p className="text-sm text-gray-900">
-                {existing.data.scope2Total}
-              </p>
-            </div>
-          )}
-
-          {/* Facility if included */}
-          {existing?.data?.facility && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">
-                Facility
-              </h3>
-              <p className="text-sm text-gray-900">{existing.data.facility}</p>
-            </div>
-          )}
-
-          {/* Scope 1 breakdown */}
-          {existing?.data?.scope1 && (
-            <>
-              {existing.data.scope1?.stationary !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Scope 1 - Stationary
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.scope1.stationary}
-                  </p>
-                </div>
-              )}
-              {existing.data.scope1?.mobile !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Scope 1 - Mobile
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.scope1.mobile}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Scope 2 breakdown */}
-          {existing?.data?.scope2 && (
-            <>
-              {existing.data.scope2?.electricity !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Scope 2 - Electricity
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.scope2.electricity}
-                  </p>
-                </div>
-              )}
-              {existing.data.scope2?.heating !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Scope 2 - Heating
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.scope2.heating}
-                  </p>
-                </div>
-              )}
-              {existing.data.scope2?.cooling !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Scope 2 - Cooling
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.scope2.cooling}
-                  </p>
-                </div>
-              )}
-              {existing.data.scope2?.steam !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Scope 2 - Steam
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.scope2.steam}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Totals if available */}
-          {existing?.data?.totals && (
-            <>
-              {existing.data.totals?.facilities !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Facilities Total
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.totals.facilities}
-                  </p>
-                </div>
-              )}
-              {existing.data.totals?.equipment !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Equipment Total
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.totals.equipment}
-                  </p>
-                </div>
-              )}
-              {existing.data.totals?.vehicles !== undefined && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">
-                    Vehicle Total
-                  </h3>
-                  <p className="text-sm text-gray-900">
-                    {existing.data.totals.vehicles}
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">Emission summary saved.</p>
+          <div className="flex space-x-3">
             <button
-              onClick={() => startEdit(existing)}
-              className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
+              onClick={handleEditMode}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              Edit Emissions
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Configuration
             </button>
           </div>
         </div>
+
+        {/* Data Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Emission Data */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Emission Data
+              </h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Baseline Category
+                </label>
+                <p className="text-gray-900">{baselineData.baselineCategory}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Baseline Year
+                </label>
+                <p className="text-gray-900">{baselineData.baselineYear}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Reason for Baseline Year
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.reasonChooseBaselineYear}
+                </p>
+              </div>
+
+              {/* Scope totals */}
+              {baselineData.scope1TotalEmissions !== undefined && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Scope 1 Total
+                  </label>
+                  <p className="text-gray-900">
+                    {baselineData.scope1TotalEmissions} tCO2e
+                  </p>
+                </div>
+              )}
+              {baselineData.scope2TotalEmissions !== undefined && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Scope 2 Total
+                  </label>
+                  <p className="text-gray-900">
+                    {baselineData.scope2TotalEmissions} tCO2e
+                  </p>
+                </div>
+              )}
+
+              {/* Facility if included */}
+              {/* {baselineData.facilitiesTotal && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Facility</label>
+                  <p className="text-gray-900">{baselineData.facilitiesTotal}</p>
+                </div>
+              )} */}
+
+              {/* Scope 1 breakdown */}
+              {baselineData.scope1 && (
+                <>
+                  {baselineData.scope1.stationary !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Scope 1 - Stationary
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.scope1.stationary} tCO2e
+                      </p>
+                    </div>
+                  )}
+                  {baselineData.scope1.mobile !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Scope 1 - Mobile
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.scope1.mobile} tCO2e
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Scope 2 breakdown */}
+              {baselineData.scope2 && (
+                <>
+                  {baselineData.scope2.electricity !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Scope 2 - Electricity
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.scope2.electricity} tCO2e
+                      </p>
+                    </div>
+                  )}
+                  {baselineData.scope2.heating !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Scope 2 - Heating
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.scope2.heating} tCO2e
+                      </p>
+                    </div>
+                  )}
+                  {baselineData.scope2.cooling !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Scope 2 - Cooling
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.scope2.cooling} tCO2e
+                      </p>
+                    </div>
+                  )}
+                  {baselineData.scope2.steam !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Scope 2 - Steam
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.scope2.steam} tCO2e
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Totals if available */}
+              {baselineData.totals && (
+                <>
+                  {baselineData.totals.facilities !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Facilities Total
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.totals.facilities}
+                      </p>
+                    </div>
+                  )}
+                  {baselineData.totals.equipment !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Equipment Total
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.totals.equipment}
+                      </p>
+                    </div>
+                  )}
+                  {baselineData.totals.vehicles !== undefined && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Vehicle Total
+                      </label>
+                      <p className="text-gray-900">
+                        {baselineData.totals.vehicles}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Baseline & Reporting Configuration */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Baseline & Reporting Configuration
+              </h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Data Completeness
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.baselineDataCompleteness}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Selection Criteria
+                </label>
+                <p className="text-gray-900">
+                  {formatArray(baselineData.baselineYearSelectionCriteria)}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Recalculation Policy
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.baselineRecalculationPolicy}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Recalculation Triggers
+                </label>
+                <p className="text-gray-900">
+                  {formatArray(baselineData.baselineRecalculationTriggers)}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Change Management Process
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.changeManagementProcessEstablished}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Financial Year Period
+                </label>
+                <p className="text-gray-900">
+                  {formatDate(baselineData.financialYearPeriodStart)} -{" "}
+                  {formatDate(baselineData.financialYearPeriodEnd)}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Environmental Reporting Period
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.environmentalReportingPeriod}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Data Collection Frequency
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.dataCollectionFrequency}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Historical Data Retention
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.historicalDataRetentionPeriod}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Data Archiving System
+                </label>
+                <p className="text-gray-900">
+                  {baselineData.dataArchivingAndRetrievalSystem}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Metadata */}
+        {/* <div className="bg-gray-50 rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="text-gray-500">Created:</span>
+              <span className="ml-2 text-gray-900">
+                {formatDate(baselineData.createdAt)}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500">Last Updated:</span>
+              <span className="ml-2 text-gray-900">
+                {formatDate(baselineData.updatedAt)}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500">Status:</span>
+              <span className="ml-2 text-green-600 font-medium">Active</span>
+            </div>
+          </div>
+        </div> */}
       </div>
     );
   };
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Emission Management
-        </h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Emission Summary
-        </button>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">
+              Loading baseline configuration data...
+            </p>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {renderExisting()}
+  // Show data display if data exists and not in edit mode
+  // if (baselineData && !isEditMode) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 py-8">
+  //       <div className="max-w-6xl mx-auto px-4">{renderDataDisplay()}</div>
+  //     </div>
+  //   );
+  // }
 
-      {showForm && (
-        <div>
-          <DynamicForm
-            title={editing ? "Edit Emission Summary" : "Add Emission Summary"}
-            fields={fields}
-            onSubmit={onSubmit}
-            onCancel={resetForm}
-            initialData={{ inputMode: editing?.mode || mode }}
-            loading={submitting}
-            submitText={editing ? "Update" : "Create"}
-            cancelText="Cancel"
-            onClose={resetForm}
-            confirmationMessage={
-              editing
-                ? "Do you want to update emissions?"
-                : "Do you want to create emissions?"
-            }
-          />
-        </div>
-      )}
+  // Show form in edit mode or when no data exists
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className=" mx-auto px-4">
+        {/* Edit mode header */}
+        {/* {isEditMode && (
+          <div className="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Edit Baseline Configuration
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  Update your organization's emission data and baseline setup
+                </p>
+              </div>
+              <button
+                onClick={handleCancelEdit}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </button>
+            </div>
+          </div>
+        )} */}
 
-      {!showForm && !existing && !loading && (
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-          <svg
-            className="w-16 h-16 mx-auto text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            />
-          </svg>
-          <p className="mt-2 text-gray-600">No emission summary found.</p>
-        </div>
-      )}
+        {/* <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {isEditMode ? "Edit Baseline Setup" : "Baseline Setup"}
+          </h1>
+          <p className="text-gray-600 max-w-3xl mx-auto">
+            {isEditMode
+              ? "Update your organization's emission data and baseline configuration through this step-by-step setup process."
+              : "Configure your organization's emission data and baseline configuration through this step-by-step setup process."}
+          </p>
+        </div> */}
 
-      {loading && (
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-          <svg
-            className="animate-spin h-8 w-8 mx-auto text-[#0D5942]"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <p className="mt-2 text-gray-600">Loading emission info...</p>
-        </div>
-      )}
+        <StepWizard
+          steps={steps}
+          currentStep={currentStep}
+          onStepChange={handleStepChange}
+          onComplete={handleComplete}
+          stepContent={renderStepContent()}
+          stepValidation={validateStep}
+          showCancelButton={false}
+          nextButtonText=""
+          completeButtonText=""
+          canProceed={false}
+          canGoBack={canGoBack()}
+          allowStepNavigation={true}
+          className=""
+        />
+      </div>
     </div>
   );
 };

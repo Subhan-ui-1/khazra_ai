@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useI18n } from "@/i18n/context";
+import FileUploadModal from "@/components/FileUploadModal";
+import { Paperclip, X } from "lucide-react";
 
 export interface FormField {
   name: string;
@@ -17,7 +19,8 @@ export interface FormField {
     | "checkbox"
     | "radio"
     | "date"
-    | "phone";
+    | "phone"
+    | "file";
   required?: boolean;
   placeholder?: string;
   options?: Array<{
@@ -39,6 +42,10 @@ export interface FormField {
   className?: string;
   condition?: (formData: any) => boolean;
   onChange?: (value: any) => void;
+  // File-specific properties
+  acceptedTypes?: string[];
+  maxSize?: number;
+  showAttachment?: boolean;
 }
 
 export interface DynamicFormProps {
@@ -54,6 +61,7 @@ export interface DynamicFormProps {
   onClose?: () => void;
   confirmationMessage?: string;
   showCancelButton?: boolean;
+  onFileChange?: (file: File | null) => void;
 }
 
 const DynamicForm: React.FC<DynamicFormProps> = ({
@@ -69,29 +77,87 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   showCancelButton = true,
   onClose,
   confirmationMessage = "Do you really want to perform this action?",
+  onFileChange,
 }) => {
   const { t } = useI18n();
   const [formData, setFormData] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<any>(null);
+  const [files, setFiles] = useState<{ [key: string]: File | null }>({});
+  const [showFileUploadModal, setShowFileUploadModal] = useState(false);
+  const [selectedFieldForFileUpload, setSelectedFieldForFileUpload] = useState<string | null>(null);
 
-  // Initialize form data with initial values and update when initialData changes
+  // Initialize form data once; avoid clobbering user input on subsequent parent updates
   useEffect(() => {
     setFormData((prev: any) => {
-      const updatedFormData = { ...prev };
+      const isPrevEmpty = Object.keys(prev).length === 0;
+      if (!isPrevEmpty) return prev;
+      const updatedFormData: any = {};
       fields.forEach((field) => {
         if (initialData[field.name] !== undefined) {
           updatedFormData[field.name] = initialData[field.name];
         } else if (field.defaultValue !== undefined) {
           updatedFormData[field.name] = field.defaultValue;
-        } else if (!(field.name in updatedFormData)) {
+        } else {
           updatedFormData[field.name] = "";
         }
       });
       return updatedFormData;
     });
   }, [initialData, fields]);
+
+  const handleFileSelect = (file: File) => {
+    if (selectedFieldForFileUpload) {
+      setFiles((prev: { [key: string]: File | null }) => ({
+        ...prev,
+        [selectedFieldForFileUpload]: file
+      }));
+      setFormData((prev: any) => ({
+        ...prev,
+        [selectedFieldForFileUpload]: file.name
+      }));
+      setShowFileUploadModal(false);
+      setSelectedFieldForFileUpload(null);
+      
+      // Call onFileChange callback if provided
+      if (onFileChange) {
+        onFileChange(file);
+      }
+    }
+  };
+
+  const handleRemoveFile = (fieldName: string) => {
+    setFiles((prev: { [key: string]: File | null }) => ({
+      ...prev,
+      [fieldName]: null
+    }));
+    setFormData((prev: any) => ({
+      ...prev,
+      [fieldName]: ""
+    }));
+    
+    // Call onFileChange callback if provided
+    if (onFileChange) {
+      onFileChange(null);
+    }
+  };
+
+  const getFileForField = (fieldName: string): File | null => {
+    return files[fieldName] || null;
+  };
+
+  const clearAllFiles = () => {
+    setFiles({});
+    // Clear file names from form data
+    const updatedFormData = { ...formData };
+    fields.forEach(field => {
+      if (field.type === 'file') {
+        updatedFormData[field.name] = "";
+      }
+    });
+    setFormData(updatedFormData);
+  };
 
   const validateField = (name: string, value: any): string => {
     const field = fields.find((f) => f.name === name);
@@ -222,7 +288,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
   const handleConfirmSubmit = () => {
     if (pendingFormData) {
-      onSubmit(pendingFormData);
+      // Include files data in the submission
+      const submissionData = {
+        ...pendingFormData,
+        files: files
+      };
+      onSubmit(submissionData);
       setShowConfirmation(false);
       setPendingFormData(null);
     }
@@ -351,6 +422,52 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 disabled={field.disabled}
               />
             </div>
+          </div>
+        );
+
+      case "file":
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              {/* <input
+                type="text"
+                id={field.name}
+                name={field.name}
+                value={value}
+                onChange={(e) => handleInputChange(field.name, e.target.value)}
+                placeholder={field.placeholder || "File name will appear here"}
+                className={baseInputClasses}
+                disabled={field.disabled}
+                readOnly
+              /> */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFieldForFileUpload(field.name);
+                  setShowFileUploadModal(true);
+                }}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+              >
+                <Paperclip className="h-4 w-4 mr-2" />
+                {files[field.name] ? "Change File" : "Upload File"}
+              </button>
+            </div>
+            
+            {files[field.name] && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Selected:</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {files[field.name]?.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveFile(field.name)}
+                  className="text-red-500 hover:text-red-700 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
           </div>
         );
 
@@ -544,6 +661,19 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* File Upload Modal */}
+      {showFileUploadModal && selectedFieldForFileUpload && (
+        <FileUploadModal
+          isOpen={showFileUploadModal}
+          onClose={() => setShowFileUploadModal(false)}
+          onFileSelect={handleFileSelect}
+          acceptedTypes={fields.find((f) => f.name === selectedFieldForFileUpload)?.acceptedTypes || ['.pdf', '.png', '.jpg', '.jpeg', '.csv', '.xlsx', '.xls']}
+          maxSize={fields.find((f) => f.name === selectedFieldForFileUpload)?.maxSize || 10}
+          title="Upload Attachment"
+          description="Drag and drop your file here or click to browse"
+        />
       )}
     </>
   );

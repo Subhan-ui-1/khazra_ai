@@ -62,6 +62,7 @@ const AddRoleSection = () => {
   const [showFileModal, setShowFileModal] = useState(false);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
+  const [selectedLevel, setSelectedLevel] = useState<string>("department");
 
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
@@ -173,7 +174,10 @@ const AddRoleSection = () => {
         tokenData.accessToken
       );
       if (response?.success) {
-        const list = (response.data?.departments || []).map((d: any) => ({ _id: d._id, name: d.name }));
+        const list = (response.data?.departments || []).map((d: any) => ({
+          _id: d._id,
+          name: d.name,
+        }));
         setDepartments(list);
       }
     } catch (e) {
@@ -205,18 +209,29 @@ const AddRoleSection = () => {
       // toast.error("Role name is required");
       return;
     }
-
+    const departmentId = departments.find(d=>d.name === 'Administration')?._id;
+    const dataForAPI = {
+      name: formData.name, 
+      description: formData.description,
+      permissions: formData.permissions,
+      // departments: undefined,
+      scope: {
+        type: selectedLevel,
+        refIds: selectedLevel === 'department'? formData.departments : [departmentId],
+      }
+    }
+    console.log(dataForAPI);
     setSubmitting(true);
     try {
       const payload = {
-        ...formData,
-        organizationId: await getOrganizationId(),
+        ...dataForAPI,
+        // organizationId: await getOrganizationId(),
       };
       if (editingItem) {
         // Update existing role
         const response = await postRequest(
           `roles/updateRole/${editingItem._id}`,
-          payload,
+          {...payload,},
           "Role updated successfully",
           tokenData.accessToken,
           "put"
@@ -287,7 +302,12 @@ const AddRoleSection = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", permissions: [], departments: [] });
+    setFormData({
+      name: "",
+      description: "",
+      permissions: [],
+      departments: [],
+    });
     setEditingItem(null);
     setShowForm(false);
   };
@@ -308,8 +328,12 @@ const AddRoleSection = () => {
     }));
   };
 
-  const handleDepartmentsSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected: string[] = Array.from(e.target.selectedOptions).map((o) => o.value);
+  const handleDepartmentsSelectChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selected: string[] = Array.from(e.target.selectedOptions).map(
+      (o) => o.value
+    );
     setFormData((prev) => ({ ...prev, departments: selected }));
   };
 
@@ -413,19 +437,24 @@ const AddRoleSection = () => {
     }
   };
 
+  const users = safeLocalStorage.getItem("user");
+  const isAdmin =
+    JSON.parse(users || "{}")?.role?.scope?.type === "organization" ||
+    JSON.parse(users || "{}")?.role?.scope?.type === "organization";
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Role Management</h1>
         <PermissionGuard permission="role.create">
           <div className="flex items-center gap-3">
-            <button
+            {/* <button
               onClick={() => setShowFileModal(true)}
               className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Paperclip className="w-5 h-5" />
               Import Multiple Roles
-            </button>
+            </button> */}
             <button
               onClick={() => setShowForm(true)}
               disabled={showForm}
@@ -623,16 +652,14 @@ const AddRoleSection = () => {
                       <div className="text-sm text-gray-500 max-w-xs">
                         {role.departments && role.departments.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
-                            {role.departments
-                              .slice(0, 3)
-                              .map((dept, index) => (
-                                <span
-                                  key={dept._id}
-                                  className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800"
-                                >
-                                  🏢 {dept.name}
-                                </span>
-                              ))}
+                            {role.departments.slice(0, 3).map((dept, index) => (
+                              <span
+                                key={dept._id}
+                                className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800"
+                              >
+                                🏢 {dept.name}
+                              </span>
+                            ))}
                             {role.departments.length > 3 && (
                               <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-800">
                                 +{role.departments.length - 3} more
@@ -849,8 +876,10 @@ const AddRoleSection = () => {
                       }
                     });
 
-                    const sortedActions: string[] = Array.from(availableActions).sort();
-                    const sortedResources: ResourceKey[] = Array.from(availableResources).sort();
+                    const sortedActions: string[] =
+                      Array.from(availableActions).sort();
+                    const sortedResources: ResourceKey[] =
+                      Array.from(availableResources).sort();
 
                     if (sortedResources.length === 0) {
                       return (
@@ -938,130 +967,181 @@ const AddRoleSection = () => {
                 </div>
               )}
               {formData.permissions.length > 0 && (
-                <p className="text-xs text-gray-500 mt-2">
-                  {formData.permissions.length} permission(s) selected
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-gray-500 mt-2">
+                    {formData.permissions.length} permission(s) selected
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    {isAdmin && (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs font-medium text-gray-900">
+                          Organizational Level
+                        </span>
+                        <div className="text-center">
+                          <input
+                            type="radio"
+                            checked={selectedLevel === "organization"}
+                            name="level"
+                            onChange={() => {
+                              setSelectedLevel("organization");
+                            }}
+                            className="size-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs font-medium text-gray-900">
+                        Department Level
+                      </span>
+                      <div className="text-center">
+                        <input
+                          name="level"
+                          type="radio"
+                          checked={selectedLevel === "department"}
+                          onChange={() => {
+                            setSelectedLevel("department");
+                          }}
+                          className="size-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 
-            <div>
-              <div className=" text-sm font-medium text-gray-700 mb-2 flex justify-between items-center">
-                Departments
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Select All</span>
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      checked={
-                        formData.departments.length === departments.length &&
-                        departments.length > 0
-                      }
-                      onChange={() => {
-                        if (formData.departments.length === departments.length) {
-                          setFormData(prev => ({ ...prev, departments: [] }));
-                        } else {
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            departments: departments.map(d => d._id) 
-                          }));
+            {selectedLevel === "department" && (
+              <div>
+                <div className=" text-sm font-medium text-gray-700 mb-2 flex justify-between items-center">
+                  Departments
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Select All</span>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        checked={
+                          formData.departments.length === departments.length &&
+                          departments.length > 0
                         }
-                      }}
-                    />
-                  </div>
-                  {formData.departments.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, departments: [] }))
-                      }
-                      className="text-xs text-red-600 hover:text-red-800 underline"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                </div>
-              </div>
-              {loadingDepartments ? (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Loading departments...
-                </div>
-              ) : (
-                <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-md">
-                  {departments.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
-                      No departments available
+                        onChange={() => {
+                          if (
+                            formData.departments.length === departments.length
+                          ) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              departments: [],
+                            }));
+                          } else {
+                            setFormData((prev) => ({
+                              ...prev,
+                              departments: departments.map((d) => d._id),
+                            }));
+                          }
+                        }}
+                      />
                     </div>
-                  ) : (
-                    <table className="w-full">
-                      <thead className="bg-gray-50 sticky top-0">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-                            Department
-                          </th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
-                            Select
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {departments.map((dept) => (
-                          <tr key={dept._id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <span className="text-lg mr-2">🏢</span>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {dept.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={formData.departments.includes(dept._id)}
-                                onChange={() => {
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    departments: prev.departments.includes(dept._id)
-                                      ? prev.departments.filter(id => id !== dept._id)
-                                      : [...prev.departments, dept._id]
-                                  }));
-                                }}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                    {formData.departments.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, departments: [] }))
+                        }
+                        className="text-xs text-red-600 hover:text-red-800 underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )}
-              {formData.departments.length > 0 && (
-                <p className="text-xs text-gray-500 mt-2">
-                  {formData.departments.length} department(s) selected
-                </p>
-              )}
-            </div>
+                {loadingDepartments ? (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Loading departments...
+                  </div>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-md">
+                    {departments.length === 0 ? (
+                      <div className="p-4 text-center text-gray-500">
+                        No departments available
+                      </div>
+                    ) : (
+                      <table className="w-full">
+                        <thead className="bg-gray-50 sticky top-0">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                              Department
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                              Select
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {departments.map((dept) => (
+                            <tr key={dept._id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <span className="text-lg mr-2">🏢</span>
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {dept.name}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.departments.includes(
+                                    dept._id
+                                  )}
+                                  onChange={() => {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      departments: prev.departments.includes(
+                                        dept._id
+                                      )
+                                        ? prev.departments.filter(
+                                            (id) => id !== dept._id
+                                          )
+                                        : [...prev.departments, dept._id],
+                                    }));
+                                  }}
+                                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
+                {formData.departments.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    {formData.departments.length} department(s) selected
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-4">
               <button
@@ -1132,7 +1212,7 @@ const AddRoleSection = () => {
           // Here you can add logic to process the CSV/Excel file
           // For now, just showing a success message
         }}
-        acceptedTypes={['.csv', '.xlsx', '.xls']}
+        acceptedTypes={[".csv", ".xlsx", ".xls"]}
         maxSize={10}
         title="Import Multiple Roles"
         description="Upload a CSV or Excel file with role data"
