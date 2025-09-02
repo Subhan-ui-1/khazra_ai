@@ -3,52 +3,14 @@ import WorkingConditionalForm, {
 } from "@/components/forms/WorkingConditionalForm";
 import React from "react";
 
-const Section9 = () => {
+interface Section9Props {
+  onFormSubmit: (data: any) => void;
+  isCompleted: boolean;
+  initialData?: Record<string, any>;
+}
+
+const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
   const fields: ConditionalField[] = [
-    {
-      name: "baselineYear",
-      label: "Baseline year for emissions tracking",
-      type: "dropdown",
-      required: true,
-      placeholder: "Select the Baseline year",
-      options: [
-        { label: "2024", value: "2024" },
-        { label: "2023", value: "2023" },
-        { label: "2022", value: "2022" },
-        { label: "2021", value: "2021" },
-        { label: "2020", value: "2020" },
-        { label: "2019", value: "2019" },
-        { label: "2018", value: "2018" },
-        { label: "Other", value: "Other" },
-      ],
-    },
-    {
-      name: "reasonForBaselineYear",
-      label: "Why did you choose this baseline year? ",
-      type: "dropdown",
-      required: true,
-      placeholder: "Select the reason for baseline year",
-      options: [
-        {
-          label: "Most recent year with complete data",
-          value: "Most recent year with complete data",
-        },
-        {
-          label: "First year of comprehensive tracking",
-          value: "First year of comprehensive tracking",
-        },
-        {
-          label: "Aligns with corporate targets/strategy",
-          value: "Aligns with corporate targets/strategy",
-        },
-        { label: "Regulatory requirement", value: "Regulatory requirement" },
-        {
-          label: "Representative of normal operations",
-          value: "Representative of normal operations",
-        },
-        { label: "Other", value: "Other" },
-      ],
-    },
     {
       name: "baselineDataCompleteness",
       label: "Baseline data completeness",
@@ -75,7 +37,7 @@ const Section9 = () => {
       ],
     },
     {
-      name: "selectionCriteria",
+      name: "baselineYearSelectionCriteria",
       label: "Baseline year selection criteria",
       type: "multiselect",
       required: true,
@@ -107,7 +69,7 @@ const Section9 = () => {
       },
     },
     {
-      name: "recalculationPolicy",
+      name: "baselineRecalculationPolicy",
       label: "Baseline recalculation policy",
       type: "dropdown",
       required: true,
@@ -132,7 +94,7 @@ const Section9 = () => {
       ],
     },
     {
-      name: "recalculationTriggers",
+      name: "baselineRecalculationTriggers",
       label: "Baseline recalculation triggers",
       type: "multiselect",
       required: true,
@@ -167,7 +129,7 @@ const Section9 = () => {
       },
     },
     {
-      name: "managementProcess",
+      name: "changeManagementProcessEstablished",
       label: "Change management process established?",
       type: "dropdown",
       required: true,
@@ -192,7 +154,7 @@ const Section9 = () => {
       ],
     },
     {
-      name: "financialYearStart",
+      name: "financialYearPeriodStart",
       label: "Financial year period Start Date",
       type: "date",
       required: true,
@@ -204,11 +166,6 @@ const Section9 = () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-            // Prevent selecting dates in the past
-            // if (startDate < today) {
-            //   return "Start date cannot be in the past";
-            // }
-
             // Prevent selecting dates too far in the future (e.g., more than 5 years)
             const maxFutureYears = 5;
             const maxFutureDate = new Date();
@@ -219,8 +176,8 @@ const Section9 = () => {
             }
 
             // Check if end date exists and validate against it
-            if (formData.financialYearEnd) {
-              const endDate = new Date(formData.financialYearEnd);
+            if (formData.financialYearPeriodEnd) {
+              const endDate = new Date(formData.financialYearPeriodEnd);
 
               if (startDate >= endDate) {
                 return "Start date must be before end date";
@@ -241,7 +198,7 @@ const Section9 = () => {
       },
     },
     {
-      name: "financialYearEnd",
+      name: "financialYearPeriodEnd",
       label: "Financial year period End Date",
       type: "date",
       required: true,
@@ -253,11 +210,6 @@ const Section9 = () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-            // Prevent selecting dates too far in the past
-            // if (endDate < today) {
-            //   return "End date cannot be in the past";
-            // }
-
             // Prevent selecting dates too far in the future (e.g., more than 5 years)
             const maxFutureYears = 5;
             const maxFutureDate = new Date();
@@ -268,8 +220,8 @@ const Section9 = () => {
             }
 
             // Check if start date exists and validate against it
-            if (formData.financialYearStart) {
-              const startDate = new Date(formData.financialYearStart);
+            if (formData.financialYearPeriodStart) {
+              const startDate = new Date(formData.financialYearPeriodStart);
 
               if (endDate <= startDate) {
                 return "End date must be after start date";
@@ -290,7 +242,7 @@ const Section9 = () => {
       },
     },
     {
-      name: "environmentalPeriod",
+      name: "environmentalReportingPeriod",
       label: "Environmental reporting period",
       type: "dropdown",
       required: true,
@@ -306,7 +258,7 @@ const Section9 = () => {
       ],
     },
     {
-      name: "dataCollection",
+      name: "dataCollectionFrequency",
       label: "Data collection frequency",
       type: "dropdown",
       required: true,
@@ -328,7 +280,7 @@ const Section9 = () => {
       ],
     },
     {
-      name: "dataRetentionPeriod",
+      name: "historicalDataRetentionPeriod",
       label: "Historical data retention period",
       type: "dropdown",
       required: true,
@@ -347,7 +299,7 @@ const Section9 = () => {
       ],
     },
     {
-      name: "dataArchiving",
+      name: "dataArchivingAndRetrievalSystem",
       label: "Data archiving and retrieval system",
       type: "dropdown",
       required: true,
@@ -369,12 +321,33 @@ const Section9 = () => {
       ],
     },
   ];
-  const handleSubmit = (data: any) => {
-    console.log(data);
+
+  const handleFormSubmit = (data: any) => {
+    console.log("Section9 form submitted:", data);
+    onFormSubmit(data);
   };
+
   return (
     <div className="space-y-10">
-      <WorkingConditionalForm fields={fields} onSubmit={handleSubmit} />
+    {/* {!isCompleted ? ( */}
+      <div className="space-8 grid grid-cols-2 gap-8">
+      <WorkingConditionalForm
+        fields={fields.slice(0,5)}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Baseline & Reporting — Core"
+         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.slice(5)}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Baseline & Reporting — Additional"
+         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+    </div>
     </div>
   );
 };

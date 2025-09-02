@@ -6,8 +6,13 @@ import React from "react";
 interface Section4Props {
   onFormSubmit: (data: any) => void;
   isCompleted: boolean;
+  initialData?: Record<string, any>;
 }
-const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
+const Section4: React.FC<Section4Props> = ({
+  onFormSubmit,
+  isCompleted,
+  initialData = {},
+}) => {
   const fields: ConditionalField[] = [
     {
       name: "primaryOperatingCountry",
@@ -47,7 +52,9 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
       ],
-      showWhen: [{ field: "primaryOperatingCountry", value: "United Arab Emirates" }],
+      showWhen: [
+        { field: "primaryOperatingCountry", value: "United Arab Emirates" },
+      ],
     },
     {
       name: "operationsCountries",
@@ -65,14 +72,14 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
         { field: "abroadOperations", value: "Yes" },
       ],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Countries is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "percentageOperations",
@@ -193,14 +200,14 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
       ],
       showWhen: [{ field: "doYouHaveFacilities", value: "Yes" }],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Types of owned facilities is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "haveLeasedFacilities",
@@ -223,7 +230,7 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
       showWhen: [{ field: "haveLeasedFacilities", value: "Yes" }],
     },
     {
-      name: "leasedFacilitiesNames",  // need to ask for confirmation
+      name: "leasedFacilitiesNames", // need to ask for confirmation
       label: "Do you pay utilities for leased facilities?",
       type: "dropdown",
       required: true,
@@ -265,14 +272,14 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
       ],
       showWhen: [{ field: "haveMobileAssets", value: "Yes" }],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Types of vehicles is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "numberOfVehicles",
@@ -317,14 +324,14 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
       ],
       showWhen: [{ field: "haveStationary", value: "Yes" }],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Types of equipment is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "districtCooling",
@@ -402,33 +409,88 @@ const Section4: React.FC<Section4Props> = ({ onFormSubmit, isCompleted }) => {
       ],
     },
   ];
-  const handleSubmit = (data: any) => {
-    console.log(data);
-    onFormSubmit(data);
+  const [partial, setPartial] = React.useState<Record<string, any>>({});
+  const [done, setDone] = React.useState({ g1: false, g2: false, g3: false, g4: false });
+  const handlePartial = (groupKey: keyof typeof done) => (data: any) => {
+    const nextPartial = { ...partial, ...data };
+    setPartial(nextPartial);
+    const nextDone = { ...done, [groupKey]: true };
+    setDone(nextDone);
+    if (Object.values(nextDone).every(Boolean)) {
+      onFormSubmit(nextPartial);
+    } 
   };
   return (
     <div className="space-y-10">
-      {!isCompleted ? (
-        <WorkingConditionalForm fields={fields} onSubmit={handleSubmit} submitText="Save & Continue" title="Geographic & Operational Boundaries" className="" />
-      ) : (
+      {/* {!isCompleted ? ( */}
+        <div className="space-8 grid grid-cols-2 gap-8">
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['primaryOperatingCountry','primaryOperating','abroadOperations','operationsCountries','percentageOperations','geographicReportingScope'].includes(f.name))}
+            onSubmit={handlePartial('g1')}
+            submitText={'Save'}
+            title="Overview"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['facilityInventoryAvailable','doYouHaveFacilities','ownedFacilities','typesOfFacilities','haveLeasedFacilities','leasedFacilities','leasedFacilitiesNames','percentageOfDistrictCooling'].includes(f.name))}
+            onSubmit={handlePartial('g2')}
+            submitText={'Save'}
+            title="Facilities"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => [,'haveMobileAssets','typesOfVehicles','numberOfVehicles','haveStationary','typesOfEquipment','districtCooling'].includes(f.name))}
+            onSubmit={handlePartial('g3')}
+            submitText={'Save'}
+            title="Assets"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => !['primaryOperatingCountry','primaryOperating','abroadOperations','operationsCountries','percentageOperations','geographicReportingScope','facilityInventoryAvailable','doYouHaveFacilities','ownedFacilities','typesOfFacilities','haveLeasedFacilities','leasedFacilities','leasedFacilitiesNames','haveMobileAssets','typesOfVehicles','numberOfVehicles','haveStationary','typesOfEquipment','districtCooling','percentageOfDistrictCooling'].includes(f.name))}
+            onSubmit={handlePartial('g4')}
+            submitText={'Save'}
+            title="Processes"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+        </div>
+      {/* ) : (
         <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-medium text-green-800">Configuration Complete</h3>
-              <p className="text-green-700">Geographic & Operational Boundaries has been configured successfully.</p>
+              <h3 className="text-lg font-medium text-green-800">
+                Configuration Complete
+              </h3>
+              <p className="text-green-700">
+                Geographic & Operational Boundaries has been configured
+                successfully.
+              </p>
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
 
 export default Section4;
 
-// fields are confirmed. 
+// fields are confirmed.

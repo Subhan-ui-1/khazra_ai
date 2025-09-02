@@ -4,25 +4,30 @@ import WorkingConditionalForm, {
 } from "@/components/forms/WorkingConditionalForm";
 
 interface Section3Props {
-    onFormSubmit: (data: any) => void;
-    isCompleted: boolean;
+  onFormSubmit: (data: any) => void;
+  isCompleted: boolean;
+  initialData?: Record<string, any>;
 }
-const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
-    // organizationalControlApproach,
-    // legalOwnership,
-    // subsidiaries,
-    // reportingBoundary,
-    // assessmentCompleted,
-    // controlPercentage,
-    // ventures,
-    // ownershipPercentage,
-    // ventureAgreements,
-    // decisionMakingAuthority,
-    // franchisedLocations,
-    // franchisee,
-    // leasedOperations,
-    // ownershipStructures,
-    // structureExpected,
+const Section3: React.FC<Section3Props> = ({
+  onFormSubmit,
+  isCompleted,
+  initialData = {},
+}) => {
+  // organizationalControlApproach,
+  // legalOwnership,
+  // subsidiaries,
+  // reportingBoundary,
+  // assessmentCompleted,
+  // controlPercentage,
+  // ventures,
+  // ownershipPercentage,
+  // ventureAgreements,
+  // decisionMakingAuthority,
+  // franchisedLocations,
+  // franchisee,
+  // leasedOperations,
+  // ownershipStructures,
+  // structureExpected,
   const fields: ConditionalField[] = [
     {
       name: "organizationalControlApproach",
@@ -84,8 +89,8 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your subsidiaries",
       options: [
-        { label: "Yes", value: "Yes" },
-        { label: "No", value: "No" },
+        { label: "Yes", value: 'Yes' },
+        { label: "No", value: 'No' },
       ],
     },
     {
@@ -94,7 +99,7 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       type: "number",
       required: true,
       placeholder: "Enter the number of subsidiaries",
-      showWhen: [{ field: "subsidiariesQuestion", value: "Yes" }],
+      showWhen: [{ field: "subsidiariesQuestion", value: 'Yes' }],
       min: 0,
     },
     {
@@ -108,7 +113,7 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
         { label: "No", value: "No" },
         { label: "Partial", value: "Partial" },
       ],
-      showWhen: [{ field: "subsidiariesQuestion", value: "Yes" }],
+      showWhen: [{ field: "subsidiariesQuestion", value: 'Yes' }],
     },
     {
       name: "assessmentCompleted",
@@ -117,10 +122,10 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your subsidiary control assessment completed",
       options: [
-        { label: "Yes", value: true },
-        { label: "No", value: false },
+        { label: "Yes", value: 'true'  },
+        { label: "No", value: 'false' },
       ],
-      showWhen: [{ field: "subsidiariesQuestion", value: "Yes" }],
+      showWhen: [{ field: "subsidiariesQuestion", value: 'Yes' }],
     },
     {
       name: "controlPercentage",
@@ -204,8 +209,8 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your operate franchised locations",
       options: [
-        { label: "Yes", value: "Yes" },
-        { label: "No", value: "No" },
+        { label: "Yes", value: 'true' },
+        { label: "No", value: 'false' },
       ],
     },
     {
@@ -215,10 +220,10 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your franchisor or franchisee",
       options: [
-        { label: "Franchisor", value: false },
-        { label: "Franchisee", value: true },
+        { label: "Franchisor", value: 'false' },
+        { label: "Franchisee", value: 'true' },
       ],
-      showWhen: [{ field: "operateFranchisedLocation", value: "Yes" }],
+      showWhen: [{ field: "operateFranchisedLocation", value: true }],
     },
     {
       name: "franchisedLocations",
@@ -226,7 +231,7 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       type: "number",
       required: true,
       placeholder: "Enter the number of franchised locations",
-      showWhen: [{ field: "operateFranchisedLocation", value: "Yes" }],
+      showWhen: [{ field: "operateFranchisedLocation", value: true }],
       min: 0,
     },
     {
@@ -236,8 +241,8 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your leased operations or outsourced activities",
       options: [
-        { label: "Yes", value: "Yes" },
-        { label: "No", value: "No" },
+        { label: "Yes", value: 'true' },
+        { label: "No", value: 'false' },
       ],
     },
     {
@@ -253,16 +258,16 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
         { label: "Facilities Management", value: "Facilities Management" },
         { label: "Other", value: "Other" },
       ],
-      showWhen: [{ field: "activities", value: "Yes" }],
+      showWhen: [{ field: "activities", value: true }],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Types of activities is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "complexOwnershipStructure",
@@ -271,8 +276,8 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your complex ownership structures present",
       options: [
-        { label: "Yes", value: "Yes" },
-        { label: "No", value: "No" },
+        { label: "Yes", value: 'true' },
+        { label: "No", value: 'false' },
       ],
     },
     {
@@ -287,7 +292,7 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
         { label: "No", value: "No" },
         { label: "Planning to", value: "Planning to" },
       ],
-      showWhen: [{ field: "complexOwnershipStructure", value: "Yes" }],
+      showWhen: [{ field: "complexOwnershipStructure", value: 'true' }],
     },
     {
       name: "organizationalStructureExpected",
@@ -296,8 +301,8 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select your changes in organizational structure expected",
       options: [
-        { label: "Yes", value: "Yes" },
-        { label: "No", value: "No" },
+        { label: "Yes", value: 'true' },
+        { label: "No", value: 'false' },
       ],
     },
     {
@@ -312,38 +317,92 @@ const Section3: React.FC<Section3Props> = ({ onFormSubmit, isCompleted }) => {
         { label: "No", value: "No" },
         { label: "Not yet", value: "Not yet" },
       ],
-      showWhen: [{ field: "organizationalStructureExpected", value: "Yes" }],
+      showWhen: [{ field: "organizationalStructureExpected", value: 'true' }],
     },
   ];
-//   21
-  const handleSubmit = (data: any) => {
-    console.log(data);
-    onFormSubmit(data);
+  //   21
+  const [partial, setPartial] = React.useState<Record<string, any>>({});
+  const [done, setDone] = React.useState({ g1: false, g2: false, g3: false, g4: false });
+  const handlePartial = (groupKey: keyof typeof done) => (data: any) => {
+    const nextPartial = { ...partial, ...data };
+    setPartial(nextPartial);
+    const nextDone = { ...done, [groupKey]: true };
+    setDone(nextDone);
+    if (Object.values(nextDone).every(Boolean)) {
+      onFormSubmit(nextPartial);
+    }
   };
   return (
     <div className="space-y-10">
-      {!isCompleted ? (
-        <WorkingConditionalForm fields={fields} onSubmit={handleSubmit} submitText="Save & Continue" title="Organizational Control & Ownership" className="" />
-      ) : (
+    {/* {!isCompleted ? ( */}
+      <div className="space-8 grid grid-cols-2 gap-8">
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['organizationalControlApproach','legalOwnership','subsidiariesQuestion','subsidiaries','reportingBoundary','assessmentCompleted','controlPercentage'].includes(f.name))}
+            onSubmit={handlePartial('g1')}
+            submitText={done.g1 ? 'Saved' : 'Save'}
+            title="Control & Ownership"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['jointVentures','ventures','ownershipPercentage','ventureAgreements','decisionMakingAuthority'].includes(f.name))}
+            onSubmit={handlePartial('g2')}
+            submitText={done.g2 ? 'Saved' : 'Save'}
+            title="Ventures"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['operateFranchisedLocation','franchisee','franchisedLocations'].includes(f.name))}
+            onSubmit={handlePartial('g3')}
+            submitText={done.g3 ? 'Saved' : 'Save'}
+            title="Franchised Operations"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['activities','leasedOperations','complexOwnershipStructure','ownershipStructures','organizationalStructureExpected','structureExpected'].includes(f.name))}
+            onSubmit={handlePartial('g4')}
+            submitText={done.g4 ? 'Saved' : 'Save'}
+            title="Other Considerations"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+        </div>
+      {/* ) : (
         <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-medium text-green-800">Configuration Complete</h3>
-              <p className="text-green-700">Organizational Control & Ownership has been configured successfully.</p>
+              <h3 className="text-lg font-medium text-green-800">
+                Configuration Complete
+              </h3>
+              <p className="text-green-700">
+                Organizational Control & Ownership has been configured
+                successfully.
+              </p>
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
 
 export default Section3;
-
 
 // fields are confirmed.

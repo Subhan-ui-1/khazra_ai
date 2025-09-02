@@ -299,13 +299,13 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
         </h1>
         <PermissionGuard permission="department.create">
           <div className="flex items-center gap-3">
-            <button
+            {/* <button
               onClick={() => setShowFileModal(true)}
               className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Paperclip className="w-5 h-5" />
               Import Multiple Departments
-            </button>
+            </button> */}
 
             <button
               onClick={() => setShowForm(true)}

@@ -117,7 +117,12 @@ export default function LoginPage() {
         safeLocalStorage.setItem("tokens", JSON.stringify(response.tokens));
         safeLocalStorage.setItem("user", JSON.stringify(response.user));
         safeLocalStorage.setItem('permissions', JSON.stringify(response.user.role.permissions))
-        router.push("/dashboard");
+        if(response.user.boundary){
+          router.push("/dashboard");
+        } else {
+          router.push("/dashboard/steps");
+        }
+        // router.push("/dashboard");
       } else {
         toast.error(t('errors.general'));
       }

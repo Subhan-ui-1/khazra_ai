@@ -6,9 +6,10 @@ import React from "react";
 interface Section6Props {
   onFormSubmit: (data: any) => void;
   isCompleted: boolean;
+  initialData?: Record<string, any>;
 }
 
-const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted }) => {
+const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
   const fields: ConditionalField[] = [
     {
       name: "ghgProtocolScopes",
@@ -329,6 +330,13 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted }) => {
         },
         { label: "Franchises", value: "Franchises" },
       ],
+      showWhen: [
+        {
+          field: "ghgProtocolScopes",
+          value: "Scope 3 - Value Chain Emissions (Recommended)",
+          operator: "contains",
+        },
+      ],
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
@@ -347,30 +355,42 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {!isCompleted ? (
-        <WorkingConditionalForm
-          fields={fields}
-          onSubmit={handleFormSubmit}
-          submitText="Save & Continue"
-          title="Emission Scopes & Categories"
-          className=""
-        />
-      ) : (
-        <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-green-800">Configuration Complete</h3>
-              <p className="text-green-700">Emission Scopes & Categories have been configured successfully.</p>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="space-y-10">
+    {/* {!isCompleted ? ( */}
+      <div className="space-8 grid grid-cols-2 gap-8">
+      <WorkingConditionalForm
+        fields={fields.filter(f => ['ghgProtocolScopes'].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Emission Scopes — Selection"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.filter(f => ['directGHGEmissions'].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Scope 1 — Direct Emissions"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.filter(f => ['indirectGHGEmissions','electricitySupplyMethod'].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Scope 2 — Purchased Energy"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.filter(f => ['indirectGHGEmissionsFromTransportation','indirectGHGEmissionsFromProducts','indirectGHGEmissionsAssociated','indirectGHGEmissionsFromOtherSources','relevantCategories'].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Scope 3 — Value Chain Emissions"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+    </div>
     </div>
   );
 };

@@ -6,9 +6,14 @@ import React from "react";
 interface Section5Props {
   onFormSubmit: (data: any) => void;
   isCompleted: boolean;
+  initialData?: Record<string, any>;
 }
 
-const Section5: React.FC<Section5Props> = ({ onFormSubmit, isCompleted }) => {
+const Section5: React.FC<Section5Props> = ({
+  onFormSubmit,
+  isCompleted,
+  initialData = {},
+}) => {
   const fields: ConditionalField[] = [
     {
       name: "ghgSourceInventory",
@@ -121,14 +126,14 @@ const Section5: React.FC<Section5Props> = ({ onFormSubmit, isCompleted }) => {
         { label: "Not yet assessed", value: "Not yet assessed" },
       ],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Direct measurement capabilities is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "haveGHGRemoval",
@@ -156,14 +161,14 @@ const Section5: React.FC<Section5Props> = ({ onFormSubmit, isCompleted }) => {
       ],
       showWhen: [{ field: "haveGHGRemoval", value: "Yes" }],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Types of removals/storage is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "approachForRemovals",
@@ -204,14 +209,14 @@ const Section5: React.FC<Section5Props> = ({ onFormSubmit, isCompleted }) => {
       ],
       showWhen: [{ field: "biogenicEmissionsPresent", value: "Yes" }],
       validation: {
-        custom: (value, formData)=>{
-          if(value.length===0){
+        custom: (value, formData) => {
+          if (value.length === 0) {
             return "Biogenic emission sources is required";
           } else {
             return null;
           }
-        }
-      }
+        },
+      },
     },
     {
       name: "biogenicEmissionsPlanned",
@@ -234,30 +239,40 @@ const Section5: React.FC<Section5Props> = ({ onFormSubmit, isCompleted }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {!isCompleted ? (
-        <WorkingConditionalForm
-          fields={fields}
-          onSubmit={handleFormSubmit}
-          submitText="Save & Continue"
-          title="GHG Sources and Quantification Approach"
-          className=""
-        />
-      ) : (
-        <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-green-800">Configuration Complete</h3>
-              <p className="text-green-700">GHG Sources and Quantification Approach has been configured successfully.</p>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="space-y-10">
+    {/* {!isCompleted ? ( */}
+      <div className="space-8 grid grid-cols-2 gap-8">
+      <WorkingConditionalForm
+        fields={fields.filter(f => [
+          'ghgSourceInventory','quantificationApproach','emissionFactorsSelectionCriteria','directMeasurementCapabilities'
+        ].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="GHG Sources & Quantification — Core"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.filter(f => [
+          'haveGHGRemoval','ghgRemovals','approachForRemovals'
+        ].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="GHG Removals"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.filter(f => [
+          'biogenicEmissionsPresent','biogenicEmissionSources','biogenicEmissionsPlanned'
+        ].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Biogenic Emissions"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+    </div>
     </div>
   );
 };

@@ -1371,6 +1371,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
           if(file){
             const formData = new FormData();
             formData.append("file", file);
+            formData.append("model", "facilities");
             const response = await postRequest('upload-attachment/upload-csv', formData, "", tokenData.accessToken, "post");
             if(response.success){
               const facilities = await fetchFacilities();

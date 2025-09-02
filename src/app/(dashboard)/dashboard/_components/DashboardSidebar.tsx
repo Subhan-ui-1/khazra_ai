@@ -75,8 +75,16 @@ export default function DashboardSidebar({
         {
           section: "Overview",
           items: [
-            { id: "overview", icon: "📊", label: t("dashboard.dashboardOverview") },
-            { id: "data-collection", icon: "📥", label: t("dashboard.dataCollection") },
+            {
+              id: "overview",
+              icon: "📊",
+              label: t("dashboard.dashboardOverview"),
+            },
+            {
+              id: "data-collection",
+              icon: "📥",
+              label: t("dashboard.dataCollection"),
+            },
           ],
         },
         {
@@ -189,10 +197,16 @@ export default function DashboardSidebar({
       {
         section: "Configurations",
         items: [
+          // {
+          //   id: "add-boundary",
+          //   icon: "🏭",
+          //   label: "Boundary",
+          //   resource: "boundaries",
+          // },
           {
-            id: "add-boundary",
+            id: "boundary-setup",
             icon: "🏭",
-            label: "Boundary",
+            label: "Boundary Setup",
             resource: "boundaries",
           },
           {
@@ -205,17 +219,29 @@ export default function DashboardSidebar({
             icon: "🏭",
             label: "GHG Manage",
           },
-            {
-              id: "boundary-setup",
-              icon: "🏭",
-              label: "Boundary Setup",
-              resource: "boundaries",
-            },
-            {
-              id: "section9",
-              icon: "🏭",
-              label: "Section 9",
-            },
+          // {
+          //   id: "section9",
+          //   icon: "🏭",
+          //   label: "Section 9",
+          // },
+      
+          // { id: "add-role", icon: "🏭", label: "Role", resource: "role" },
+          // { id: "add-user", icon: "🏭", label: "Users", resource: "user" },
+        ].filter((item) => {
+          // If item has a specific permission, check that permission
+          if ("permission" in item && item.permission) {
+            return hasPermission(item.permission as string);
+          }
+          // If item has a resource, check if user has any permission for that resource
+          if ("resource" in item && item.resource) {
+            return hasAnyPermissionForResource(item.resource as string);
+          }
+          // If no permission specified, show the item
+          return true;
+        }),
+      },
+      {
+        section: "Organization Setup",items: [
           {
             id: "add-department",
             icon: "🏭",
@@ -240,21 +266,15 @@ export default function DashboardSidebar({
             label: "Equipment",
             resource: "equipment",
           },
+        ]
+      },
+      {
+        section: "Role Management",
+        items: [
           { id: "add-role", icon: "🏭", label: "Role", resource: "role" },
           { id: "add-user", icon: "🏭", label: "Users", resource: "user" },
-        ].filter((item) => {
-          // If item has a specific permission, check that permission
-          if ("permission" in item && item.permission) {
-            return hasPermission(item.permission as string);
-          }
-          // If item has a resource, check if user has any permission for that resource
-          if ("resource" in item && item.resource) {
-            return hasAnyPermissionForResource(item.resource as string);
-          }
-          // If no permission specified, show the item
-          return true;
-        }),
-      },
+        ]
+      }
     ];
   }, [isClient, hasPermission, hasAnyPermissionForResource]);
 
@@ -287,13 +307,11 @@ export default function DashboardSidebar({
 
   return (
     <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen no-scrollbar">
-      <Link href='/' className='xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center mb-5 ps-5'>
-          <Image
-              src={'/Logo.svg'}
-              alt="khazra logo"
-              height={26}
-              width={147}
-          />
+      <Link
+        href="/"
+        className="xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center mb-5 ps-5"
+      >
+        <Image src={"/Logo.svg"} alt="khazra logo" height={26} width={147} />
       </Link>
       {filteredSidebarItems.map((group, i) => (
         <div key={i} className="mb-5">

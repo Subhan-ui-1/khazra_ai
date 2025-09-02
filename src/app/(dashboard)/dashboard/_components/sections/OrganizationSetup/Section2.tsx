@@ -24,9 +24,10 @@ const sixMonthsAgoFormatted = `${year6}-${month6}-${day6}`;
 interface Section2Props {
   onFormSubmit: (data: any) => void;
   isCompleted: boolean;
+  initialData?: Record<string, any>;
 }
 
-const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted }) => {
+const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
   const fields: ConditionalField[] = [
     {
       name: "existingEnvironmentalManagement",
@@ -168,7 +169,7 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted }) => {
       required: true,
       placeholder: "Select the date when training needs will be assessed",
       validation: {
-        min: todayFormatted,
+        min: todayFormatted as any,
         max: sixMonthsAgoFormatted,
       },
       showWhen: [{ field: "trainingAssessment", value: "No" }],
@@ -181,30 +182,35 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {!isCompleted ? (
-        <WorkingConditionalForm
-          fields={fields}
-          onSubmit={handleFormSubmit}
-          submitText="Save & Continue"
-          title="GHG Management System Configuration"
-          className=""
-        />
-      ) : (
-        <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-green-800">Configuration Complete</h3>
-              <p className="text-green-700">GHG Management System has been configured successfully.</p>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="space-y-10">
+    {/* {!isCompleted ? ( */}
+      <div className="space-8 grid grid-cols-2 gap-8">
+      <WorkingConditionalForm
+        fields={fields.filter(f => [
+          'existingEnvironmentalManagement',
+          'ghgManagementIntegration',
+          'responsibleOfGHGManagement',
+          'ghgPolicyEstablishment',
+        ].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Overview"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+      <WorkingConditionalForm
+        fields={fields.filter(f => [
+          'ghgQuantification',
+          'trainingAssessment',
+          'trainingAssessed',
+        ].includes(f.name))}
+        onSubmit={handleFormSubmit}
+        submitText="Save"
+        title="Training & Competence"
+        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+        initialData={initialData}
+      />
+    </div>
     </div>
   );
 };

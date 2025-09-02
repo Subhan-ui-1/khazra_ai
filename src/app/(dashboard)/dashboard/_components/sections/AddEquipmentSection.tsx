@@ -739,10 +739,10 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
           <input type='file' className='hidden' id='uploadEquipmentsCSV' accept='.csv,.xlsx,.xls' ref={inputRef}/>
           <PermissionGuard permission="equipment.create">
             <div className='flex items-center gap-3'>
-              <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
+              {/* <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
                 <Paperclip className="w-5 h-5" />
                 Import Multiple Equipments
-            </button>
+            </button> */}
             <button
               onClick={() => setShowForm(true)}
               disabled={showForm}

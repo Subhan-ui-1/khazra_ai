@@ -40,8 +40,8 @@ const StepWizard: React.FC<StepWizardProps> = ({
   onStepChange,
   onComplete,
   onCancel,
-  showStepNumbers = true,
-  showProgressBar = true,
+  showStepNumbers = false,
+  showProgressBar = false,
   allowStepNavigation = true,
   className = '',
   stepContent,
@@ -117,11 +117,8 @@ const StepWizard: React.FC<StepWizardProps> = ({
 
   const handleStepClick = (stepNumber: number) => {
     if (!allowStepNavigation) return;
-    
-    // Allow navigation to completed steps or current step
-    if (stepNumber <= currentStep || steps[stepNumber - 1].canSkip) {
-      onStepChange(stepNumber);
-    }
+    // Allow free navigation across steps via buttons
+    onStepChange(stepNumber);
   };
 
   // Get step status
@@ -202,87 +199,45 @@ const StepWizard: React.FC<StepWizardProps> = ({
 
   return (
     <div className={`max-w-7xl mx-auto ${className}`}>
-      {/* Progress Header */}
-      <div className="mb-8">
-        {/* Progress Bar */}
-        {showProgressBar && (
-          <div className="relative w-full mb-8">
-            {/* Background line */}
-            <div className="absolute top-4 left-0 right-0 h-1.5 bg-gray-200 rounded-full" />
-            
-            {/* Progress line */}
-            <div 
-              className="absolute top-4 left-0 h-1.5 bg-gradient-to-r from-blue-500 via-emerald-500 to-blue-600 rounded-full transition-all duration-700 ease-out shadow-sm"
-              style={{ width: `${Math.max(0, Math.min(100, progressPercentage))}%` }}
-            />
-            
-            {/* Step indicators */}
-            <div className="relative flex justify-between">
-              {steps.map((step, index) => {
-                const stepNumber = index + 1;
-                const status = getStepStatus(index);
-                const isClickable = allowStepNavigation && (stepNumber <= currentStep || step.canSkip);
-                
-                return (
-                  <div key={step.id} className="flex flex-col items-center relative">
-                    <button
-                      onClick={() => handleStepClick(stepNumber)}
-                      disabled={!isClickable}
-                      className={`w-8 h-8 rounded-full border-2 transition-all duration-300 flex items-center justify-center shadow-sm ${
-                        status === 'completed'
-                          ? 'bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 hover:scale-110'
-                          : status === 'active'
-                          ? 'bg-blue-500 border-blue-500 text-white shadow-lg hover:scale-110'
-                          : status === 'error'
-                          ? 'bg-red-500 border-red-500 text-white hover:bg-red-600 hover:scale-110'
-                          : 'bg-white border-gray-300 text-gray-400 hover:border-gray-400'
-                      } ${isClickable ? 'hover:shadow-md' : ''}`}
-                    >
-                      {getStepIcon(step, index)}
-                    </button>
-                    
-                    {/* Step title */}
-                    <div className="mt-3 w-full max-w-64">
-                      {getStepTitle(step, index)}
-                    </div>
-
-                    {/* Step number badge */}
-                    {/* {showStepNumbers && (
-                      <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                        status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                        status === 'active' ? 'bg-blue-100 text-blue-700' :
-                        status === 'error' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-500'
-                      }`}>
-                        {stepNumber}
-                      </div>
-                    )} */}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Current Step Header */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            {currentStepData?.title}
-          </h2>
+      {/* Step Buttons Header */}
+      <div className="mb-6">
+        <div className="flex flex-wrap items-center gap-2 justify-center">
+          {steps.map((step, index) => {
+            const stepNumber = index + 1;
+            const status = getStepStatus(index);
+            const isClickable = allowStepNavigation && (stepNumber <= currentStep || steps[index].canSkip);
+            const base = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all';
+            const styles = status === 'completed'
+              ? 'bg-white text-black border-emerald-200 hover:bg-white'
+              : status === 'active'
+              ? 'bg-[#0D5942] text-white border-[#0D5942] shadow'
+              : status === 'error'
+              ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50';
+            return (
+              <button
+                key={step.id}
+                onClick={() => handleStepClick(stepNumber)}
+                // disabled={!isClickable}
+                className={`${base} ${styles}`}
+              >
+                {getStepIcon(step, index)}
+                <span className="truncate max-w-[12rem]">{step.title}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="text-center mt-4">
+          <h2 className="text-2xl font-bold text-gray-900">{currentStepData?.title}</h2>
           {currentStepData?.description && (
-            <p className="text-gray-600 max-w-3xl mx-auto text-lg leading-relaxed">
-              {currentStepData.description}
-            </p>
+            <p className="text-gray-600 max-w-3xl mx-auto mt-1">{currentStepData.description}</p>
           )}
-          <div className="text-sm text-gray-500 mt-3 font-medium">
-            Step {currentStep} of {steps.length}
-          </div>
         </div>
       </div>
 
       {/* Step Content */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xl mb-8 overflow-hidden">
-        <div className="p-8">
+      <div className="bg-whit rounded-2xl  mb-8 overflow-hidden">
+        <div className="">
           {stepContent}
           
           {/* Validation Error Display */}
@@ -298,26 +253,26 @@ const StepWizard: React.FC<StepWizardProps> = ({
       </div>
 
       {/* Navigation Footer */}
-      <div className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-lg">
+      {/* <div className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-lg">
         <div className="flex items-center space-x-4">
-          {/* Back Button */}
+          
           {!isFirstStep && (
             <button
               onClick={handleBack}
               disabled={!canGoBack || isLoading}
-              className="flex items-center space-x-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+              className="flex items-center space-x-2 px-6 py-3 text-gray-700 bg-whit border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>{backButtonText}</span>
             </button>
           )}
           
-          {/* Cancel Button */}
+          
           {showCancelButton && onCancel && (
             <button
               onClick={onCancel}
               disabled={isLoading}
-              className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+              className="px-6 py-3 text-gray-700 bg-whit border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
               {cancelButtonText}
             </button>
@@ -325,12 +280,12 @@ const StepWizard: React.FC<StepWizardProps> = ({
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Progress Indicator */}
-          <div className="text-sm text-gray-600 font-medium bg-white px-4 py-2 rounded-lg border border-gray-200">
+         
+          <div className="text-sm text-gray-600 font-medium bg-whit px-4 py-2 rounded-lg border border-gray-200">
             {currentStep} of {steps.length}
           </div>
 
-          {/* Next/Complete Button */}
+          
           <button
             onClick={handleNext}
             disabled={!canProceed || isLoading}
@@ -349,10 +304,10 @@ const StepWizard: React.FC<StepWizardProps> = ({
             )}
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Step List (Alternative View) */}
-      {showStepNumbers && (
+      {/* {showStepNumbers && (
         <div className="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Step Overview</h3>
           <div className="space-y-3">
@@ -397,7 +352,7 @@ const StepWizard: React.FC<StepWizardProps> = ({
             })}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

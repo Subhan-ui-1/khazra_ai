@@ -148,10 +148,12 @@ const todayFormatted = `${year}-${month}-${day}`;
 interface Section1Props {
   onFormSubmit: (data: any) => void;
   isCompleted: boolean;
+  initialData?: Record<string, any>;
 }
 const OrganizationSetupSection1: React.FC<Section1Props> = ({
   onFormSubmit,
   isCompleted,
+  initialData = {},
 }) => {
   //     industrySector,
   // businessNature,
@@ -303,8 +305,8 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
       required: true,
       placeholder: "Select the free zone operation",
       options: [
-        { label: "Yes", value: "Yes" },
-        { label: "No", value: "No" },
+        { label: "Yes", value: 'true' },
+        { label: "No", value: 'false' },
       ],
     },
     {
@@ -322,53 +324,88 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
         { label: "Free Zone 6", value: "Free Zone 6" },
         { label: "Free Zone 7", value: "Free Zone 7" },
       ],
-      showWhen: [{ field: "freeZoneOperationQuestion", value: "Yes" }],
+      showWhen: [{ field: "freeZoneOperationQuestion", value: 'true' }],
     },
   ];
-  const handleSubmit = (data: any) => {
-    console.log(data);
-    onFormSubmit(data);
+  const [partial, setPartial] = React.useState<Record<string, any>>({});
+  const [done, setDone] = React.useState({ g1: false, g2: false, g3: false, g4: false });
+
+  const handlePartial = (groupKey: keyof typeof done) => (data: any) => {
+    const nextPartial = { ...partial, ...data };
+    setPartial(nextPartial);
+    const nextDone = { ...done, [groupKey]: true };
+    setDone(nextDone);
+    if (Object.values(nextDone).every(Boolean)) {
+      onFormSubmit(nextPartial);
+    }
   };
   return (
     <div className="space-y-10">
-      {!isCompleted ? (
-        <WorkingConditionalForm
-          fields={fields}
-          onSubmit={handleSubmit}
-          submitText="Save & Continue"
-          title="Organization & Industry Details"
-          className=""
-        />
-      ) : (
-        <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-green-800">
-                Configuration Complete
-              </h3>
-              <p className="text-green-700">
-                Organization & Industry Details has been configured
-                successfully.
-              </p>
-            </div>
-          </div>
+      {/* {!isCompleted ? ( */}
+        <div className="space-8 grid grid-cols-2 gap-8">
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['industrySector','standardIndustrialClassification'].includes(f.name))}
+            onSubmit={handlePartial('g1')}
+            submitText={"Save"}
+            title="Industry & Classification"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['businessNature','primaryBusinessActivities'].includes(f.name))}
+            onSubmit={handlePartial('g2')}
+            submitText={"Save"}
+            title="Business Profile"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => ['numberOfEmployees','annualRevenue'].includes(f.name))}
+            onSubmit={handlePartial('g3')}
+            submitText={ "Save"}
+            title="Scale & Revenue"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
+          <WorkingConditionalForm
+            fields={fields.filter(f => !['industrySector','standardIndustrialClassification','businessNature','primaryBusinessActivities','numberOfEmployees','annualRevenue'].includes(f.name))}
+            onSubmit={handlePartial('g4')}
+            submitText={ "Save"}
+            title="Other Details"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={initialData}
+          />
         </div>
-      )}
+      {/* // ) : (
+      //   <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
+      //     <div className="flex items-center space-x-3">
+      //       <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+      //         <svg
+      //           className="w-5 h-5 text-white"
+      //           fill="none"
+      //           stroke="currentColor"
+      //           viewBox="0 0 24 24"
+      //         >
+      //           <path
+      //             strokeLinecap="round"
+      //             strokeLinejoin="round"
+      //             strokeWidth={2}
+      //             d="M5 13l4 4L19 7"
+      //           />
+      //         </svg>
+      //       </div>
+      //       <div>
+      //         <h3 className="text-lg font-medium text-green-800">
+      //           Configuration Complete
+      //         </h3>
+      //         <p className="text-green-700">
+      //           Organization & Industry Details has been configured
+      //           successfully.
+      //         </p>
+      //       </div>
+      //     </div>
+      //   </div>
+      // )} */}
     </div>
   );
 };

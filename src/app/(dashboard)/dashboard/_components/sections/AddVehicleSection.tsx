@@ -620,6 +620,7 @@ const AddVehicleSection = ({ onComplete }: AddVehicleSectionProps) => {
           if(file){
             const formData = new FormData();
             formData.append("file", file);
+            formData.append("model", "vehicles");
             const response = await postRequest('upload-attachment/upload-csv', formData, "", tokenData.accessToken, "post");
             if(response.success){
               const vehicles = await fetchVehicles();

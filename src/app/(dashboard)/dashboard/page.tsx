@@ -195,7 +195,7 @@ export default function DashboardPage() {
     feedback: <FeedbackSection />,
     'GHGManage': <GHGManage />,
     'boundary-setup': <BoundarySetupSteps />,
-    'section9':<Section9 />,
+    // 'section9':<Section9 />,""
     'add-emission': <AddEmissionSection />,
     'add-facility': <PermissionGuard permission="facilities.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view facilities.</div>}>
       <AddFacilitySection />

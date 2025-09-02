@@ -585,13 +585,13 @@ const AddUserSection = () => {
         <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
         <PermissionGuard permission="user.create">
           <div className="flex items-center gap-3">
-            <button
+            {/* <button
               onClick={() => setShowFileModal(true)}
               className="bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Paperclip className="w-5 h-5" />
               Import Multiple Users
-            </button>
+            </button> */}
             <button
               onClick={() => setShowForm(true)}
               disabled={showForm}
