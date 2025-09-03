@@ -92,7 +92,11 @@ interface BoundaryData {
   updatedAt: string;
 }
 
-const BoundarySetupSteps = () => {
+interface BoundarySetupStepsProps {
+  onProgressChange?: (percent: number) => void;
+}
+
+const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChange }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -143,6 +147,117 @@ const BoundarySetupSteps = () => {
     },
   ];
 
+  // Fields belonging to each step, used for precise diffs
+  const stepFieldKeys: Record<number, Array<keyof BoundaryData>> = {
+    1: [
+      'industrySector','industry','businessNature','primaryBusinessActivities',
+      'standardIndustrialClassification','numberOfEmployees','annualRevenue',
+      'businessFormationDate','tradeLicenseNumber','freeZoneOperationQuestion','freeZoneOperation',
+    ],
+    2: [
+      'organizationalControlApproach','legalOwnership','subsidiariesQuestion','subsidiaries',
+      'reportingBoundary','assessmentCompleted','controlPercentage','ventures','ownershipPercentage',
+      'ventureAgreements','decisionMakingAuthority','franchisedLocations','franchisee',
+      'leasedOperations','ownershipStructures','organizationalStructureExpected','structureExpected',
+    ],
+    3: [
+      'primaryFunctionalCurrency','secondaryFunctionalCurrency','currencyConversionApproach',
+    ],
+    4: [
+      'primaryOperatingCountry','primaryOperating','abroadOperations','operationsCountries',
+      'percentageOperations','geographicReportingScope','facilityInventoryAvailable','crossBorderActivities',
+      'doYouHaveFacilities','ownedFacilities','typesOfFacilities','haveLeasedFacilities','leasedFacilities',
+      'leasedFacilitiesNames','haveMobileAssets','typesOfVehicles','numberOfVehicles','haveStationary',
+      'typesOfEquipment','districtCooling','percentageOfDistrictCooling','operationalBoundaries',
+      'emissionGeneratingActivities','activityDataCollection',
+    ],
+  };
+
+  // Keys to always ignore for update payloads (transient toggles or derived)
+  const TRANSIENT_KEYS: Array<keyof any> = [
+    'districtCooling',
+    'haveStationary',
+    'haveMobileAssets',
+    'haveLeasedFacilities',
+    'doYouHaveFacilities',
+    'organizationalStructureExpected',
+    'complexOwnershipStructure',
+    'activities',
+    'operateFranchisedLocation',
+    'jointVentures',
+    'subsidiariesQuestion',
+    'freeZoneOperationQuestion',
+  ];
+
+  const isEmptyValue = (v: any): boolean => {
+    if (v === undefined || v === null) return true;
+    if (typeof v === 'string' && v.trim() === '') return true;
+    if (Array.isArray(v) && v.length === 0) return true;
+    return false;
+  };
+
+  const sanitizePayload = (obj: Record<string, any>) => {
+    const sanitized: Record<string, any> = {};
+    Object.keys(obj).forEach((key) => {
+      const value = obj[key];
+      if (TRANSIENT_KEYS.includes(key)) return; // ignore unwanted keys
+      if (isEmptyValue(value)) return; // omit blanks to avoid clearing on backend
+      sanitized[key] = value;
+    });
+    return sanitized;
+  };
+
+  const pick = (src: Record<string, any>, keys: string[]) => {
+    const out: Record<string, any> = {};
+    keys.forEach((k) => {
+      if (k in src) out[k] = src[k];
+    });
+    return out;
+  };
+
+  // Shallow diff: returns keys whose values differ (strict equality) between prev and next
+  const diffObjects = (prev: Record<string, any>, next: Record<string, any>) => {
+    const changed: Record<string, any> = {};
+    const allKeys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+    allKeys.forEach((k) => {
+      const pv = prev[k];
+      const nv = next[k];
+      const bothArrays = Array.isArray(pv) && Array.isArray(nv);
+      if (bothArrays) {
+        const sameLength = pv.length === nv.length;
+        const sameItems = sameLength && pv.every((v: any, i: number) => v === nv[i]);
+        if (!sameItems) changed[k] = nv;
+        return;
+      }
+      if (pv !== nv) changed[k] = nv;
+    });
+    return changed;
+  };
+
+  const computeProgressPercent = (data: Partial<BoundaryData> | null): number => {
+    if (!data) return 0;
+    // Keys represented by the current UI sections
+    const keys: Array<keyof BoundaryData> = [
+      // Section 1
+      'industrySector','industry','businessNature','primaryBusinessActivities','standardIndustrialClassification','numberOfEmployees','annualRevenue','businessFormationDate','tradeLicenseNumber','freeZoneOperationQuestion','freeZoneOperation',
+      // Section 2
+      'organizationalControlApproach','legalOwnership','subsidiariesQuestion','subsidiaries','reportingBoundary','assessmentCompleted','controlPercentage','ventures','ownershipPercentage','ventureAgreements','decisionMakingAuthority','franchisedLocations','franchisee','leasedOperations','ownershipStructures','organizationalStructureExpected','structureExpected',
+      // Section 3 (Section10)
+      'primaryFunctionalCurrency','secondaryFunctionalCurrency','currencyConversionApproach',
+      // Section 4
+      'primaryOperatingCountry','primaryOperating','abroadOperations','operationsCountries','percentageOperations','geographicReportingScope','facilityInventoryAvailable','crossBorderActivities','doYouHaveFacilities','ownedFacilities','typesOfFacilities','haveLeasedFacilities','leasedFacilities','leasedFacilitiesNames','haveMobileAssets','typesOfVehicles','numberOfVehicles','haveStationary','typesOfEquipment','districtCooling','percentageOfDistrictCooling','operationalBoundaries','emissionGeneratingActivities','activityDataCollection',
+    ];
+    const total = keys.length;
+    const filled = keys.reduce((acc, key) => {
+      const v: any = (data as any)[key];
+      if (Array.isArray(v)) {
+        return acc + (v.length > 0 ? 1 : 0);
+      }
+      return acc + (v !== undefined && v !== null && String(v).toString().trim() !== '' ? 1 : 0);
+    }, 0);
+    return Math.round((filled / Math.max(total, 1)) * 100);
+  };
+
   // Fetch existing boundary data
   const fetchBoundaryData = async () => {
     try {
@@ -152,9 +267,10 @@ const BoundarySetupSteps = () => {
         const data = response.data.boundaries[0];
         setBoundaryData(data);
         
-        // Pre-populate form data for edit mode
-        setFormData({
+        // Pre-populate form data for edit mode (MERGE with any locally added values)
+        setFormData((prev) => ({
           step1: {
+            ...(prev.step1 || {}),
             industrySector: data.industrySector || data.industry,
             businessNature: data.businessNature,
             primaryBusinessActivities: data.primaryBusinessActivities,
@@ -167,6 +283,7 @@ const BoundarySetupSteps = () => {
             freeZoneOperation: data.freeZoneOperation,
           },
           step2: {
+            ...(prev.step2 || {}),
             organizationalControlApproach: data.organizationalControlApproach,
             legalOwnership: data.legalOwnership,
             subsidiariesQuestion: data.subsidiariesQuestion,
@@ -186,6 +303,7 @@ const BoundarySetupSteps = () => {
             structureExpected: data.structureExpected,
           },
           step4: {
+            ...(prev.step4 || {}),
             primaryOperatingCountry: data.primaryOperatingCountry,
             primaryOperating: data.primaryOperating,
             abroadOperations: data.abroadOperations,
@@ -212,11 +330,12 @@ const BoundarySetupSteps = () => {
             activityDataCollection: data.activityDataCollection,
           },
           step3: {
+            ...(prev.step3 || {}),
             primaryFunctionalCurrency: data.primaryFunctionalCurrency,
             secondaryFunctionalCurrency: data.secondaryFunctionalCurrency,
             currencyConversionApproach: data.currencyConversionApproach,
           },
-        });
+        }));
         
         // Mark all steps as completed since data exists
         setFormCompletionStatus({
@@ -225,6 +344,11 @@ const BoundarySetupSteps = () => {
           step3: true,
           step4: true,
         });
+        // Report progress upward
+        try {
+          const pct = computeProgressPercent(data);
+          onProgressChange && onProgressChange(pct);
+        } catch {}
       }
     } catch (error) {
       console.error('Error fetching boundary data:', error);
@@ -241,10 +365,14 @@ const BoundarySetupSteps = () => {
   const handleStepFormSubmit = async (step: number, data: any) => {
     console.log(`Step ${step} form submitted:`, data);
 
-    // Update form data locally
+    // Merge this group's data into existing step state (preserve prior inputs)
+    const mergedStep = {
+      ...(formData as any)[`step${step}`],
+      ...(data || {}),
+    };
     const updated = {
       ...formData,
-      [`step${step}`]: data,
+      [`step${step}`]: mergedStep,
     } as typeof formData;
     setFormData(updated);
 
@@ -254,52 +382,70 @@ const BoundarySetupSteps = () => {
       [`step${step}`]: true
     }));
 
-    // Build payload with all current parts
-    const { step1, step2, step3, step4 } = updated;
-    const payload: any = {
-      organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
-      ...step1,
-      ...step2,
-      ...step3,
-      ...step4,
-    };
+    // Build full aggregated payload from server snapshot + all steps (ensure fields absent in GET but edited locally are included)
+    const aggregate = {
+      ...(boundaryData || {} as any),
+      ...(updated.step1 || {}),
+      ...(updated.step2 || {}),
+      ...(updated.step3 || {}),
+      ...(updated.step4 || {}),
+    } as Record<string, any>;
 
-    // Choose endpoint/method based on whether data exists
-    const endpoint = boundaryData && boundaryData._id
+    // Decide create vs update purely based on presence of any fetched record
+    const isUpdate = Boolean(boundaryData && (boundaryData as any));
+    const endpoint = isUpdate && boundaryData?._id
       ? `boundaries/updateBoundary/${boundaryData._id}`
       : 'boundaries/addBoundary';
-    const method = boundaryData && boundaryData._id ? 'put' : 'post';
-    const successMessage = boundaryData && boundaryData._id
+    const method = isUpdate && boundaryData?._id ? 'put' : 'post';
+    const successMessage = method === 'put'
       ? 'Boundary setup updated successfully!'
       : 'Boundary setup created successfully!';
 
+    const fullPayload: any = method === 'put'
+      ? { ...aggregate }
+      : {
+          organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
+          ...aggregate,
+        };
+
+    // Remove server-only fields
+    delete (fullPayload as any)._id;
+    delete (fullPayload as any).createdAt;
+    delete (fullPayload as any).updatedAt;
+
     // For updates, strip transient toggles not needed by backend
     if (method === 'put') {
-      delete (payload as any).organizationId;
-      delete (payload as any).districtCooling;
-      delete (payload as any).haveStationary;
-      delete (payload as any).haveMobileAssets;
-      delete (payload as any).haveLeasedFacilities;
-      delete (payload as any).doYouHaveFacilities;
-      delete (payload as any).organizationalStructureExpected;
-      delete (payload as any).complexOwnershipStructure;
-      delete (payload as any).activities;
-      delete (payload as any).operateFranchisedLocation;
-      delete (payload as any).jointVentures;
-      delete (payload as any).subsidiariesQuestion;
-      delete (payload as any).freeZoneOperationQuestion;
+      delete (fullPayload as any).organizationId;
+      delete (fullPayload as any).districtCooling;
+      delete (fullPayload as any).haveStationary;
+      delete (fullPayload as any).haveMobileAssets;
+      delete (fullPayload as any).haveLeasedFacilities;
+      delete (fullPayload as any).doYouHaveFacilities;
+      delete (fullPayload as any).organizationalStructureExpected;
+      delete (fullPayload as any).complexOwnershipStructure;
+      delete (fullPayload as any).activities;
+      delete (fullPayload as any).operateFranchisedLocation;
+      delete (fullPayload as any).jointVentures;
+      delete (fullPayload as any).subsidiariesQuestion;
+      delete (fullPayload as any).freeZoneOperationQuestion;
+      delete (fullPayload as any).createdBy;
+      delete (fullPayload as any).abroadOperations;
+
     }
 
-    const response = await postRequest(endpoint, { ...payload }, successMessage, tokenData.accessToken, method);
+    const response = await postRequest(endpoint, fullPayload, successMessage, tokenData.accessToken, method);
     if (response?.success) {
-      // Refresh canonical data so subsequent saves use update
-      await fetchBoundaryData();
+      // Optimistically merge full payload
+      setBoundaryData((prev) => ({ ...(prev || {} as any), ...(fullPayload as any) } as any));
+      // await fetchBoundaryData();
+      const merged = { ...(boundaryData || {}), ...(fullPayload as any) } as Partial<BoundaryData>;
+      try {
+        const pct = computeProgressPercent(merged);
+        onProgressChange && onProgressChange(pct);
+      } catch {}
     }
 
-    // Auto-advance to next step for convenience (user can still navigate freely)
-    if (step < steps.length) {
-      setCurrentStep(step + 1);
-    }
+    // Do not auto-advance the wizard on per-form saves; user stays in the same step
   };
 
   // Step validation function
@@ -334,9 +480,17 @@ const BoundarySetupSteps = () => {
     }
   };
 
-  // Handle step change with validation
-  const handleStepChange = (step: number) => {
-    // Free navigation via step buttons
+  // Handle step change with auto-submit of current step
+  const handleStepChange = async (step: number) => {
+    try {
+      // Submit current step data before navigating
+      const currentData = (formData as any)[`step${currentStep}`] || {};
+      // if (Object.keys(currentData).length > 0) {
+      //   await handleStepFormSubmit(currentStep, currentData);
+      // }
+    } catch (error) {
+      console.error('Error submitting current step data:', error);
+    }
     setCurrentStep(step);
   };
 
@@ -377,6 +531,7 @@ const BoundarySetupSteps = () => {
           delete (payload as any).jointVentures
           delete (payload as any).subsidiariesQuestion
           delete (payload as any).freeZoneOperationQuestion
+          delete (payload as any).createdBy
         }
       
       const response = await postRequest(endpoint, {
@@ -607,10 +762,10 @@ const BoundarySetupSteps = () => {
       <div className="space-y-8">
         {/* Header with actions */}
         <div className="flex justify-between items-center">
-          <div>
+          {/* <div>
             <h2 className="text-2xl font-bold text-gray-900">Boundary Configuration</h2>
             <p className="text-gray-600 mt-1">Your organization's geographic and financial boundaries setup</p>
-          </div>
+          </div> */}
           <div className="flex space-x-3">
             <button
               onClick={handleEditMode}
@@ -784,7 +939,7 @@ const BoundarySetupSteps = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className=" bg-white py-8">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -808,7 +963,7 @@ const BoundarySetupSteps = () => {
 
   // Show form in edit mode or when no data exists
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className=" bg-white py-8">
       <div className=" mx-auto px-4">
         {/* Edit mode header */}
         {/* {isEditMode && (

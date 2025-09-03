@@ -396,7 +396,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 onChange={(e) =>
                   handleInputChange(`${field.name}CountryCode`, e.target.value)
                 }
-                className={baseInputClasses}
+                className={`${baseInputClasses} h-full`}
               >
                 <option value="">Code</option>
                 {field.options?.map((option) => (

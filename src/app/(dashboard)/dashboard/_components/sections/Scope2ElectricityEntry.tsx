@@ -6,6 +6,7 @@ import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
 import { scope2EnergyTypes } from "@/constants/scope2EnergyType";
 import FileUploadModal from "@/components/FileUploadModal";
+import { useRouter } from "next/navigation";
 
 interface Facility {
   _id: string;
@@ -36,6 +37,7 @@ interface ElectricityFormData {
 }
 
 const Scope2ElectricityEntry: React.FC = () => {
+  const router = useRouter()
   const [selectedFacility, setSelectedFacility] = useState("all");
   const [electricityData, setElectricityData] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -607,6 +609,7 @@ const Scope2ElectricityEntry: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Facility *
                 </label>
+                <div className="flex items-center gap-2">
                 <select
                   value={formData.facility}
                   onChange={(e) =>
@@ -625,6 +628,14 @@ const Scope2ElectricityEntry: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard?section=add-facility")}
+                  className="text-lg font-medium text-green-500 hover:text-green-600"
+                >
+                  Add
+                </button>
+                </div>
               </div>
               {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Energy Type *</label>

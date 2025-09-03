@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
+import {
   ChevronRight,
   Target,
   TrendingDown,
@@ -41,7 +41,9 @@ const FlexibleTargetPlatform = () => {
   const [loading, setLoading] = useState(false);
   const [showTargetForm, setShowTargetForm] = useState(false);
   const [editingTarget, setEditingTarget] = useState<any>(null);
-  
+
+  const [baselineData, setBaselineData] = useState<any>(null);
+
   const [targetData, setTargetData] = useState({
     // Organization Info
     organizationName: "",
@@ -49,13 +51,13 @@ const FlexibleTargetPlatform = () => {
     headquarters: "",
     revenue: 0,
     employees: 0,
-    
+
     // Target Strategy
     targetCategory: "", // voluntary, regulatory, net_zero, custom
     targetType: "", // absolute, intensity_revenue, intensity_employee, intensity_product
     methodology: "", // custom, regulatory, sectoral, science_based
     ambitionLevel: "", // conservative, moderate, ambitious, transformational
-    
+
     // Scope & Coverage
     scopeCoverage: {
       scope1: true,
@@ -65,7 +67,7 @@ const FlexibleTargetPlatform = () => {
     },
     geographicCoverage: "", // global, regional, country, facility
     businessCoverage: 0, // percentage of business operations
-    
+
     // Baseline & Target
     baselineYear: 0,
     baselineEmissions: {
@@ -77,7 +79,7 @@ const FlexibleTargetPlatform = () => {
     targetYear: 0,
     targetValue: 0, // 50% reduction
     targetUnit: "",
-    
+
     // Business Context
     intensityMetrics: {
       revenue: 0,
@@ -85,7 +87,7 @@ const FlexibleTargetPlatform = () => {
       productUnits: 0,
       floorArea: 0,
     },
-    
+
     // Regulatory Context
     regulations: {
       euTaxonomy: false,
@@ -94,7 +96,7 @@ const FlexibleTargetPlatform = () => {
       tcfd: false,
       localRegulations: [],
     },
-    
+
     // Milestones & Verification
     milestones: [
       { year: 0, target: 0, description: "" },
@@ -105,6 +107,36 @@ const FlexibleTargetPlatform = () => {
     verificationRequired: false,
     verificationFrequency: "",
   });
+
+  const fetchBaselineData = async () => {
+    try {
+      setLoading(true);
+      const baselineData = safeLocalStorage.getItem("baselineData");
+      let raw = null;
+      if (baselineData) {
+        raw = JSON.parse(baselineData);
+      } else {
+        const response = await getRequest("baseline/getBaseline", getToken());
+        if (
+          response.success &&
+          response.data.baseline &&
+          response.data.baseline.length > 0
+        ) {
+          raw = response.data.baseline[0];
+          safeLocalStorage.setItem("baselineData", JSON.stringify(raw));
+        }
+      }
+      setBaselineData(raw);
+    } catch (error) {
+      console.error("Error fetching baseline data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBaselineData();
+  }, []);
 
   // API Functions
   const getToken = () => {
@@ -135,12 +167,12 @@ const FlexibleTargetPlatform = () => {
     try {
       const metrics = calculateTargetMetrics();
       const ambition = assessTargetAmbition();
-      
+
       // Convert scope coverage to array format
       const scopeCoverageArray = [];
       if (targetData.scopeCoverage.scope1) scopeCoverageArray.push("Scope 1");
       if (targetData.scopeCoverage.scope2) scopeCoverageArray.push("Scope 2");
-      // if (targetData.scopeCoverage.scope3) scopeCoverageArray.push("Scope 3");
+      if (targetData.scopeCoverage.scope3) scopeCoverageArray.push("Scope 3");
 
       // Get target category and methodology names
       const targetCategoryName =
@@ -273,7 +305,7 @@ const FlexibleTargetPlatform = () => {
       100;
     const years = targetData.targetYear - targetData.baselineYear;
     const annualReduction = totalReduction / years;
-    
+
     return {
       totalReduction: totalReduction.toFixed(1),
       annualReduction: annualReduction.toFixed(1),
@@ -289,7 +321,7 @@ const FlexibleTargetPlatform = () => {
     const annualRate = parseFloat(metrics.annualReduction);
 
     if (annualRate < 2)
-    return {
+      return {
         level: "Conservative",
         color: "orange",
         desc: "Below industry average",
@@ -324,7 +356,7 @@ const FlexibleTargetPlatform = () => {
       },
       geographicCoverage: "",
       businessCoverage: 0,
-      baselineYear: 0,
+      baselineYear: baselineData?.baselineYear,
       baselineEmissions: {
         scope1: 0,
         scope2: 0,
@@ -360,11 +392,32 @@ const FlexibleTargetPlatform = () => {
   };
 
   const steps = [
-    { title: "Target Strategy"},
-    { title: "Scope & Coverage"},
-    { title: "Baseline & Targets"},
-    { title: "Review & Deploy"},
+    { title: "Target Strategy" },
+    { title: "Scope & Coverage" },
+    { title: "Baseline & Targets" },
+    { title: "Review & Deploy" },
   ];
+
+  function generateNextTwentyYears(startYear: number) {
+    // Check if the input is a valid number
+    if (typeof startYear !== 'number' || !Number.isInteger(startYear)) {
+      console.error("Input must be an integer.");
+      return [];
+    }
+  
+    const years = [];
+    const currentYear = new Date().getFullYear();
+  
+    // Ensure the startYear is not in the future relative to the current year
+    const effectiveStartYear = Math.min(startYear, currentYear);
+  
+    // Loop 20 times to generate the next 20 years
+    for (let i = 1; i <= 20; i++) {
+      years.push(effectiveStartYear + i);
+    }
+  
+    return years;
+  }
 
   // Target Setup Form
   const TargetSetupForm = () => (
@@ -390,7 +443,15 @@ const FlexibleTargetPlatform = () => {
 
             return (
               <div key={index} className="flex items-center">
-                <div className={`w-[20px] h-[18px] rounded-full bg-white border-5 ${isActive ? "border-green-500" : isCompleted ? "border-green-600" : "border-gray-300"}`}></div>
+                <div
+                  className={`w-[20px] h-[18px] rounded-full bg-white border-5 ${
+                    isActive
+                      ? "border-green-500"
+                      : isCompleted
+                      ? "border-green-600"
+                      : "border-gray-300"
+                  }`}
+                ></div>
                 <div
                   className={`w-full h-auto py-2 pe-2 ps-1 flex items-center justify-center text-lg font-semibold bg-white transition-all duration-300 ${
                     isActive
@@ -403,11 +464,11 @@ const FlexibleTargetPlatform = () => {
                   {String(index + 1).padStart(2, "0")}
                   <span
                     className={`ms-1 text-sm ${
-                      isActive 
-                      ? "text-green-500"
-                      : isCompleted
-                      ? "text-green-600"
-                      : " text-gray-400"
+                      isActive
+                        ? "text-green-500"
+                        : isCompleted
+                        ? "text-green-600"
+                        : " text-gray-400"
                     }`}
                   >
                     {step.title}
@@ -429,7 +490,7 @@ const FlexibleTargetPlatform = () => {
                 Target Strategy & Approach
               </h3>
             </div>
-            
+
             {/* Target Category Selection */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-green-700 mb-3">
@@ -561,7 +622,7 @@ const FlexibleTargetPlatform = () => {
                 Scope Coverage & Boundaries
               </h3>
             </div>
-            
+
             {/* Emission Scopes */}
             <div className="grid grid-cols-3 gap-6 mb-6">
               <div className="border border-orange-200 rounded-lg p-4">
@@ -632,6 +693,41 @@ const FlexibleTargetPlatform = () => {
                   <br />• Heating & cooling
                 </div>
               </div>
+              <div className="border border-green-200 rounded-lg p-4">
+                <div className="flex items-center space-x-3 mb-3">
+                  <input
+                    type="checkbox"
+                    id="scope3"
+                    checked={targetData.scopeCoverage.scope3}
+                    onChange={(e) =>
+                      setTargetData((prev) => ({
+                        ...prev,
+                        scopeCoverage: {
+                          ...prev.scopeCoverage,
+                          scope3: e.target.checked,
+                        },
+                      }))
+                    }
+                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <Zap className="w-5 h-5 text-green-600" />
+                  <label
+                    htmlFor="scope3"
+                    className="font-medium text-green-900"
+                  >
+                    Scope 3
+                  </label>
+                </div>
+                <p className="text-sm text-green-700">
+                  Other indirect emissions in value chain
+                </p>
+                <div className="mt-2 text-xs text-green-600">
+                  • Supply chain
+                  <br />
+                  • Business travel
+                  <br />• Product lifecycle
+                </div>
+              </div>
             </div>
 
             {/* Coverage Parameters */}
@@ -670,28 +766,17 @@ const FlexibleTargetPlatform = () => {
                 Baseline Data & Target Setting
               </h3>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-medium text-green-700 mb-2">
                   Baseline Year
                 </label>
-                <select
-                  value={targetData.baselineYear}
-                  onChange={(e) =>
-                    setTargetData((prev) => ({
-                      ...prev,
-                      baselineYear: parseInt(e.target.value),
-                    }))
-                  }
+                <input
+                  readOnly
+                  value={baselineData?.baselineYear}
                   className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  {[2024, 2023, 2022, 2021, 2020, 2019, 2018].map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div>
@@ -708,10 +793,7 @@ const FlexibleTargetPlatform = () => {
                   }
                   className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  {[
-                    2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034,
-                    2035, 2040, 2045, 2050,
-                  ].map((year) => (
+                  {generateNextTwentyYears(parseInt(baselineData?.baselineYear)).map((year) => (
                     <option key={year} value={year}>
                       {year}
                     </option>
@@ -806,14 +888,12 @@ const FlexibleTargetPlatform = () => {
             {/* Target Analysis */}
             {targetData.baselineEmissions.total && targetData.targetValue && (
               <div className="bg-white border border-green-200 rounded-lg p-6">
-                <h4 className="font-medium text-black mb-4">
-                  Target Analysis
-                </h4>
-                
+                <h4 className="font-medium text-black mb-4">Target Analysis</h4>
+
                 {(() => {
                   const metrics = calculateTargetMetrics();
                   const ambition = assessTargetAmbition();
-                  
+
                   return (
                     <div className="grid grid-cols-3 gap-6">
                       <div className="text-center">
@@ -861,12 +941,10 @@ const FlexibleTargetPlatform = () => {
                 Review & Deploy Target
               </h3>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h4 className="font-medium text-black">
-                  Target Configuration
-                </h4>
+                <h4 className="font-medium text-black">Target Configuration</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-black">Organization:</span>
@@ -945,9 +1023,7 @@ const FlexibleTargetPlatform = () => {
 
             {/* Scope Coverage Summary */}
             <div className="mt-6 pt-6 border-t border-green-200">
-              <h4 className="font-medium text-black mb-3">
-                Scope Coverage
-              </h4>
+              <h4 className="font-medium text-black mb-3">Scope Coverage</h4>
               <div className="flex space-x-6">
                 {targetData.scopeCoverage.scope1 && (
                   <div className="flex items-center space-x-2">
@@ -989,7 +1065,7 @@ const FlexibleTargetPlatform = () => {
         >
           <span>{currentStep === 1 ? "Back" : "Previous"}</span>
         </button>
-        
+
         {currentStep < 4 ? (
           <button
             onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
@@ -1016,7 +1092,7 @@ const FlexibleTargetPlatform = () => {
   const TargetDashboard = () => {
     const metrics = calculateTargetMetrics();
     const ambition = assessTargetAmbition();
-    
+
     return (
       <div className="space-y-8">
         {/* Key Metrics Cards */}
@@ -1218,7 +1294,7 @@ const FlexibleTargetPlatform = () => {
     <div className="space-y-10">
       {/* Page Header */}
       <div className="border-b border-green-100 pb-6 flex justify-between items-center">
-        <div>          
+        <div>
           <h1 className="text-3xl font-bold text-black mb-4">
             Carbon Target Setting
           </h1>
@@ -1277,4 +1353,4 @@ const FlexibleTargetPlatform = () => {
   );
 };
 
-export default FlexibleTargetPlatform; 
+export default FlexibleTargetPlatform;

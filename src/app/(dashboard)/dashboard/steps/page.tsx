@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Building2, Shield, TrendingUp, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/i18n/context';
@@ -8,11 +8,12 @@ import GlobalHeader from '@/components/GlobalHeader/GlobalHeader';
 import BoundarySetupSteps from '../_components/sections/BoundarySetupSteps';
 import GHGManage from '../_components/sections/GHGManage';
 import AddEmissionSection from '../_components/sections/AddEmissionSection';
+import Image from 'next/image';
 
 interface Step {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   icon: React.ReactNode;
   component: React.ComponentType<any>;
   completed?: boolean;
@@ -22,21 +23,21 @@ const steps: Step[] = [
   {
     id: 'boundary',
     title: 'Organizational Boundaries',
-    description: 'Set up your organization boundaries and baseline information',
+    // description: 'Set up your organization boundaries and baseline information',
     icon: <Building2 className="w-5 h-5" />,
     component: BoundarySetupSteps,
   },
   {
     id: 'ghg',
     title: 'GHG Management',
-    description: 'Define policies, training, and inventory practices for robust GHG governance',
+    // description: 'Define policies, training, and inventory practices for robust GHG governance',
     icon: <Shield className="w-5 h-5" />,
     component: GHGManage,
   },
   {
     id: 'emissions',
     title: 'Baseline & Reporting',
-    description: 'Select baseline year, define reporting periods, and enter scope-wise data',
+    // description: 'Select baseline year, define reporting periods, and enter scope-wise data',
     icon: <TrendingUp className="w-5 h-5" />,
     component: AddEmissionSection,
   },
@@ -46,164 +47,150 @@ export default function StepsPage() {
   const { t, isRTL } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [stepProgress, setStepProgress] = useState<Record<string, number>>({});
   const router = useRouter();
 
   const handleStepComplete = (stepId: string) => {
     setCompletedSteps(prev => new Set([...prev, stepId]));
+    setStepProgress(prev => ({ ...prev, [stepId]: 100 }));
   };
 
   const handleStepClick = (index: number) => {
     setCurrentStep(index);
   };
 
+  const handleProgressChange = (stepId: string, percent: number) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+    setStepProgress(prev => ({ ...prev, [stepId]: clamped }));
+  };
+
   const CurrentStepComponent = steps[currentStep].component;
   const completedCount = completedSteps.size;
   const totalSteps = steps.length;
-  const progressPercentage = Math.round((completedCount / totalSteps) * 100);
+  const progressPercentage = useMemo(() => {
+    const values = steps.map(s => stepProgress[s.id] ?? (completedSteps.has(s.id) ? 100 : 0));
+    const sum = values.reduce((a, b) => a + b, 0);
+    return Math.round(sum / Math.max(values.length, 1));
+  }, [stepProgress, completedSteps]);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <GlobalHeader title="Setup Organization">
-        <div className="ml-8">
-          <span className="text-sm text-gray-500">
+    return (
+    <div className="min-h-screen bg-white relative">
+      <GlobalHeader >
+        <div className="ml-8 flex items-center space-x-4">
+          <Image src={"/Logo.svg"} alt="khazra logo" height={26} width={147} />
+          {/* <span className="text-sm text-gray-500">
             Step {currentStep + 1} of {totalSteps}
-          </span>
-        </div>
+          </span> */}
+        </div> 
       </GlobalHeader>
-
-      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Organization Setup
-          </h1>
-          <p className="text-gray-600 max-w-3xl">
-            Configure your organization's boundaries, GHG management policies, and baseline emissions data to get started with your sustainability journey.
-          </p>
-          
-          {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                Setup Progress: {completedCount} of {totalSteps} completed
-              </span>
-              <span className="text-sm font-medium text-gray-700">
-                {progressPercentage}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-[#0D5942] h-2 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Setup Steps - Top Left Corner */}
-        <div className="mb-6">
-          <div className="flex items-center space-x-4">
-            {/* Website Icon */}
-            <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-[#0D5942] rounded-xl flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-white" />
+      
+      <div className="flex pt-3">
+        {/* Sidebar */}
+        <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen fixed left-0 top-16 z-10">
+          {/* Progress Section */}
+          <div className="px-5 mb-6">
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-white">
+                  Setup Progress
+                </span>
+                <span className="text-sm font-medium text-white">
+                  {progressPercentage}%
+                </span>
               </div>
-            </div>
-            
-            {/* Setup Steps Title */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Setup Steps</h2>
-              <p className="text-sm text-gray-600">Complete these steps to configure your organization</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8">
-              <div className="space-y-3">
-                {steps.map((step, index) => {
-                  const isCompleted = completedSteps.has(step.id);
-                  const isCurrent = index === currentStep;
-
-                  return (
-                    <button
-                      key={step.id}
-                      onClick={() => handleStepClick(index)}
-                      className={`w-full flex items-start space-x-3 p-4 rounded-xl transition-all duration-200 text-left ${
-                        isCurrent
-                          ? 'bg-[#0D5942] text-white shadow-md'
-                          : isCompleted
-                          ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
-                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
-                      }`}
-                    >
-                      <div className="flex-shrink-0 mt-0.5">
-                        {isCompleted ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <div className={`h-5 w-5 rounded-full border-2 ${
-                            isCurrent ? 'border-white' : 'border-gray-400'
-                          }`} />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          {step.icon}
-                          <p className={`text-sm font-medium ${isCurrent ? 'text-white' : ''}`}>
-                            {step.title}
-                          </p>
-                        </div>
-                        <p className={`text-xs ${isCurrent ? 'text-white opacity-90' : 'text-gray-500'}`}>
-                          {step.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="w-full bg-white/20 rounded-full h-2">
+                <div 
+                  className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
               </div>
+              <p className="text-xs text-white/80 mt-2">
+                {completedCount} of {totalSteps} steps completed
+              </p>
             </div>
           </div>
 
-          {/* Main Content Area */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              {/* Step Header */}
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <div className="flex items-center space-x-3">
-                  {steps[currentStep].icon}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {steps[currentStep].title}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {steps[currentStep].description}
-                    </p>
-                  </div>
+          {/* Steps Navigation */}
+          <div className="px-2">
+            <p className="px-3 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider mb-3">
+              Setup Steps
+            </p>
+            <div className="space-y-1">
+              {steps.map((step, index) => {
+                const isCompleted = completedSteps.has(step.id);
+                const isCurrent = index === currentStep;
+                const pct = stepProgress[step.id] ?? (isCompleted ? 100 : 0);
+                
+                return (
+                  <button
+                    key={step.id}
+                    onClick={() => handleStepClick(index)}
+                    className={`w-full flex items-center gap-3 py-3 px-3 text-white text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-[#496a6065] rounded-lg ${
+                      isCurrent ? "bg-[#10694e] font-semibold" : ""
+                    }`}
+                  >
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isCurrent ? 'bg-white/20' : 'bg-white/10'
+                    }`}>
+                      {step.icon}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center justify-between">
+                        <span className="truncate">{step.title}</span>
+                        {/* <span className="text-xs font-medium opacity-80">{pct}%</span> */}
+                      </div>
+                      {/* <div className="mt-1 h-1 rounded-full bg-white/20">
+                        <div
+                          className={`h-1 rounded-full ${pct === 100 ? 'bg-green-400' : 'bg-white'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div> */}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 ml-72 border-l border-green-100 xl:ps-10 pe-2 lg:py-6 lg:ps-8 p-4 bg-white max-md:mt-6 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {/* Step Header */}
+            {/* <div className="px-6 py-4 border-b border-gray-200 bg-white">
+              <div className="flex items-center space-x-3">
+                {steps[currentStep].icon}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {steps[currentStep].title}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {steps[currentStep].description}
+                  </p>
                 </div>
               </div>
+            </div> */}
 
-              {/* Step Content */}
-              <div className="p-6">
-                <CurrentStepComponent
-                  onComplete={() => handleStepComplete(steps[currentStep].id)}
-                />
-              </div>
+            {/* Step Content */}
+            <div className="p-6">
+              <CurrentStepComponent
+                onComplete={() => handleStepComplete(steps[currentStep].id)}
+                onProgressChange={(p: number) => handleProgressChange(steps[currentStep].id, p)}
+              />
             </div>
           </div>
-        </div>
+        </main>
+      </div>
 
-        {/* Add Later Button - Fixed Bottom Right */}
-        <div className="fixed bottom-6 right-6 z-50">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="inline-flex items-center px-6 py-3 bg-white border border-gray-300 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-gray-700 font-medium hover:bg-gray-50"
-          >
-            <span>Add Later</span>
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </button>
-        </div>
+      {/* Add Later Button - Fixed Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="inline-flex items-center px-6 py-3 bg-green-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-white font-medium hover:bg-gray-50"
+        >
+          <span>Add Later</span>
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </button>
       </div>
     </div>
   );

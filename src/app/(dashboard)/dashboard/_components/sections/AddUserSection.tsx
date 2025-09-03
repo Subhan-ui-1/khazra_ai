@@ -9,6 +9,7 @@ import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 import { Edit3, Paperclip } from "lucide-react";
 import FileUploadModal from "@/components/FileUploadModal";
+import AppModal from "@/components/modal/AppModal";
 
 interface UserFormData {
   firstName: string;
@@ -955,7 +956,17 @@ const AddUserSection = () => {
       </div>
 
       {/* Form Section */}
-      {showForm && (
+      <AppModal
+        isOpen={showForm}
+        onClose={resetForm}
+        title={editingUser ? "Edit User" : "Add New User"}
+        description={
+          editingUser
+            ? "Update the fields below and click Update User to save."
+            : "Fill in the details below to create a new user."
+        }
+        size="xl"
+      >
         <DynamicForm
           title={editingUser ? "Edit User" : "Add New User"}
           fields={userFormFields}
@@ -965,14 +976,14 @@ const AddUserSection = () => {
           loading={submitting}
           submitText={editingUser ? "Update User" : "Create User"}
           cancelText="Cancel"
-          onClose={resetForm}
+          onClose={undefined}
           confirmationMessage={
             editingUser
               ? "Do you really want to update this user?"
               : "Do you really want to create this user?"
           }
         />
-      )}
+      </AppModal>
       {/* File Upload Modal */}
       <FileUploadModal
         isOpen={showFileModal}

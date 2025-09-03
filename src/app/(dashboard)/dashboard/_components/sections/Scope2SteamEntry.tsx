@@ -6,6 +6,7 @@ import { safeLocalStorage } from "@/utils/localStorage";
 import Table from "@/components/Table";
 import { scope2EnergyTypes } from "@/constants/scope2EnergyType";
 import FileUploadModal from "@/components/FileUploadModal";
+import { useRouter } from "next/navigation";
 
 interface Facility {
   _id: string;
@@ -44,6 +45,7 @@ const Scope2SteamEntry: React.FC = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
   const [showAttachment, setShowAttachment] = useState(true);
+  const router = useRouter()
 
   // Dropdown data states
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -555,6 +557,8 @@ const Scope2SteamEntry: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Facility *
                 </label>
+                <div className="flex items-center gap-2">
+                
                 <select
                   value={formData.facility}
                   onChange={(e) =>
@@ -573,6 +577,14 @@ const Scope2SteamEntry: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard?section=add-facility")}
+                  className="text-lg font-medium text-green-500 hover:text-green-600"
+                >
+                  Add
+                </button>
+                </div>
               </div>
               {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Energy Type *</label>

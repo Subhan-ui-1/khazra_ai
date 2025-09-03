@@ -68,7 +68,7 @@ const Section10: React.FC<Section10Props> = ({
   return (
     <div className="space-y-10">
       {/* {!isCompleted ? ( */}
-        <div className="space-8 grid grid-cols-2 gap-8">
+        <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
         <WorkingConditionalForm
           fields={fields}
           onSubmit={handleSubmit}
@@ -76,8 +76,9 @@ const Section10: React.FC<Section10Props> = ({
           title="Currency & Financial Boundaries"
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           groups={[{ title: 'Financial Boundaries', remaining: true }]}
-          initialData={initialData}
-        />
+                      initialData={initialData}
+
+          />
         </div>
       {/* ) : (
         <div className="p-6 bg-green-50 border border-green-200 rounded-lg">

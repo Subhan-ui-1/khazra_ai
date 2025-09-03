@@ -122,6 +122,42 @@ const AssetLevelTargetPlatform = () => {
     fleet: [],
   });
 
+  const [baselineData, setBaselineData] = useState<any>(null);
+
+  const fetchBaselineData = async () => {
+    try {
+      setLoading(true);
+      const baselineData = safeLocalStorage.getItem("baselineData");
+      let raw = null;
+      if (baselineData) {
+        raw = JSON.parse(baselineData);
+      } else {
+        const response = await getRequest("baseline/getBaseline", getToken());
+        if (
+          response.success &&
+          response.data.baseline &&
+          response.data.baseline.length > 0
+        ) {
+          raw = response.data.baseline[0];
+          safeLocalStorage.setItem("baselineData", JSON.stringify(raw));
+        }
+      }
+      setBaselineData(raw);
+    } catch (error) {
+      console.error("Error fetching baseline data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBaselineData();
+  }, []);
+
+  const getToken = () => {
+    const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
+    return tokenData.accessToken;
+  };
   // Granular targets data
   const [granularTargets, setGranularTargets] = useState<GranularTarget[]>([]);
 
@@ -687,10 +723,23 @@ const AssetLevelTargetPlatform = () => {
               });
             }, [targetData]);
 
+            // If baseline totals are available from baselineData, use them and disable editing baseline
+            const baselineModuleValue =
+              selectedCategory === "facilities"
+                ? baselineData?.facilitiesTotal
+                : selectedCategory === "equipment"
+                ? baselineData?.equipmentTotal
+                : selectedCategory === "fleet"
+                ? baselineData?.vehiclesTotal
+                : undefined;
+
             const handleSave = () => {
               saveGranularTarget({
                 targetCategory: config.targetCategory,
-                baselineEmissions: editData.baselineEmissions,
+                baselineEmissions:
+                  baselineModuleValue !== undefined && baselineModuleValue !== null
+                    ? baselineModuleValue
+                    : editData.baselineEmissions,
                 currentEmissions: editData.currentEmissions,
                 targetEmissions: editData.targetEmissions,
                 targetYear: editData.targetYear,
@@ -861,7 +910,7 @@ const AssetLevelTargetPlatform = () => {
                             <span className="text-sm text-gray-600">
                               Baseline Emissions
                             </span>
-                            {isEditing ? (
+                            {isEditing && (baselineModuleValue === undefined || baselineModuleValue === null) ? (
                               <input
                                 type="number"
                                 value={editData.baselineEmissions}
@@ -876,7 +925,11 @@ const AssetLevelTargetPlatform = () => {
                               />
                             ) : (
                               <span className="font-bold text-gray-900">
-                                {baselineEmissions.toLocaleString()} tCO₂e
+                                {(
+                                  (baselineModuleValue !== undefined && baselineModuleValue !== null)
+                                    ? baselineModuleValue
+                                    : baselineEmissions
+                                ).toLocaleString()} tCO₂e
                               </span>
                             )}
                           </div>

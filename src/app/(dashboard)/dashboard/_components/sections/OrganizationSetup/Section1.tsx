@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ConditionalFormExample from "@/components/forms/ConditionalFormExample";
 import WorkingConditionalForm, {
   ConditionalField,
@@ -155,6 +155,20 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
   isCompleted,
   initialData = {},
 }) => {
+    // State to track which form is currently open in modal
+  const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
+  
+  // Shared form data state to persist data across navigation
+  const [sharedFormData, setSharedFormData] = useState<Record<string, any>>({});
+  
+  // Define the order of forms within this section
+  const formOrder = ['g1', 'g2', 'g3', 'g4'];
+  const formTitles = {
+    g1: 'Industry & Classification',
+    g2: 'Business Profile',
+    g3: 'Scale & Revenue',
+    g4: 'Other Details'
+  };
   //     industrySector,
   // businessNature,
   // primaryBusinessActivities,
@@ -331,50 +345,138 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
   const [done, setDone] = React.useState({ g1: false, g2: false, g3: false, g4: false });
 
   const handlePartial = (groupKey: keyof typeof done) => (data: any) => {
+    // Save group immediately (per-form update)
+    onFormSubmit(data);
+    // Keep local aggregated state for UX
     const nextPartial = { ...partial, ...data };
     setPartial(nextPartial);
     const nextDone = { ...done, [groupKey]: true };
     setDone(nextDone);
-    if (Object.values(nextDone).every(Boolean)) {
-      onFormSubmit(nextPartial);
+  };
+
+  // Navigation functions for internal form navigation
+  const handlePreviousForm = () => {
+    if (currentOpenForm) {
+      // Submit current form data before navigating
+      const currentData = sharedFormData[currentOpenForm] || {};
+      if (Object.keys(currentData).length > 0) {
+        onFormSubmit(currentData);
+      }
+      
+      const currentIndex = formOrder.indexOf(currentOpenForm);
+      if (currentIndex > 0) {
+        const previousFormId = formOrder[currentIndex - 1];
+        setCurrentOpenForm(previousFormId);
+        // Trigger opening the previous form's modal with smooth transition
+        setTimeout(() => {
+          const previousFormElement = document.querySelector(`[data-form-id="${previousFormId}"] button`);
+          if (previousFormElement) {
+            (previousFormElement as HTMLButtonElement).click();
+          }
+        }, 300);
+      }
     }
+  };
+
+  const handleNextForm = () => {
+    if (currentOpenForm) {
+      // Submit current form data before navigating
+      const currentData = sharedFormData[currentOpenForm] || {};
+      if (Object.keys(currentData).length > 0) {
+        onFormSubmit(currentData);
+      }
+      
+      const currentIndex = formOrder.indexOf(currentOpenForm);
+      if (currentIndex < formOrder.length - 1) {
+        const nextFormId = formOrder[currentIndex + 1];
+        setCurrentOpenForm(nextFormId);
+        // Trigger opening the next form's modal with smooth transition
+        setTimeout(() => {
+          const nextFormElement = document.querySelector(`[data-form-id="${nextFormId}"] button`);
+          if (nextFormElement) {
+            (nextFormElement as HTMLButtonElement).click();
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const getFormNavigationProps = (formId: string) => {
+    const currentIndex = formOrder.indexOf(formId);
+    return {
+      onPreviousForm: currentIndex > 0 ? handlePreviousForm : undefined,
+      onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
+      hasPreviousForm: currentIndex > 0,
+      hasNextForm: currentIndex < formOrder.length - 1,
+      previousFormText: "Previous",
+      nextFormText: "Next",
+    };
+  };
+
+  // Handle form data changes to persist across navigation
+  const handleFormDataChange = (data: Record<string, any>) => {
+    setSharedFormData(prev => ({ ...prev, ...data }));
   };
   return (
     <div className="space-y-10">
       {/* {!isCompleted ? ( */}
-        <div className="space-8 grid grid-cols-2 gap-8">
-          <WorkingConditionalForm
-            fields={fields.filter(f => ['industrySector','standardIndustrialClassification'].includes(f.name))}
-            onSubmit={handlePartial('g1')}
-            submitText={"Save"}
-            title="Industry & Classification"
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-            initialData={initialData}
-          />
-          <WorkingConditionalForm
-            fields={fields.filter(f => ['businessNature','primaryBusinessActivities'].includes(f.name))}
-            onSubmit={handlePartial('g2')}
-            submitText={"Save"}
-            title="Business Profile"
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-            initialData={initialData}
-          />
-          <WorkingConditionalForm
-            fields={fields.filter(f => ['numberOfEmployees','annualRevenue'].includes(f.name))}
-            onSubmit={handlePartial('g3')}
-            submitText={ "Save"}
-            title="Scale & Revenue"
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-            initialData={initialData}
-          />
-          <WorkingConditionalForm
-            fields={fields.filter(f => !['industrySector','standardIndustrialClassification','businessNature','primaryBusinessActivities','numberOfEmployees','annualRevenue'].includes(f.name))}
-            onSubmit={handlePartial('g4')}
-            submitText={ "Save"}
-            title="Other Details"
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-            initialData={initialData}
-          />
+        <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
+          <div data-form-id="g1">
+            <WorkingConditionalForm
+              fields={fields.filter(f => ['industrySector','standardIndustrialClassification'].includes(f.name))}
+              onSubmit={handlePartial('g1')}
+              submitText={"Save"}
+              title="Industry & Classification"
+              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+              initialData={{ ...initialData, ...sharedFormData }}
+              onModalOpen={() => setCurrentOpenForm('g1')}
+              onFormDataChange={handleFormDataChange}
+              externalFormData={sharedFormData}
+              {...getFormNavigationProps('g1')}
+            />
+          </div>
+          <div data-form-id="g2">
+            <WorkingConditionalForm
+              fields={fields.filter(f => ['businessNature','primaryBusinessActivities'].includes(f.name))}
+              onSubmit={handlePartial('g2')}
+              submitText={"Save"}
+              title="Business Profile"
+              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+              initialData={{ ...initialData, ...sharedFormData }}
+              onModalOpen={() => setCurrentOpenForm('g2')}
+              onFormDataChange={handleFormDataChange}
+              externalFormData={sharedFormData}
+              {...getFormNavigationProps('g2')}
+            />
+          </div>
+          <div data-form-id="g3">
+            <WorkingConditionalForm
+              fields={fields.filter(f => ['numberOfEmployees','annualRevenue'].includes(f.name))}
+              onSubmit={handlePartial('g3')}
+              submitText={ "Save"}
+              title="Scale & Revenue"
+              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+              initialData={{ ...initialData, ...sharedFormData }}
+              onModalOpen={() => setCurrentOpenForm('g3')}
+              onFormDataChange={handleFormDataChange}
+              externalFormData={sharedFormData}
+              {...getFormNavigationProps('g3')}
+            />
+          </div>
+          <div data-form-id="g4">
+            <WorkingConditionalForm
+              fields={fields.filter(f => !['industrySector','standardIndustrialClassification','businessNature','primaryBusinessActivities','numberOfEmployees','annualRevenue'].includes(f.name))}
+              onSubmit={handlePartial('g4')}
+              submitText={ "Save"}
+              title="Other Details"
+              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+              initialData={{ ...initialData, ...sharedFormData }}
+              onModalOpen={() => setCurrentOpenForm('g4')}
+              onFormDataChange={handleFormDataChange}
+              externalFormData={sharedFormData}
+              {...getFormNavigationProps('g4')}
+            />
+          </div>
         </div>
       {/* // ) : (
       //   <div className="p-6 bg-green-50 border border-green-200 rounded-lg">

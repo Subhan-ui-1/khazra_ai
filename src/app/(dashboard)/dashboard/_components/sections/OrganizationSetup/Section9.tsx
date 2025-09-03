@@ -1,7 +1,7 @@
 import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
-import React from "react";
+import React, { useState } from "react";
 
 interface Section9Props {
   onFormSubmit: (data: any) => void;
@@ -10,6 +10,18 @@ interface Section9Props {
 }
 
 const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
+  // State to track which form is currently open in modal
+  const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
+  
+  // Shared form data state to persist data across navigation
+  const [sharedFormData, setSharedFormData] = useState<Record<string, any>>({});
+  
+  // Define the order of forms within this section
+  const formOrder = ['core', 'additional'];
+  const formTitles = {
+    core: 'Baseline & Reporting — Core',
+    additional: 'Baseline & Reporting — Additional'
+  };
   const fields: ConditionalField[] = [
     {
       name: "baselineDataCompleteness",
@@ -327,26 +339,102 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     onFormSubmit(data);
   };
 
+  // Navigation functions for internal form navigation
+  const handlePreviousForm = () => {
+    if (currentOpenForm) {
+      // Submit current form data before navigating
+      const currentData = sharedFormData[currentOpenForm] || {};
+      if (Object.keys(currentData).length > 0) {
+        onFormSubmit(currentData);
+      }
+      
+      const currentIndex = formOrder.indexOf(currentOpenForm);
+      if (currentIndex > 0) {
+        const previousFormId = formOrder[currentIndex - 1];
+        setCurrentOpenForm(previousFormId);
+        // Trigger opening the previous form's modal
+        setTimeout(() => {
+          const previousFormElement = document.querySelector(`[data-form-id="${previousFormId}"] button`);
+          if (previousFormElement) {
+            (previousFormElement as HTMLButtonElement).click();
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const handleNextForm = () => {
+    if (currentOpenForm) {
+      // Submit current form data before navigating
+      const currentData = sharedFormData[currentOpenForm] || {};
+      if (Object.keys(currentData).length > 0) {
+        onFormSubmit(currentData);
+      }
+      
+      const currentIndex = formOrder.indexOf(currentOpenForm);
+      if (currentIndex < formOrder.length - 1) {
+        const nextFormId = formOrder[currentIndex + 1];
+        setCurrentOpenForm(nextFormId);
+        // Trigger opening the next form's modal
+        setTimeout(() => {
+          const nextFormElement = document.querySelector(`[data-form-id="${nextFormId}"] button`);
+          if (nextFormElement) {
+            (nextFormElement as HTMLButtonElement).click();
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const getFormNavigationProps = (formId: string) => {
+    const currentIndex = formOrder.indexOf(formId);
+    return {
+      onPreviousForm: currentIndex > 0 ? handlePreviousForm : undefined,
+      onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
+      hasPreviousForm: currentIndex > 0,
+      hasNextForm: currentIndex < formOrder.length - 1,
+      previousFormText: "Previous",
+      nextFormText: "Next",
+    };
+  };
+
+  // Handle form data changes to persist across navigation
+  const handleFormDataChange = (data: Record<string, any>) => {
+    setSharedFormData(prev => ({ ...prev, ...data }));
+  };
+
   return (
     <div className="space-y-10">
     {/* {!isCompleted ? ( */}
-      <div className="space-8 grid grid-cols-2 gap-8">
-      <WorkingConditionalForm
-        fields={fields.slice(0,5)}
-        onSubmit={handleFormSubmit}
-        submitText="Save"
-        title="Baseline & Reporting — Core"
-         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-        initialData={initialData}
-      />
-      <WorkingConditionalForm
-        fields={fields.slice(5)}
-        onSubmit={handleFormSubmit}
-        submitText="Save"
-        title="Baseline & Reporting — Additional"
-         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-        initialData={initialData}
-      />
+      <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
+      <div data-form-id="core">
+        <WorkingConditionalForm
+          fields={fields.slice(0,5)}
+          onSubmit={handleFormSubmit}
+          submitText="Save"
+          title="Baseline & Reporting — Core"
+           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                      initialData={{ ...initialData, ...sharedFormData }}
+          onModalOpen={() => setCurrentOpenForm('core')}
+          onFormDataChange={handleFormDataChange}
+          externalFormData={sharedFormData}
+          {...getFormNavigationProps('core')}
+            />
+      </div>
+      <div data-form-id="additional">
+        <WorkingConditionalForm
+          fields={fields.slice(5)}
+          onSubmit={handleFormSubmit}
+          submitText="Save"
+          title="Baseline & Reporting — Additional"
+           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                      initialData={{ ...initialData, ...sharedFormData }}
+          onModalOpen={() => setCurrentOpenForm('additional')}
+          onFormDataChange={handleFormDataChange}
+          externalFormData={sharedFormData}
+          {...getFormNavigationProps('additional')}
+            />
+      </div>
     </div>
     </div>
   );

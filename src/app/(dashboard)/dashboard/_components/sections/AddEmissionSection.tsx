@@ -110,10 +110,55 @@ const AddEmissionSection: React.FC = () => {
     },
   ];
 
+  // Utilities for per-form delta updates
+  const isEmptyValue = (v: any): boolean => {
+    if (v === undefined || v === null) return true;
+    if (typeof v === 'string' && v.trim() === '') return true;
+    if (Array.isArray(v) && v.length === 0) return true;
+    return false;
+  };
+
+  const sanitizePayload = (obj: Record<string, any>) => {
+    const sanitized: Record<string, any> = {};
+    Object.keys(obj).forEach((key) => {
+      const value = obj[key];
+      if (isEmptyValue(value)) return; // omit blanks so we don't clear accidentally
+      sanitized[key] = value;
+    });
+    return sanitized;
+  };
+
+  const pick = (src: Record<string, any>, keys: string[]) => {
+    const out: Record<string, any> = {};
+    keys.forEach((k) => {
+      if (k in src) out[k] = src[k];
+    });
+    return out;
+  };
+
+  const diffObjects = (prev: Record<string, any>, next: Record<string, any>) => {
+    const changed: Record<string, any> = {};
+    const allKeys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+    allKeys.forEach((k) => {
+      const pv = prev[k];
+      const nv = next[k];
+      const bothArrays = Array.isArray(pv) && Array.isArray(nv);
+      if (bothArrays) {
+        const sameLength = pv.length === nv.length;
+        const sameItems = sameLength && pv.every((v: any, i: number) => v === nv[i]);
+        if (!sameItems) changed[k] = nv;
+        return;
+      }
+      if (pv !== nv) changed[k] = nv;
+    });
+    return changed;
+  };
+
   // Fetch existing baseline data
   const fetchBaselineData = async () => {
     try {
       setIsLoading(true);
+      let raw = null;
       const response = await getRequest(
         "baseline/getBaseline",
         tokenData.accessToken
@@ -123,9 +168,12 @@ const AddEmissionSection: React.FC = () => {
         response.data.baseline &&
         response.data.baseline.length > 0
       ) {
-        console.log("response.data.baseline", response.data.baseline);
-        const raw = response.data.baseline[0];
-
+        raw = response.data.baseline[0];
+        // keep cache fresh if used elsewhere
+        safeLocalStorage.setItem("baselineData", JSON.stringify(raw));
+      }
+        console.log("response.data.baseline", raw);
+       
         // Normalize incoming API data to a consistent internal shape
         const normalized = {
           ...raw,
@@ -153,9 +201,10 @@ const AddEmissionSection: React.FC = () => {
 
         setBaselineData(normalized);
 
-        // Pre-populate form data for edit mode
-        setFormData({
+        // Pre-populate form data for edit mode (MERGE with existing to retain local additions)
+        setFormData((prev) => ({
           step1: {
+            ...(prev.step1 || {}),
             baselineCategory: normalized.baselineCategory,
             scope1TotalEmissions:
               normalized.scope1TotalEmissions ?? raw.scope1TotalEmissions,
@@ -178,6 +227,7 @@ const AddEmissionSection: React.FC = () => {
             reasonChooseBaselineYear: normalized.reasonChooseBaselineYear,
           },
           step2: {
+            ...(prev.step2 || {}),
             baselineDataCompleteness: normalized.baselineDataCompleteness,
             baselineYearSelectionCriteria:
               normalized.baselineYearSelectionCriteria,
@@ -196,14 +246,14 @@ const AddEmissionSection: React.FC = () => {
             dataArchivingAndRetrievalSystem:
               normalized.dataArchivingAndRetrievalSystem,
           },
-        });
+        }));
 
         // Mark all steps as completed since data exists
         setFormCompletionStatus({
           step1: true,
           step2: true,
         });
-      }
+      
     } catch (error) {
       console.error("Error fetching baseline data:", error);
     } finally {
@@ -216,14 +266,17 @@ const AddEmissionSection: React.FC = () => {
   }, []);
 
   // Handle form submission for each step
-  const handleStepFormSubmit = (step: number, data: any) => {
+  const handleStepFormSubmit = async (step: number, data: any) => {
     console.log(`Step ${step} form submitted:`, data);
 
-    // Update form data
-    setFormData((prev) => ({
-      ...prev,
-      [`step${step}`]: data,
-    }));
+    // Merge this group's data into existing step state (preserve prior inputs)
+    setFormData((prev) => {
+      const mergedStep = { ...(prev as any)[`step${step}`], ...(data || {}) };
+      return {
+        ...prev,
+        [`step${step}`]: mergedStep,
+      } as typeof prev;
+    });
 
     // Mark step as completed
     setFormCompletionStatus((prev) => ({
@@ -231,9 +284,48 @@ const AddEmissionSection: React.FC = () => {
       [`step${step}`]: true,
     }));
 
-    // Automatically proceed to next step if not the last step
-    if (step < steps.length) {
-      setCurrentStep(step + 1);
+    // Build full aggregated payload across all steps
+    // Build aggregate from latest merged state AND server snapshot so fields not returned by GET are preserved
+    const latestStep = { ...(formData as any)[`step${step}`], ...(data || {}) };
+    const currentState = { ...formData, [`step${step}`]: latestStep } as typeof formData;
+    const { step1, step2 } = currentState;
+    const aggregate = {
+      ...(baselineData || {}),
+      ...(step1 || {}),
+      ...(step2 || {}),
+    } as Record<string, any>;
+
+    // Decide create vs update based on GET presence
+    const isUpdate = Boolean(baselineData && (baselineData as any));
+    const endpoint = isUpdate && baselineData?._id
+      ? `baseline/updateBaseline/${baselineData._id}`
+      : 'baseline/addBaseline';
+    const method = isUpdate && baselineData?._id ? 'put' : 'post';
+    const successMessage = method === 'put' ? 'Baseline updated successfully!' : 'Baseline created successfully!';
+
+    const fullPayload: any = method === 'put'
+      ? { ...aggregate }
+      : {
+          organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
+          ...aggregate,
+        };
+
+    // Clean server-only fields
+    delete (fullPayload as any)._id;
+    delete (fullPayload as any).createdAt;
+    delete (fullPayload as any).updatedAt;
+    delete (fullPayload as any).createdBy;
+    delete (fullPayload as any).organization;
+    delete (fullPayload as any).scope1
+    delete (fullPayload as any).scope2
+    delete (fullPayload as any).totals
+
+    const response = await postRequest(endpoint, fullPayload, successMessage, tokenData.accessToken, method);
+    if (response?.success) {
+      // Optimistically merge full payload
+      setBaselineData((prev) => ({ ...(prev || {} as any), ...(fullPayload as any) } as any));
+      safeLocalStorage.setItem("baselineData", JSON.stringify(response.baseline));
+      // await fetchBaselineData();
     }
   };
 
@@ -257,9 +349,17 @@ const AddEmissionSection: React.FC = () => {
     }
   };
 
-  // Handle step change with validation
-  const handleStepChange = (step: number) => {
-    // Free navigation between steps
+  // Handle step change with auto-submit of current step
+  const handleStepChange = async (step: number) => {
+    try {
+      // Submit current step data before navigating
+      const currentData = (formData as any)[`step${currentStep}`] || {};
+      // if (Object.keys(currentData).length > 0) {
+      //   await handleStepFormSubmit(currentStep, currentData);
+      // }
+    } catch (error) {
+      console.error('Error submitting current step data:', error);
+    }
     setCurrentStep(step);
   };
 
@@ -1039,7 +1139,7 @@ const AddEmissionSection: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className=" bg-white py-8">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -1063,7 +1163,7 @@ const AddEmissionSection: React.FC = () => {
 
   // Show form in edit mode or when no data exists
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className=" bg-white py-8">
       <div className=" mx-auto px-4">
         {/* Edit mode header */}
         {/* {isEditMode && (

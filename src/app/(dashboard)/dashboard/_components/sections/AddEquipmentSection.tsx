@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
+import AppModal from "@/components/modal/AppModal";
 import FileUploadModal from "@/components/FileUploadModal";
 
 // Define TypeScript interfaces
@@ -1013,7 +1014,17 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         </div>
       )}
 
-      {(onComplete ? true : showForm) && (
+      <AppModal
+        isOpen={onComplete ? true : showForm}
+        onClose={resetForm}
+        title={editingItem ? "Edit Equipment" : "Add Equipment"}
+        description={
+          editingItem
+            ? "Update the fields below and click Update Equipment to save."
+            : "Fill in the details below to create a new equipment."
+        }
+        size="xl"
+      >
         <DynamicForm
           title={editingItem ? "Edit Equipment" : "Add Equipment"}
           fields={equipmentFormFields}
@@ -1023,14 +1034,14 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
           loading={false}
           submitText={editingItem ? "Update Equipment" : "Save Equipment"}
           cancelText="Cancel"
-          onClose={resetForm}
+          onClose={undefined}
           showCancelButton={onComplete ? false : true}
-          showCloseButton={onComplete ? false : true}
+          showCloseButton={false}
           onFileChange={(file)=>{
             setFormData((prev)=>({ ...prev, attachment: file }))
           }}
         />
-      )}
+      </AppModal>
 
       {/* File Upload Modal */}
       <FileUploadModal
