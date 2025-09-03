@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { mobileFuelTypes as fuelTypesOfMobile } from "@/constants/mobileFuelType";
 import FileUploadModal from "@/components/FileUploadModal";
+import { useRouter } from "next/navigation";
 
 interface Facility {
   _id: string;
@@ -59,6 +60,7 @@ const getOrgId = () => {
   return userData.organization;
 };
 export default function MobileCombustionSection() {
+  const router = useRouter();
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [editingMobileData, setEditingMobileData] = useState<any>(null);
   const [editingMobileIndex, setEditingMobileIndex] = useState<number | null>(
@@ -948,6 +950,7 @@ export default function MobileCombustionSection() {
                 >
                   Facility *
                 </label>
+                <div className="flex items-center gap-2">
                 <select
                   id="facility"
                   value={mobileFormData.facility}
@@ -967,6 +970,14 @@ export default function MobileCombustionSection() {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard?section=add-facility")}
+                  className="text-lg font-medium text-green-500 hover:text-green-600"
+                >
+                  Add
+                </button>
+                </div>
               </div>
 
               <div>
@@ -976,6 +987,7 @@ export default function MobileCombustionSection() {
                 >
                   Vehicle *
                 </label>
+                <div className="flex items-center gap-2">
                 <select
                   id="vehicle"
                   value={mobileFormData.equipmentType}
@@ -995,6 +1007,14 @@ export default function MobileCombustionSection() {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard?section=add-vehicle")}
+                  className="text-lg font-medium text-green-500 hover:text-green-600"
+                >
+                  Add
+                </button>
+                </div>
               </div>
 
               <div>

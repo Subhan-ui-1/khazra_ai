@@ -1,7 +1,7 @@
 import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
-import React from "react";
+import React, { useState } from "react";
 
 interface Section5Props {
   onFormSubmit: (data: any) => void;
@@ -14,6 +14,19 @@ const Section5: React.FC<Section5Props> = ({
   isCompleted,
   initialData = {},
 }) => {
+  // State to track which form is currently open in modal
+  const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
+  
+  // Shared form data state to persist data across navigation
+  const [sharedFormData, setSharedFormData] = useState<Record<string, any>>({});
+  
+  // Define the order of forms within this section
+  const formOrder = ['g1', 'g2', 'g3'];
+  const formTitles = {
+    g1: 'GHG Sources & Quantification — Core',
+    g2: 'GHG Removals',
+    g3: 'Biogenic Emissions'
+  };
   const fields: ConditionalField[] = [
     {
       name: "ghgSourceInventory",
@@ -238,40 +251,122 @@ const Section5: React.FC<Section5Props> = ({
     onFormSubmit(data);
   };
 
+  // Navigation functions for internal form navigation
+  const handlePreviousForm = () => {
+    if (currentOpenForm) {
+      // Submit current form data before navigating
+      const currentData = sharedFormData[currentOpenForm] || {};
+      if (Object.keys(currentData).length > 0) {
+        onFormSubmit(currentData);
+      }
+      
+      const currentIndex = formOrder.indexOf(currentOpenForm);
+      if (currentIndex > 0) {
+        const previousFormId = formOrder[currentIndex - 1];
+        setCurrentOpenForm(previousFormId);
+        // Trigger opening the previous form's modal
+        setTimeout(() => {
+          const previousFormElement = document.querySelector(`[data-form-id="${previousFormId}"] button`);
+          if (previousFormElement) {
+            (previousFormElement as HTMLButtonElement).click();
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const handleNextForm = () => {
+    if (currentOpenForm) {
+      // Submit current form data before navigating
+      const currentData = sharedFormData[currentOpenForm] || {};
+      if (Object.keys(currentData).length > 0) {
+        onFormSubmit(currentData);
+      }
+      
+      const currentIndex = formOrder.indexOf(currentOpenForm);
+      if (currentIndex < formOrder.length - 1) {
+        const nextFormId = formOrder[currentIndex + 1];
+        setCurrentOpenForm(nextFormId);
+        // Trigger opening the next form's modal
+        setTimeout(() => {
+          const nextFormElement = document.querySelector(`[data-form-id="${nextFormId}"] button`);
+          if (nextFormElement) {
+            (nextFormElement as HTMLButtonElement).click();
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const getFormNavigationProps = (formId: string) => {
+    const currentIndex = formOrder.indexOf(formId);
+    return {
+      onPreviousForm: currentIndex > 0 ? handlePreviousForm : undefined,
+      onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
+      hasPreviousForm: currentIndex > 0,
+      hasNextForm: currentIndex < formOrder.length - 1,
+      previousFormText: "Previous",
+      nextFormText: "Next",
+    };
+  };
+
+  // Handle form data changes to persist across navigation
+  const handleFormDataChange = (data: Record<string, any>) => {
+    setSharedFormData(prev => ({ ...prev, ...data }));
+  };
+
   return (
     <div className="space-y-10">
     {/* {!isCompleted ? ( */}
-      <div className="space-8 grid grid-cols-2 gap-8">
-      <WorkingConditionalForm
-        fields={fields.filter(f => [
-          'ghgSourceInventory','quantificationApproach','emissionFactorsSelectionCriteria','directMeasurementCapabilities'
-        ].includes(f.name))}
-        onSubmit={handleFormSubmit}
-        submitText="Save"
-        title="GHG Sources & Quantification — Core"
-        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-        initialData={initialData}
-      />
-      <WorkingConditionalForm
-        fields={fields.filter(f => [
-          'haveGHGRemoval','ghgRemovals','approachForRemovals'
-        ].includes(f.name))}
-        onSubmit={handleFormSubmit}
-        submitText="Save"
-        title="GHG Removals"
-        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-        initialData={initialData}
-      />
-      <WorkingConditionalForm
-        fields={fields.filter(f => [
-          'biogenicEmissionsPresent','biogenicEmissionSources','biogenicEmissionsPlanned'
-        ].includes(f.name))}
-        onSubmit={handleFormSubmit}
-        submitText="Save"
-        title="Biogenic Emissions"
-        className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-        initialData={initialData}
-      />
+      <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
+      <div data-form-id="g1">
+        <WorkingConditionalForm
+          fields={fields.filter(f => [
+            'ghgSourceInventory','quantificationApproach','emissionFactorsSelectionCriteria','directMeasurementCapabilities'
+          ].includes(f.name))}
+          onSubmit={handleFormSubmit}
+          submitText="Save"
+          title="GHG Sources & Quantification — Core"
+          className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+          initialData={{ ...initialData, ...sharedFormData }}
+          onModalOpen={() => setCurrentOpenForm('g1')}
+          onFormDataChange={handleFormDataChange}
+          externalFormData={sharedFormData}
+          {...getFormNavigationProps('g1')}
+        />
+      </div>
+      <div data-form-id="g2">
+        <WorkingConditionalForm
+          fields={fields.filter(f => [
+            'haveGHGRemoval','ghgRemovals','approachForRemovals'
+          ].includes(f.name))}
+          onSubmit={handleFormSubmit}
+          submitText="Save"
+          title="GHG Removals"
+          className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+          initialData={{ ...initialData, ...sharedFormData }}
+          onModalOpen={() => setCurrentOpenForm('g2')}
+          onFormDataChange={handleFormDataChange}
+          externalFormData={sharedFormData}
+          {...getFormNavigationProps('g2')}
+        />
+      </div>
+      <div data-form-id="g3">
+        <WorkingConditionalForm
+          fields={fields.filter(f => [
+            'biogenicEmissionsPresent','biogenicEmissionSources','biogenicEmissionsPlanned'
+          ].includes(f.name))}
+          onSubmit={handleFormSubmit}
+          submitText="Save"
+          title="Biogenic Emissions"
+          className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+          initialData={{ ...initialData, ...sharedFormData }}
+          onModalOpen={() => setCurrentOpenForm('g3')}
+          onFormDataChange={handleFormDataChange}
+          externalFormData={sharedFormData}
+          {...getFormNavigationProps('g3')}
+        />
+      </div>
     </div>
     </div>
   );

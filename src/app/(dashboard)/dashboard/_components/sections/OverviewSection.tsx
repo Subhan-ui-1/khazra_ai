@@ -305,7 +305,7 @@ const [loading, setLoading] = useState(false)
       value: data.scope1Emissions.toFixed(1),
       percentage:
         data.scope1Emissions > 0
-          ? ((data.scope1Emissions / data.totalEmissions) * 100).toFixed(2)
+          ? Number(((data.scope1Emissions / data.totalEmissions) * 100).toFixed(2))
           : 0,
       icon: "🔥",
       trend: [320, 315, 310, 305, 300, 295, 290, 285, 280, 275, 270, 265],
@@ -333,7 +333,7 @@ const [loading, setLoading] = useState(false)
       value: data.scope2Emissions.toFixed(1),
       percentage:
         data.scope2Emissions > 0
-          ? ((data.scope2Emissions / data.totalEmissions) * 100).toFixed(2)
+          ? Number(((data.scope2Emissions / data.totalEmissions) * 100).toFixed(2))
           : 0,
       icon: "⚡",
       trend: [285, 282, 280, 278, 275, 272, 270, 268, 265, 262, 260, 258],
@@ -526,72 +526,143 @@ const [loading, setLoading] = useState(false)
     );
   } else {
     return (
-      <div className="relative overflow-hidden w-full rounded-2xl border border-gray-200 shadow-sm bg-gradient-to-b from-white via-[#f7fbf9] to-[#e9f3ef]">
-        {/* Glow / background accents */}
-        <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-[#0D5942]/5 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl" />
+      <div className="relative overflow-hidden w-full rounded-3xl border border-gray-200/50 shadow-xl bg-gradient-to-br from-white via-[#f8fffe] to-[#e8f8f5]">
+        {/* Animated background elements */}
+        <div className="pointer-events-none absolute -top-20 -right-20 h-80 w-80 rounded-full bg-gradient-to-br from-[#0D5942]/8 to-emerald-400/12 blur-3xl animate-pulse" />
+        <div className="pointer-events-none absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-gradient-to-tr from-blue-400/8 to-[#0D5942]/6 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-gradient-to-r from-emerald-300/5 to-blue-300/5 blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
 
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 p-4 lg:p-12">
-          {/* Left: Hero copy */}
-          <div className="flex flex-col justify-center text-center lg:text-left">
-            <span className="inline-flex items-center self-center lg:self-start px-3 py-1 rounded-full text-xs font-semibold bg-[#0D5942]/10 text-[#0D5942] mb-4">
+        <div className="relative p-8 lg:p-16">
+          {/* Header Section */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-[#0D5942]/10 to-emerald-500/10 text-[#0D5942] mb-6 border border-[#0D5942]/20">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
               Welcome to your Sustainability Hub
-            </span>
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 mb-3">
-              Get started with Scope 1 emissions
-            </h2>
-            <p className="text-gray-600 text-base md:text-lg max-w-xl self-center lg:self-start">
-              Add your first records to unlock insights, trends, and reports. Start with Stationary or Mobile Combustion under Scope 1 and watch your dashboard come alive.
-            </p>
-
-            {/* CTAs */}
-            <div className="mt-6 flex flex-col sm:flex-row items-center lg:items-start gap-3 sm:gap-4">
-              <Link
-                href="/dashboard?section=stationary-combustion"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-lg text-[#0D5942] bg-white hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm w-full sm:w-auto"
-              >
-                Add Stationary Combustion
-              </Link>
-              <Link
-                href="/dashboard?section=mobile-combustion"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-lg text-[#0D5942] bg-white hover:bg-gray-50 border border-gray-200 transition-colors shadow-sm w-full sm:w-auto"
-              >
-                Add Mobile Combustion
-              </Link>
             </div>
-
-            {/* Mini checklist */}
-            {/* <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {["Define boundary", "Add facilities/vehicles/equipment", "Record first emissions"].map((item, idx) => (
-                <div key={idx} className="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-700 bg-white/70 backdrop-blur rounded-lg px-3 py-2 border border-gray-200">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                  {item}
-                </div>
-              ))}
-            </div> */}
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-6 bg-gradient-to-r from-gray-900 via-[#0D5942] to-gray-900 bg-clip-text text-transparent">
+              Start Your Carbon Journey
+            </h1>
+            <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+              Transform your organization's environmental impact with intelligent tracking, 
+              beautiful insights, and actionable sustainability reports.
+            </p>
           </div>
 
-          {/* Right: Highlight cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="text-sm font-semibold text-gray-900">Why start now?</div>
-              <p className="mt-2 text-sm text-gray-600">Early entries help visualize trends, track progress, and generate audit-friendly reports.</p>
-              <div className="mt-4 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 rounded-md px-2 py-1 w-fit">Live metrics update</div>
+          {/* Main Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-[#f8fffe] border border-gray-200/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0D5942]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative p-8">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0D5942] to-emerald-600 flex items-center justify-center mr-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Stationary Combustion</h3>
+                    <p className="text-sm text-gray-500">Buildings, facilities, equipment</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Track emissions from boilers, furnaces, generators, and other stationary sources. 
+                  Perfect for office buildings, manufacturing facilities, and industrial sites.
+                </p>
+              <Link
+                href="/dashboard?section=stationary-combustion"
+                  className="inline-flex items-center justify-center w-full px-6 py-4 rounded-xl text-white bg-gradient-to-r from-[#0D5942] to-emerald-600 hover:from-[#0D5942]/90 hover:to-emerald-600/90 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold group-hover:scale-105 transform"
+              >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                Add Stationary Combustion
+              </Link>
+              </div>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="text-sm font-semibold text-gray-900">Guided setup</div>
-              <p className="mt-2 text-sm text-gray-600">Use the step-by-step flow to add facilities, vehicles, and equipment as needed.</p>
-              <div className="mt-4 flex items-center gap-2 text-xs text-blue-700 bg-blue-50 rounded-md px-2 py-1 w-fit">Takes minutes</div>
+
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-[#f8fffe] border border-gray-200/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative p-8">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center mr-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Mobile Combustion</h3>
+                    <p className="text-sm text-gray-500">Vehicles, transportation, fleet</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Monitor emissions from company vehicles, delivery trucks, and transportation fleets. 
+                  Essential for logistics companies and organizations with vehicle fleets.
+                </p>
+              <Link
+                href="/dashboard?section=mobile-combustion"
+                  className="inline-flex items-center justify-center w-full px-6 py-4 rounded-xl text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-600/90 hover:to-cyan-600/90 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold group-hover:scale-105 transform"
+              >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                Add Mobile Combustion
+              </Link>
+              </div>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="text-sm font-semibold text-gray-900">Beautiful reports</div>
-              <p className="mt-2 text-sm text-gray-600">Auto-generate dashboards and insights your team will love sharing.</p>
-              <div className="mt-4 flex items-center gap-2 text-xs text-purple-700 bg-purple-50 rounded-md px-2 py-1 w-fit">Export-ready</div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Real-time Insights</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Live metrics and trends that update as you add data</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="text-sm font-semibold text-gray-900">Secure & scalable</div>
-              <p className="mt-2 text-sm text-gray-600">Your data is stored securely and scales with your organization.</p>
-              <div className="mt-4 flex items-center gap-2 text-xs text-orange-700 bg-orange-50 rounded-md px-2 py-1 w-fit">Enterprise grade</div>
+
+            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Guided Setup</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Step-by-step wizard takes just minutes to complete</p>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Beautiful Reports</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Export-ready dashboards your team will love sharing</p>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Enterprise Security</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">Bank-grade security that scales with your organization</p>
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-[#0D5942]/10 to-emerald-500/10 border border-[#0D5942]/20">
+              <svg className="w-5 h-5 text-[#0D5942] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-[#0D5942]">
+                Need help getting started? Our team is here to support you.
+              </span>
             </div>
           </div>
         </div>

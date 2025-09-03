@@ -7,6 +7,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
+import AppModal from "@/components/modal/AppModal";
 import { Edit3, Paperclip } from "lucide-react";
 import FileUploadModal from "@/components/FileUploadModal";
 import { handleFileUpload } from "@/hooks/handleFileUpload";
@@ -207,7 +208,7 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
         ...data,
         // organizationId: await getOrganizationId()
       };
-
+      delete departmentData.files;
       const response = await postRequest(
         editingItem
           ? `departments/updateDepartment/${editingItem._id}`
@@ -555,7 +556,17 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
           </div>
         )}
       </div>
-      {showForm && (
+      <AppModal
+        isOpen={showForm}
+        onClose={resetForm}
+        title={editingItem ? "Edit Department" : "Add New Department"}
+        description={
+          editingItem
+            ? "Update the fields below and click Update Department to save."
+            : "Fill in the details below to create a new department."
+        }
+        size="xl"
+      >
         <DynamicForm
           title={editingItem ? "Edit Department" : "Add New Department"}
           fields={departmentFormFields}
@@ -565,9 +576,10 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
           loading={submitting}
           submitText={editingItem ? "Update Department" : "Create Department"}
           cancelText="Cancel"
-          onClose={resetForm}
+          showCloseButton={false}
+          onClose={undefined}
         />
-      )}
+      </AppModal>
 
       {/* File Upload Modal */}
       <FileUploadModal

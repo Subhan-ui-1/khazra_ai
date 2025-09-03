@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import FileUploadModal from "@/components/FileUploadModal";
+import AppModal from "@/components/modal/AppModal";
 
 // Define TypeScript interfaces
 interface FacilityFormData {
@@ -1044,34 +1045,17 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         </div>
       )}
 
-      {(onComplete ? true : showForm) && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {editingItem ? "Edit Facility" : "Add Facility"}
-            </h2>
-            {onComplete ? null : (
-              <button
-                onClick={resetForm}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
-
+      <AppModal
+        isOpen={onComplete ? true : showForm}
+        onClose={resetForm}
+        title={editingItem ? "Edit Facility" : "Add Facility"}
+        description={
+          editingItem
+            ? "Update the fields below and click Update Facility to save."
+            : "Fill in the details below to create a new facility."
+        }
+        size="xl"
+      >
           <form onSubmit={handleFormSubmit} className="space-y-4">
             {/* Row 1: Facility Name & Facility Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1360,8 +1344,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
               )}
             </div>
           </form>
-        </div>
-      )}
+      </AppModal>
 
       {/* Import Facilities Modal */}
       <FileUploadModal

@@ -120,7 +120,7 @@ export default function LoginPage() {
         if(response.user.boundary){
           router.push("/dashboard");
         } else {
-          router.push("/dashboard/steps");
+          router.push("/welcome");
         }
         // router.push("/dashboard");
       } else {

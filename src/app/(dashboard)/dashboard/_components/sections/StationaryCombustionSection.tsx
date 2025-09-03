@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { stationaryFuelTypes } from "@/constants/stationaryFuelType";
 import FileUploadModal from "@/components/FileUploadModal";
+import { useRouter } from "next/navigation";
 
 interface Facility {
   _id: string;
@@ -40,7 +41,7 @@ interface StationaryFormData {
   quantityOfFuelUsed: string;
   emissionFactor: number;
   useCustomEmissionFactor: boolean;
-  attachment?: File|null;
+  attachment?: File | null;
 }
 
 const getOrgId = () => {
@@ -88,7 +89,7 @@ export default function StationaryCombustionSection() {
   const [equipments, setEquipments] = useState<EquipmentType[]>([]);
   const [fuelTypes, setFuelTypes] = useState<FuelType[]>([]);
   const [data, setData] = useState<any>(null);
-
+  const router = useRouter();
   const [stationaryFormData, setStationaryFormData] =
     useState<StationaryFormData>({
       month: "",
@@ -364,7 +365,7 @@ export default function StationaryCombustionSection() {
     }
   }, [fuelTypes, stationaryCombustionData]);
 
-    const handleFileUploadOnAPI = async (file:File)=>{
+  const handleFileUploadOnAPI = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
     const response = await postRequest(
@@ -372,13 +373,13 @@ export default function StationaryCombustionSection() {
       formData,
       "",
       getToken(),
-      "post",
+      "post"
     );
-    if(response.success){
+    if (response.success) {
       return response.attachment;
     }
     return null;
-  }
+  };
 
   const handleStationarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,11 +399,13 @@ export default function StationaryCombustionSection() {
         quantityOfFuelUsed: parseFloat(stationaryFormData.quantityOfFuelUsed),
         emissionFactor: stationaryFormData.emissionFactor,
       };
-      if(stationaryFormData.attachment){
-        const attachment = await handleFileUploadOnAPI(stationaryFormData.attachment);
-        if(attachment){
+      if (stationaryFormData.attachment) {
+        const attachment = await handleFileUploadOnAPI(
+          stationaryFormData.attachment
+        );
+        if (attachment) {
           requestData.attachment = attachment;
-        } else{
+        } else {
           return;
         }
       }
@@ -733,11 +736,13 @@ export default function StationaryCombustionSection() {
               style={{
                 width:
                   dataEmissions?.scope1Emissions > 0
-                    ? ((
+                    ? (
                         (dataEmissions?.stationaryCombustionEmissions /
                           dataEmissions?.scope1Emissions) *
                         100
-                      ).toFixed(1)).toString()+"%"
+                      )
+                        .toFixed(1)
+                        .toString() + "%"
                     : "0%",
               }}
             ></div>
@@ -830,23 +835,28 @@ export default function StationaryCombustionSection() {
           {
             // label: 'Edit',
             icon: <Edit3 className="w-4 h-4 text-green-500" />,
-            onClick: (row) =>{
+            onClick: (row) => {
               setShowAttachment(false);
               handleEditStationary(
                 row,
                 stationaryCombustionData.findIndex(
                   (item) => item._id === row._id
                 )
-              )},
+              );
+            },
             variant: "primary",
           },
           {
             // label: 'Edit',
             icon: <Paperclip className="w-4 h-4 text-green-500" />,
             show: (row) => !!(row?.attachment && row.attachment.url),
-            onClick: (row) =>{
+            onClick: (row) => {
               if (row?.attachment?.url) {
-                window.open(row.attachment.url, '_blank', 'noopener,noreferrer');
+                window.open(
+                  row.attachment.url,
+                  "_blank",
+                  "noopener,noreferrer"
+                );
                 return;
               }
               setShowAttachment(false);
@@ -855,7 +865,8 @@ export default function StationaryCombustionSection() {
                 stationaryCombustionData.findIndex(
                   (item) => item._id === row._id
                 )
-              )},
+              );
+            },
             variant: "primary",
           },
         ]}
@@ -982,6 +993,7 @@ export default function StationaryCombustionSection() {
                 >
                   Facility *
                 </label>
+                <div className="flex items-center gap-2">
                 <select
                   id="facility"
                   value={stationaryFormData.facility}
@@ -1005,6 +1017,14 @@ export default function StationaryCombustionSection() {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard?section=add-facility")}
+                  className="text-lg font-medium text-green-500 hover:text-green-600"
+                >
+                  Add
+                </button>
+                </div>
               </div>
 
               <div>
@@ -1014,6 +1034,7 @@ export default function StationaryCombustionSection() {
                 >
                   Equipment *
                 </label>
+                <div className="flex items-center gap-2">
                 <select
                   id="equipment"
                   value={stationaryFormData.equipment}
@@ -1037,6 +1058,14 @@ export default function StationaryCombustionSection() {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => router.push("/dashboard?section=add-equipment")}
+                  className="text-lg font-medium text-green-500 hover:text-green-600"
+                >
+                    Add
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -1093,38 +1122,49 @@ export default function StationaryCombustionSection() {
                   required
                 />
               </div>
-             {showAttachment&& <div>
-                <label
-                  htmlFor="attachment"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Attachment
-                </label>
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowFileModal(true)}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+              {showAttachment && (
+                <div>
+                  <label
+                    htmlFor="attachment"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    <Paperclip className="h-4 w-4 mr-2" />
-                    {stationaryFormData.attachment ? 'Change File' : 'Upload File'}
-                  </button>
-                  
-                  {stationaryFormData.attachment && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">Selected:</span>
-                      <span className="text-sm font-medium text-gray-900">{stationaryFormData.attachment?.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => setStationaryFormData({ ...stationaryFormData, attachment: null })}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
+                    Attachment
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowFileModal(true)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D5942] transition-colors"
+                    >
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      {stationaryFormData.attachment
+                        ? "Change File"
+                        : "Upload File"}
+                    </button>
+
+                    {stationaryFormData.attachment && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">Selected:</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {stationaryFormData.attachment?.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setStationaryFormData({
+                              ...stationaryFormData,
+                              attachment: null,
+                            })
+                          }
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>}
+              )}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -1481,7 +1521,15 @@ export default function StationaryCombustionSection() {
           });
           toast.success(`File "${file.name}" selected successfully`);
         }}
-        acceptedTypes={['.pdf', '.png', '.jpg', '.jpeg', '.csv', '.xlsx', '.xls']}
+        acceptedTypes={[
+          ".pdf",
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".csv",
+          ".xlsx",
+          ".xls",
+        ]}
         maxSize={10}
         title="Upload Attachment"
         description="Drag and drop your file here or click to browse"

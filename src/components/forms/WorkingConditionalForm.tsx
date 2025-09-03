@@ -74,6 +74,17 @@ export interface ConditionalFormProps {
   title?: string;
   className?: string;
   groups?: Array<{ title: string; fields?: string[]; remaining?: boolean }>;
+  // Internal navigation props for forms within the same section
+  onPreviousForm?: () => void;
+  onNextForm?: () => void;
+  hasPreviousForm?: boolean;
+  hasNextForm?: boolean;
+  previousFormText?: string;
+  nextFormText?: string;
+  onModalOpen?: () => void;
+  onNavigateToForm?: (formId: string) => void;
+  onFormDataChange?: (data: Record<string, any>) => void;
+  externalFormData?: Record<string, any>;
 }
 
 const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
@@ -87,41 +98,60 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
   title,
   className = "",
   groups,
+  // Internal navigation props
+  onPreviousForm,
+  onNextForm,
+  hasPreviousForm = false,
+  hasNextForm = false,
+  previousFormText = "Previous",
+  nextFormText = "Next",
+  onModalOpen,
+  onNavigateToForm,
+  onFormDataChange,
+  externalFormData,
 }) => {
   // Form state management - initialize with default values
   const [formData, setFormData] = useState<Record<string, any>>(() => {
     const initialFormData: Record<string, any> = {};
+    
+    // Use external form data if provided
+    if (externalFormData) {
+      Object.keys(externalFormData).forEach(key => {
+        if (externalFormData[key] !== undefined && externalFormData[key] !== null) {
+          initialFormData[key] = externalFormData[key];
+        }
+      });
+    }
 
     // First, populate all fields with their initial values
     fields.forEach((field) => {
-      if (initialData[field.name] !== undefined) {
-        if (field.type === "multiselect") {
-          // For multiselect, merge initial data with default selected options
-          const initialValues = Array.isArray(initialData[field.name])
-            ? initialData[field.name]
-            : [];
-          const defaultSelectedValues =
-            field.options
-              ?.filter((option) => option.defaultSelected)
-              .map((option) => option.value) || [];
-
-          // Combine initial values with default selected values, removing duplicates
-          const combinedValues = [
-            ...new Set([...initialValues, ...defaultSelectedValues]),
-          ];
-          initialFormData[field.name] = combinedValues;
-        } else {
-          initialFormData[field.name] = initialData[field.name];
-        }
-      } else if (field.type === "checkbox") {
-        initialFormData[field.name] = false;
-      } else if (field.type === "multiselect") {
-        // Initialize with default selected options
+      if (field.type === "multiselect") {
+        // For multiselect, always prioritize default selected options
         const defaultSelectedValues =
           field.options
             ?.filter((option) => option.defaultSelected)
             .map((option) => option.value) || [];
-        initialFormData[field.name] = defaultSelectedValues;
+        
+        if (initialData[field.name] !== undefined) {
+          // Merge initial data with default selected options, but default selected always included
+          const initialValues = Array.isArray(initialData[field.name])
+            ? initialData[field.name]
+            : [];
+          
+          // Combine initial values with default selected values, removing duplicates
+          // Default selected values are always included regardless of initialData
+          const combinedValues = [
+            ...new Set([...defaultSelectedValues, ...initialValues]),
+          ];
+          initialFormData[field.name] = combinedValues;
+        } else {
+          // Initialize with default selected options only
+          initialFormData[field.name] = defaultSelectedValues;
+        }
+      } else if (initialData[field.name] !== undefined) {
+        initialFormData[field.name] = initialData[field.name];
+      } else if (field.type === "checkbox") {
+        initialFormData[field.name] = false;
       } else {
         initialFormData[field.name] = "";
       }
@@ -180,9 +210,26 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
     });
   }, [fields, initialData]);
   const [isViewing, setIsViewing] = useState<boolean>(hasInitialValues);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  
   useEffect(() => {
     setIsViewing(hasInitialValues);
   }, [hasInitialValues]);
+
+  // Sync external form data when it changes
+  React.useEffect(() => {
+    if (externalFormData) {
+      setFormData(prevData => {
+        const newData = { ...prevData };
+        Object.keys(externalFormData).forEach(key => {
+          if (externalFormData[key] !== undefined && externalFormData[key] !== null) {
+            newData[key] = externalFormData[key];
+          }
+        });
+        return newData;
+      });
+    }
+  }, [externalFormData]);
 
   // Handle dynamic field updates and initial data changes
   useEffect(() => {
@@ -195,7 +242,12 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
         if (field.type === "checkbox") {
           newFormData[field.name] = false;
         } else if (field.type === "multiselect") {
-          newFormData[field.name] = [];
+          // Initialize with default selected options
+          const defaultSelectedValues =
+            field.options
+              ?.filter((option) => option.defaultSelected)
+              .map((option) => option.value) || [];
+          newFormData[field.name] = defaultSelectedValues;
         } else {
           newFormData[field.name] = "";
         }
@@ -203,14 +255,32 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
       }
     });
 
-    // Then, update with any new initial data
+    // Then, update with any new initial data (but preserve default selected for multiselect)
     Object.keys(initialData).forEach((key) => {
-      if (
-        initialData[key] !== undefined &&
-        newFormData[key] !== initialData[key]
-      ) {
-        newFormData[key] = initialData[key];
-        hasChanges = true;
+      if (initialData[key] !== undefined) {
+        const field = fields.find(f => f.name === key);
+        if (field && field.type === "multiselect") {
+          // For multiselect, merge initial data with default selected options
+          const defaultSelectedValues =
+            field.options
+              ?.filter((option) => option.defaultSelected)
+              .map((option) => option.value) || [];
+          const initialValues = Array.isArray(initialData[key]) ? initialData[key] : [];
+          
+          // Combine initial values with default selected values, removing duplicates
+          // Default selected values are always included regardless of initialData
+          const combinedValues = [
+            ...new Set([...defaultSelectedValues, ...initialValues]),
+          ];
+          
+          if (JSON.stringify(newFormData[key]) !== JSON.stringify(combinedValues)) {
+            newFormData[key] = combinedValues;
+            hasChanges = true;
+          }
+        } else if (newFormData[key] !== initialData[key]) {
+          newFormData[key] = initialData[key];
+          hasChanges = true;
+        }
       }
     });
 
@@ -339,7 +409,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
       const d = new Date(val);
       if (!isNaN(d.getTime())) return d.toISOString().split("T")[0];
     }
-    if (val.length > 20) return val.substring(0, 30) + "...";
+    // if (val.length > 20) return val.substring(0, 30) + "...";
     return String(val);
   };
 
@@ -373,6 +443,9 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
     });
 
     setFormData(newFormData);
+    
+    // Notify parent of form data changes
+    onFormDataChange?.(newFormData);
 
     // Clear error when field is modified
     if (errors[fieldName]) {
@@ -787,6 +860,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
             onClick={() => {
               setIsViewing(false);
               setIsModalOpen(true);
+              onModalOpen?.();
             }}
             className="inline-flex items-center px-4 h-9 text-sm font-medium text-white bg-[#0D5942] rounded-lg shadow-sm hover:bg-[#0d59428a] focus:outline-none focus:ring-2 focus:ring-[#0d59428b]"
           >
@@ -821,9 +895,9 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
       ) : null}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50">
+        <div className={`fixed inset-0 z-50 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-[5px]"
+            className={`absolute inset-0 bg-black/40 backdrop-blur-[5px] transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
             onClick={() => {
               setIsModalOpen(false);
               setIsViewing(true);
@@ -833,7 +907,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
             <div
               role="dialog"
               aria-modal="true"
-              className="w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden"
+              className={`w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 transform ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                 <div>
@@ -870,7 +944,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                 </button>
               </div>
               <form onSubmit={handleSubmit} id={formId}>
-                <div className="max-h-[70vh] overflow-y-auto px-5 py-4 space-y-6">
+                <div className={`max-h-[70vh] overflow-y-auto px-5 py-4 space-y-6 transition-all duration-300 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
                   {(!groups || groups.length === 0) && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {visibleFields.map((field) => {
@@ -974,15 +1048,73 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                     })()}
                 </div>
                 <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-gray-200 bg-gray-50">
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Reset
-                  </button>
                   <div className="flex gap-2">
                     <button
+                      type="button"
+                      onClick={handleReset}
+                      className="inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Reset
+                    </button>
+                    {hasPreviousForm && onPreviousForm && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // First submit the current form data
+                          if (validateForm()) {
+                            // Filter out values from hidden fields before submission
+                            const visibleFormData: Record<string, any> = {};
+                            visibleFields.forEach((field) => {
+                              if (formData[field.name] !== undefined) {
+                                if (field.type === "multiselect") {
+                                  // For multiselect, ensure defaultSelected options are always included
+                                  const currentValues = Array.isArray(formData[field.name])
+                                    ? formData[field.name]
+                                    : [];
+                                  const defaultSelectedValues =
+                                    field.options
+                                      ?.filter((option) => option.defaultSelected)
+                                      .map((option) => option.value) || [];
+
+                                  // Combine current values with default selected values, removing duplicates
+                                  const combinedValues = [
+                                    ...new Set([...currentValues, ...defaultSelectedValues]),
+                                  ];
+                                  visibleFormData[field.name] = combinedValues;
+                                } else {
+                                  visibleFormData[field.name] = formData[field.name];
+                                }
+                              }
+                            });
+
+                            try {
+                              await onSubmit(visibleFormData);
+                            } catch (error) {
+                              console.error("Form submission error:", error);
+                            }
+                          }
+                          
+                          // Then navigate to previous form
+                          setIsTransitioning(true);
+                          setTimeout(() => {
+                            setIsModalOpen(false);
+                            setIsViewing(true);
+                            onPreviousForm();
+                            setIsTransitioning(false);
+                          }, 200);
+                        }}
+                        disabled={isTransitioning}
+                        className={`inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        {previousFormText}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {/* <button
                       type="button"
                       onClick={() => {
                         setIsModalOpen(false);
@@ -991,7 +1123,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                       className="inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
                       {cancelText}
-                    </button>
+                    </button> */}
                     <button
                       type="submit"
                       disabled={loading || isSubmitting}
@@ -999,6 +1131,62 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                     >
                       {loading || isSubmitting ? "Submitting..." : submitText}
                     </button>
+                    {hasNextForm && onNextForm && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // First submit the current form data
+                          if (validateForm()) {
+                            // Filter out values from hidden fields before submission
+                            const visibleFormData: Record<string, any> = {};
+                            visibleFields.forEach((field) => {
+                              if (formData[field.name] !== undefined) {
+                                if (field.type === "multiselect") {
+                                  // For multiselect, ensure defaultSelected options are always included
+                                  const currentValues = Array.isArray(formData[field.name])
+                                    ? formData[field.name]
+                                    : [];
+                                  const defaultSelectedValues =
+                                    field.options
+                                      ?.filter((option) => option.defaultSelected)
+                                      .map((option) => option.value) || [];
+
+                                  // Combine current values with default selected values, removing duplicates
+                                  const combinedValues = [
+                                    ...new Set([...currentValues, ...defaultSelectedValues]),
+                                  ];
+                                  visibleFormData[field.name] = combinedValues;
+                                } else {
+                                  visibleFormData[field.name] = formData[field.name];
+                                }
+                              }
+                            });
+
+                            try {
+                              await onSubmit(visibleFormData);
+                            } catch (error) {
+                              console.error("Form submission error:", error);
+                            }
+                          }
+                          
+                          // Then navigate to next form
+                          setIsTransitioning(true);
+                          setTimeout(() => {
+                            setIsModalOpen(false);
+                            setIsViewing(true);
+                            onNextForm();
+                            setIsTransitioning(false);
+                          }, 200);
+                        }}
+                        disabled={isTransitioning}
+                        className={`inline-flex items-center px-4 h-9 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {nextFormText}
+                        <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               </form>

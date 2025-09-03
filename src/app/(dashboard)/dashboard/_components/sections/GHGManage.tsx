@@ -148,24 +148,79 @@ const GHGManage = () => {
   }, []);
 
   // Handle form submission for each step
-  const handleStepFormSubmit = (step: number, data: any) => {
+  const handleStepFormSubmit = async (step: number, data: any) => {
     console.log(`Step ${step} form submitted:`, data);
     
-    // Update form data
-    setFormData(prev => ({
+    // Merge this group's data into existing step state (preserve prior inputs)
+    setFormData((prev) => {
+      const mergedStep = { ...(prev as any)[`step${step}`], ...(data || {}) };
+      return {
       ...prev,
-      [`step${step}`]: data
-    }));
+        [`step${step}`]: mergedStep,
+      } as typeof prev;
+    });
 
     // Mark step as completed
-    setFormCompletionStatus(prev => ({
+    setFormCompletionStatus((prev) => ({
       ...prev,
-      [`step${step}`]: true
+      [`step${step}`]: true,
     }));
 
-    // Automatically proceed to next step if not the last step
-    if (step < steps.length) {
-      setCurrentStep(step + 1);
+    // Build full aggregated payload across all steps
+    // Build aggregate from latest merged state AND server snapshot so fields not returned by GET are preserved
+    const latestStep = { ...(formData as any)[`step${step}`], ...(data || {}) };
+    const currentState = { ...formData, [`step${step}`]: latestStep } as typeof formData;
+    const { step1, step2, step3 } = currentState;
+    const aggregate = {
+      ...(ghgData || {}),
+      ...(step1 || {}),
+      ...(step2 || {}),
+      ...(step3 || {}),
+    } as Record<string, any>;
+
+    // Decide create vs update based on GET presence
+    const isUpdate = Boolean(ghgData && (ghgData as any));
+    const endpoint = isUpdate && ghgData?._id
+      ? `ghg-managment/updateGhgManagment/${ghgData._id}`
+      : 'ghg-managment/addGhgManagment';
+    const method = isUpdate && ghgData?._id ? 'put' : 'post';
+    const successMessage = method === 'put' ? 'GHG Management updated successfully!' : 'GHG Management created successfully!';
+
+    const fullPayload: any = method === 'put'
+      ? { ...aggregate }
+      : {
+          organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
+          ...aggregate,
+        };
+
+    // Clean server-only fields
+    delete (fullPayload as any)._id;
+    delete (fullPayload as any).createdAt;
+    delete (fullPayload as any).updatedAt;
+    delete (fullPayload as any).createdBy;
+    delete (fullPayload as any).organization;
+
+    // Clean transient fields for update
+    if (method === 'put') {
+      delete (fullPayload as any).biogenicEmissionsPresent;
+      delete (fullPayload as any).haveGHGRemoval;
+      delete (fullPayload as any).trainingAssessment;
+    }
+    if(fullPayload&&fullPayload?.biogenicEmissionsPlanned==="Yes"){
+      fullPayload.biogenicEmissionSources=true;
+    } else if(fullPayload&&fullPayload?.biogenicEmissionsPlanned==="No"){
+      fullPayload.biogenicEmissionSources=false;
+    }
+
+    try {
+      const response = await postRequest(endpoint, fullPayload, successMessage, tokenData.accessToken, method);
+      
+      if (response.success && method==="post") {
+        // Refresh data to get latest from server
+        await fetchGHGData();
+      }
+    } catch (error) {
+      console.error('Error submitting step data:', error);
     }
   };
 
@@ -195,9 +250,17 @@ const GHGManage = () => {
     }
   };
 
-  // Handle step change with validation
-  const handleStepChange = (step: number) => {
-    // Free navigation between steps
+  // Handle step change with auto-submit of current step
+  const handleStepChange = async (step: number) => {
+    try {
+      // Submit current step data before navigating
+      const currentData = (formData as any)[`step${currentStep}`] || {};
+      // if (Object.keys(currentData).length > 0) {
+      //   await handleStepFormSubmit(currentStep, currentData);
+      // }
+    } catch (error) {
+      console.error('Error submitting current step data:', error);
+    }
     setCurrentStep(step);
   };
 
@@ -547,7 +610,7 @@ const GHGManage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className=" bg-white py-8">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -571,7 +634,7 @@ const GHGManage = () => {
 
   // Show form in edit mode or when no data exists
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className=" bg-white py-8">
       <div className="max-w-6xl mx-auto px-4">
         {/* Edit mode header */}
         {/* {isEditMode && (

@@ -7,6 +7,7 @@ import { getRequest, postRequest } from "@/utils/api";
 import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
+import AppModal from "@/components/modal/AppModal";
 import { Edit3, Paperclip } from "lucide-react";
 import FileUploadModal from "@/components/FileUploadModal";
 
@@ -592,7 +593,7 @@ const AddRoleSection = () => {
                     Permissions
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Departments
+                    Scope
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created By
@@ -649,8 +650,8 @@ const AddRoleSection = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500 max-w-xs">
-                        {role.departments && role.departments.length > 0 ? (
+                      <div className="text-sm text-gray-500 max-w-xs capitalize">
+                        {/* {role.departments && role.departments.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {role.departments.slice(0, 3).map((dept, index) => (
                               <span
@@ -668,7 +669,8 @@ const AddRoleSection = () => {
                           </div>
                         ) : (
                           <span className="text-gray-400">No departments</span>
-                        )}
+                        )} */}
+                        {role?.scope?.type}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -722,32 +724,17 @@ const AddRoleSection = () => {
       </div>
 
       {/* Form Section */}
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {editingItem ? "Edit Role" : "Add New Role"}
-            </h2>
-            <button
-              onClick={resetForm}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
+      <AppModal
+        isOpen={showForm}
+        onClose={resetForm}
+        title={editingItem ? "Edit Role" : "Add New Role"}
+        description={
+          editingItem
+            ? "Update the fields below and click Update Role to save."
+            : "Fill in the details below to create a new role."
+        }
+        size="xl"
+      >
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
@@ -1200,8 +1187,7 @@ const AddRoleSection = () => {
               </button>
             </div>
           </form>
-        </div>
-      )}
+      </AppModal>
 
       {/* File Upload Modal */}
       <FileUploadModal

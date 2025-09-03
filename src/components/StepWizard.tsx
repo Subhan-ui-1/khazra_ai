@@ -201,12 +201,12 @@ const StepWizard: React.FC<StepWizardProps> = ({
     <div className={`max-w-7xl mx-auto ${className}`}>
       {/* Step Buttons Header */}
       <div className="mb-6">
-        <div className="flex flex-wrap items-center gap-2 justify-center">
+        <div className="flex  items-center h-full gap-2 justify-center">
           {steps.map((step, index) => {
             const stepNumber = index + 1;
             const status = getStepStatus(index);
             const isClickable = allowStepNavigation && (stepNumber <= currentStep || steps[index].canSkip);
-            const base = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all';
+            const base = 'inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-sm font-medium transition-all';
             const styles = status === 'completed'
               ? 'bg-white text-black border-emerald-200 hover:bg-white'
               : status === 'active'
@@ -222,21 +222,21 @@ const StepWizard: React.FC<StepWizardProps> = ({
                 className={`${base} ${styles}`}
               >
                 {getStepIcon(step, index)}
-                <span className="truncate max-w-[12rem]">{step.title}</span>
+                <span className=" max-w-[12rem]">{step.title}</span>
               </button>
             );
           })}
         </div>
-        <div className="text-center mt-4">
+        {/* <div className="text-center mt-4">
           <h2 className="text-2xl font-bold text-gray-900">{currentStepData?.title}</h2>
           {currentStepData?.description && (
             <p className="text-gray-600 max-w-3xl mx-auto mt-1">{currentStepData.description}</p>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Step Content */}
-      <div className="bg-whit rounded-2xl  mb-8 overflow-hidden">
+      <div className="bg-whit rounded-lg  mb-8 overflow-hidden">
         <div className="">
           {stepContent}
           
