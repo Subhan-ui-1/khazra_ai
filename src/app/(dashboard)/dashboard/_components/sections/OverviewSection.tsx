@@ -14,7 +14,7 @@ import HorizontalStackedChart from "./overview/HorizontalStackedChart";
 import StackedBarWithLineChart from "./overview/StackedBarWithLineChart";
 import HistoryModal from "./overview/HistoryModal";
 import Table from "@/components/Table";
-import { Edit3, Trash2, History, Loader } from "lucide-react";
+import { Edit3, Trash2, History, Loader, ArrowRight } from "lucide-react";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { getRequest } from "@/utils/api";
 import { useI18n } from "@/i18n/context";
@@ -547,6 +547,9 @@ export default function OverviewSection() {
       </div>
     );
   } else {
+
+    const user = safeLocalStorage.getItem("user");
+    const userName = user ? JSON.parse(user).firstName : "";
     return (
       <div className="relative overflow-hidden w-full rounded-3xl border border-gray-200/50 shadow-xl ">
         {/* Animated background elements */}
@@ -567,15 +570,15 @@ export default function OverviewSection() {
               <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
               {t("overview.cta.badge", "Welcome to your Sustainability Hub")}
             </div> */}
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-6 bg-gradient-to-r from-gray-900 via-[#0D5942] to-gray-900 bg-clip-text text-transparent">
-              {t("overview.cta.title", "Start Your Carbon Journey")}
+            <h1 className="text-4xl md:text-4xl font-black tracking-tight mb-6 bg-gradient-to-r from-gray-900 via-[#0D5942] to-gray-900 bg-clip-text text-transparent">
+              {userName ? `${userName}, Let's Start Your Carbon Journey` : t("overview.cta.title", "Start Your Carbon Journey")}
             </h1>
-            <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            {/* <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
               {t(
                 "overview.cta.desc",
                 "Transform your organization's environmental impact with intelligent tracking, beautiful insights, and actionable sustainability reports."
               )}
-            </p>
+            </p> */}
           </div>
 
           {/* Main Action Cards */}
@@ -689,32 +692,8 @@ export default function OverviewSection() {
 
           {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
+            <Link href="/dashboard?section=customTargets" className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg cursor-pointer">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg
-                  className="w-5 h-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <h4 className="font-bold text-gray-900 mb-2">
-                {t("overview.cta.features.insights.title")}
-              </h4>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {t("overview.cta.features.insights.desc")}
-              </p>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg
                   className="w-5 h-5 text-white"
                   fill="none"
@@ -729,16 +708,14 @@ export default function OverviewSection() {
                   />
                 </svg>
               </div>
-              <h4 className="font-bold text-gray-900 mb-2">
-                {t("overview.cta.features.guided.title")}
+              <h4 className="font-bold text-gray-900  flex items-center gap-2">
+                {t("overview.cta.customTargets.title")} <ArrowRight className="w-4 h-4" />
               </h4>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {t("overview.cta.features.guided.desc")}
-              </p>
-            </div>
+             
+            </Link>
 
-            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Link href="/dashboard?section=reporting" className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg cursor-pointer">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg
                   className="w-5 h-5 text-white"
                   fill="none"
@@ -753,15 +730,35 @@ export default function OverviewSection() {
                   />
                 </svg>
               </div>
-              <h4 className="font-bold text-gray-900 mb-2">
-                {t("overview.cta.features.reports.title")}
+              <h4 className="font-bold text-gray-900  flex items-center gap-2">
+                {t("overview.cta.materiality.title")} <ArrowRight className="w-4 h-4" />
               </h4>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {t("overview.cta.features.reports.desc")}
-              </p>
-            </div>
+             
+            </Link>
 
-            <div className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg">
+            <Link href="/dashboard?section=add-department" className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg cursor-pointer">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+              </div>
+              <h4 className="font-bold text-[15px] text-gray-900 flex items-center gap-2">
+                {t("overview.cta.department.title")} <ArrowRight className="w-4 h-4" />
+              </h4>
+             
+            </Link>
+
+            <Link href="/dashboard?section=add-user" className="group relative overflow-hidden rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200/50 p-6 hover:bg-white/90 transition-all duration-300 hover:shadow-lg cursor-pointer">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg
                   className="w-5 h-5 text-white"
@@ -773,17 +770,15 @@ export default function OverviewSection() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
                   />
                 </svg>
               </div>
-              <h4 className="font-bold text-gray-900 mb-2">
-                {t("overview.cta.features.security.title")}
+              <h4 className="font-bold text-gray-900  flex items-center gap-2">
+                {t("overview.cta.userManagement.title")} <ArrowRight className="w-4 h-4" />
               </h4>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {t("overview.cta.features.security.desc")}
-              </p>
-            </div>
+             
+            </Link>
           </div>
 
           {/* Bottom CTA */}

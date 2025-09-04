@@ -196,25 +196,25 @@ export default function StepsPage() {
       </div>
 
       {/* Add Later Button - Fixed Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => {
             router.push('/dashboard')
             setLocale('en')
           }}
-          className="inline-flex items-center px-6 py-3 bg-red-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
+          className="inline-flex items-center px-6 py-3 bg-[#8c3738] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
         >
           <span>{t('steps.nav.addLater')}</span>
           <ArrowRight className="w-4 h-4 ml-2" />
         </button>
       </div>
-      <div className="fixed bottom-6 right-46 z-50">
+      <div className="fixed bottom-6 right-46 z-40">
         <button
           onClick={() => {
             router.push('/dashboard')
             setLocale('en')
           }}
-          className="inline-flex items-center px-6 py-3 bg-red-500 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
+          className="inline-flex items-center px-6 py-3 bg-[#8c3738] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
         >
           <span>{t("welcome.ctaDashboard")}</span>
           <ArrowRight className="w-4 h-4 ml-2" />

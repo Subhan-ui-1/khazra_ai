@@ -649,6 +649,30 @@
       "badge": "Welcome to your Sustainability Hub",
       "title": "Start Your Carbon Journey",
       "desc": "Transform your organization's environmental impact with intelligent tracking, beautiful insights, and actionable sustainability reports.",
+      "customTargets": {
+        "title": "Custom Targets",
+        "subtitle": "Set your sustainability goals",
+        "description": "Create and manage custom emission reduction targets tailored to your organization's sustainability objectives.",
+        "add": "Set Custom Targets"
+      },
+      "materiality": {
+        "title": "Materiality Engine",
+        "subtitle": "Assess material sustainability topics",
+        "description": "Identify and prioritize the most important environmental, social, and governance topics for your organization.",
+        "add": "Access Materiality"
+      },
+      "department": {
+        "title": "Organization Department",
+        "subtitle": "Manage organizational structure",
+        "description": "Set up and manage departments within your organization to better organize and track emissions data.",
+        "add": "Manage Departments"
+      },
+      "userManagement": {
+        "title": "User Management",
+        "subtitle": "Control user access and permissions",
+        "description": "Add, edit, and manage user accounts with appropriate roles and permissions for your sustainability platform.",
+        "add": "Manage Users"
+      },
       "stationary": {
         "title": "Stationary Combustion",
         "subtitle": "Buildings, facilities, equipment",
