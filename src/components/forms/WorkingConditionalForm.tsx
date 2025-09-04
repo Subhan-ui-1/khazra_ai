@@ -201,6 +201,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
     []
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpening, setIsModalOpening] = useState(false);
   // Determine if we have any initial values for display mode
   const hasInitialValues = useMemo(() => {
     return fields.some((f) => {
@@ -209,12 +210,9 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
       return v !== undefined && v !== "" && v !== null;
     });
   }, [fields, initialData]);
-  const [isViewing, setIsViewing] = useState<boolean>(hasInitialValues);
+  const [isViewing, setIsViewing] = useState<boolean>(true);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
-  
-  useEffect(() => {
-    setIsViewing(hasInitialValues);
-  }, [hasInitialValues]);
+  const [transitionDirection, setTransitionDirection] = useState<'next' | 'previous' | null>(null);
 
   // Sync external form data when it changes
   React.useEffect(() => {
@@ -846,7 +844,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
   };
   return (
     <div
-      className={`${className} bg-white border border-gray-200 rounded-xl p-5 shadow-sm`}
+      className={`${className} bg-white border border-gray-200 rounded-xl p-5 shadow-sm h-full`}
     >
       <div className="flex justify-between items-center mb-5">
         {title && (
@@ -854,40 +852,53 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
             {title}
           </h2>
         )}
-        {isViewing || !hasInitialValues ? (
-          <button
-            type="button"
-            onClick={() => {
-              setIsViewing(false);
-              setIsModalOpen(true);
-              onModalOpen?.();
-            }}
-            className="inline-flex items-center px-4 h-9 text-sm font-medium text-white bg-[#0D5942] rounded-lg shadow-sm hover:bg-[#0d59428a] focus:outline-none focus:ring-2 focus:ring-[#0d59428b]"
-          >
-            {hasInitialValues ? "Edit" : "Add"}
-          </button>
-        ) : null}
+        <button
+          type="button"
+          onClick={() => {
+            setIsViewing(false);
+            setIsModalOpening(true);
+            setIsModalOpen(true);
+            onModalOpen?.();
+            // Reset opening state after animation completes
+            setTimeout(() => setIsModalOpening(false), 300);
+          }}
+          className="inline-flex items-center px-4 h-9 text-sm font-medium text-white bg-[#0D5942] rounded-lg shadow-sm hover:bg-[#0d59428a] focus:outline-none focus:ring-2 focus:ring-[#0d59428b] transition-all duration-200"
+        >
+          {hasInitialValues ? "Edit" : "Add"}
+        </button>
       </div>
 
-      {isViewing && hasInitialValues ? (
+      {isViewing ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {visibleFields.map((field) => {
             const v = formData[field.name];
             const hasValue = Array.isArray(v)
               ? v.length > 0
               : v !== undefined && v !== "" && v !== null;
-            if (!hasValue) return null;
+            
             return (
               <div
                 key={field.name}
-                className="p-3 rounded-lg border border-gray-200 bg-gray-50"
+                className={`p-3 rounded-lg border transition-colors ${
+                  hasValue 
+                    ? "border-gray-200 bg-gray-50 hover:bg-gray-100" 
+                    : "border-gray-200 bg-white hover:bg-gray-25"
+                }`}
               >
-                <div className="text-xs font-medium text-gray-500">
+                <div className={`text-xs font-medium ${
+                  hasValue ? "text-gray-500" : "text-gray-400"
+                }`}>
                   {field.label}
                 </div>
-                <div className="text-gray-900 text-sm mt-1">
-                  {formatDisplayValue(v, field)}
-                </div>
+                {hasValue ? (
+                  <div className="text-gray-900 text-sm mt-1">
+                    {formatDisplayValue(v, field)}
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-sm mt-1 italic">
+                    No data available
+                  </div>
+                )}
               </div>
             );
           })}
@@ -895,9 +906,9 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
       ) : null}
 
       {isModalOpen && (
-        <div className={`fixed inset-0 z-50 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`fixed inset-0 z-50 transition-all duration-300 ease-out ${isTransitioning ? 'opacity-0' : 'opacity-100'} ${isModalOpening ? 'animate-in fade-in duration-300' : ''}`}>
           <div
-            className={`absolute inset-0 bg-black/40 backdrop-blur-[5px] transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+            className={`absolute inset-0 bg-black/40 backdrop-blur-[5px] transition-all duration-300 ease-out ${isTransitioning ? 'opacity-0' : 'opacity-100'} ${isModalOpening ? 'animate-in fade-in duration-300' : ''}`}
             onClick={() => {
               setIsModalOpen(false);
               setIsViewing(true);
@@ -907,7 +918,13 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
             <div
               role="dialog"
               aria-modal="true"
-              className={`w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 transform ${isTransitioning ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
+              className={`w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 ease-out transform ${
+                isTransitioning 
+                  ? `opacity-0 scale-95 translate-y-4 ${transitionDirection === 'next' ? 'translate-x-4' : transitionDirection === 'previous' ? '-translate-x-4' : 'translate-y-4'}` 
+                  : isModalOpening
+                  ? 'opacity-0 scale-95 translate-y-4 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300'
+                  : 'opacity-100 scale-100 translate-y-0 translate-x-0'
+              }`}
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
                 <div>
@@ -944,10 +961,10 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                 </button>
               </div>
               <form onSubmit={handleSubmit} id={formId}>
-                <div className={`max-h-[70vh] overflow-y-auto px-5 py-4 space-y-6 transition-all duration-300 ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
+                <div className={`max-h-[70vh] overflow-y-auto px-5 py-4 space-y-6 transition-all duration-500 ease-in-out ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}>
                   {(!groups || groups.length === 0) && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {visibleFields.map((field) => {
+                      {visibleFields.map((field, index) => {
                         let cmplt = false;
                         if (field.type === "multiselect") {
                           cmplt = true;
@@ -955,7 +972,14 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                         return (
                           <div
                             key={field.name}
-                            className={`space-y-2 ${cmplt ? "col-span-2" : ""}`}
+                            className={`space-y-2 ${cmplt ? "col-span-2" : ""} transition-all duration-300 ease-out ${
+                              isTransitioning 
+                                ? 'opacity-0 translate-y-2' 
+                                : 'opacity-100 translate-y-0'
+                            }`}
+                            style={{
+                              transitionDelay: isTransitioning ? '0ms' : `${index * 30}ms`
+                            }}
                           >
                             <label
                               htmlFor={field.name}
@@ -1060,6 +1084,8 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                       <button
                         type="button"
                         onClick={async () => {
+                          setTransitionDirection('previous');
+                          
                           // First submit the current form data
                           if (validateForm()) {
                             // Filter out values from hidden fields before submission
@@ -1094,17 +1120,24 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                             }
                           }
                           
-                          // Then navigate to previous form
+                          // Start transition animation
                           setIsTransitioning(true);
+                          
+                          // Wait for animation to complete, then navigate
                           setTimeout(() => {
                             setIsModalOpen(false);
                             setIsViewing(true);
                             onPreviousForm();
-                            setIsTransitioning(false);
-                          }, 200);
+                            
+                            // Reset states after a brief delay to allow new form to load
+                            setTimeout(() => {
+                              setIsTransitioning(false);
+                              setTransitionDirection(null);
+                            }, 100);
+                          }, 300);
                         }}
                         disabled={isTransitioning}
-                        className={`inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1135,6 +1168,8 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                       <button
                         type="button"
                         onClick={async () => {
+                          setTransitionDirection('next');
+                          
                           // First submit the current form data
                           if (validateForm()) {
                             // Filter out values from hidden fields before submission
@@ -1169,17 +1204,24 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                             }
                           }
                           
-                          // Then navigate to next form
+                          // Start transition animation
                           setIsTransitioning(true);
+                          
+                          // Wait for animation to complete, then navigate
                           setTimeout(() => {
                             setIsModalOpen(false);
                             setIsViewing(true);
                             onNextForm();
-                            setIsTransitioning(false);
-                          }, 200);
+                            
+                            // Reset states after a brief delay to allow new form to load
+                            setTimeout(() => {
+                              setIsTransitioning(false);
+                              setTransitionDirection(null);
+                            }, 100);
+                          }, 300);
                         }}
                         disabled={isTransitioning}
-                        className={`inline-flex items-center px-4 h-9 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`inline-flex items-center px-4 h-9 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {nextFormText}
                         <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

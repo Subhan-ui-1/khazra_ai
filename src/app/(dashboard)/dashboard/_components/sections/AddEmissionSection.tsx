@@ -75,7 +75,11 @@ interface BaselineData {
   updatedAt: string;
 }
 
-const AddEmissionSection: React.FC = () => {
+interface AddEmissionSectionProps {
+  onProgressChange?: (percent: number) => void;
+}
+
+const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChange }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,6 +156,22 @@ const AddEmissionSection: React.FC = () => {
       if (pv !== nv) changed[k] = nv;
     });
     return changed;
+  };
+
+  const computeProgressPercent = (data: Partial<BaselineData> | null): number => {
+    if (!data) return 0;
+    const keys: Array<keyof BaselineData> = [
+      'baselineCategory','scope1TotalEmissions','scope2TotalEmissions','facility','scope1','scope2','totals',
+      'baselineYear','reasonChooseBaselineYear','scope1Stationary','baselineDataCompleteness','baselineYearSelectionCriteria','baselineRecalculationPolicy','baselineRecalculationTriggers','changeManagementProcessEstablished','financialYearPeriodEnd','financialYearPeriodStart','environmentalReportingPeriod','dataCollectionFrequency','historicalDataRetentionPeriod','dataArchivingAndRetrievalSystem',
+    ];
+    const total = keys.length;
+    const filled = keys.reduce((acc, key) => {
+      const v: any = (data as any)[key];
+      if (Array.isArray(v)) return acc + (v.length > 0 ? 1 : 0);
+      if (v && typeof v === 'object') return acc + (Object.keys(v).length > 0 ? 1 : 0);
+      return acc + (v !== undefined && v !== null && String(v).toString().trim() !== '' ? 1 : 0);
+    }, 0);
+    return Math.round((filled / Math.max(total, 1)) * 100);
   };
 
   // Fetch existing baseline data
@@ -253,6 +273,11 @@ const AddEmissionSection: React.FC = () => {
           step1: true,
           step2: true,
         });
+        // Report progress upward on initial load
+        try {
+          const pct = computeProgressPercent(normalized);
+          onProgressChange && onProgressChange(pct);
+        } catch {}
       
     } catch (error) {
       console.error("Error fetching baseline data:", error);
@@ -325,6 +350,15 @@ const AddEmissionSection: React.FC = () => {
       // Optimistically merge full payload
       setBaselineData((prev) => ({ ...(prev || {} as any), ...(fullPayload as any) } as any));
       safeLocalStorage.setItem("baselineData", JSON.stringify(response.baseline));
+      if(method==="post"){
+        await fetchBaselineData();
+      }
+      // Report progress upward using merged snapshot
+      const merged = { ...(baselineData || {}), ...(fullPayload as any) } as Partial<BaselineData>;
+      try {
+        const pct = computeProgressPercent(merged);
+        onProgressChange && onProgressChange(pct);
+      } catch {}
       // await fetchBaselineData();
     }
   };
@@ -729,7 +763,7 @@ const AddEmissionSection: React.FC = () => {
                 onSubmit={(data) => handleStepFormSubmit(1, data)}
                 submitText="Save & Continue"
                 title="Baseline Setup"
-                className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                className="bg-white p-4 rounded-lg border border-gray-200 h-full shadow-sm"
                 initialData={formData.step1}
               />
               <WorkingConditionalForm
@@ -742,7 +776,7 @@ const AddEmissionSection: React.FC = () => {
                 onSubmit={(data) => handleStepFormSubmit(1, data)}
                 submitText="Save & Continue"
                 title="Emission Configuration"
-                className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                className="bg-white p-4 rounded-lg border border-gray-200 h-full shadow-sm"
                 initialData={formData.step1}
               />
             </div>

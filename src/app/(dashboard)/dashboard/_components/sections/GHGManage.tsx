@@ -41,7 +41,11 @@ interface GHGManagementData {
   updatedAt: string;
 }
 
-const GHGManage = () => {
+interface GHGManageProps {
+  onProgressChange?: (percent: number) => void;
+}
+
+const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,6 +132,18 @@ const GHGManage = () => {
             relevantCategories: data?.relevantCategories,
           },
         });
+
+        if(data?.ghgProtocolScopes?.length>0){
+          safeLocalStorage.setItem("ghgProtocolScopes", JSON.stringify(data?.ghgProtocolScopes));
+        } else {
+          safeLocalStorage.removeItem("ghgProtocolScopes");
+        }
+
+        // Report progress upward on initial load
+        try {
+          const pct = computeProgressPercent(data);
+          onProgressChange && onProgressChange(pct);
+        } catch {}
         
         // Mark all steps as completed since data exists
         setFormCompletionStatus({
@@ -146,6 +162,26 @@ const GHGManage = () => {
   useEffect(() => {
     fetchGHGData();
   }, []);
+
+  const computeProgressPercent = (data: Partial<GHGManagementData> | null): number => {
+    if (!data) return 0;
+    // Keys represented by the three steps in this section
+    const keys: Array<keyof GHGManagementData> = [
+      // Step 1
+      'existingEnvironmentalManagement','ghgManagementIntegration','responsibleOfGHGManagement','ghgPolicyEstablishment','ghgQuantification','trainingAssessed',
+      // Step 2
+      'ghgSourceInventory','quantificationApproach','emissionFactorsSelectionCriteria','directMeasurementCapabilities','haveGHGRemoval','ghgRemovals','approachForRemovals','biogenicEmissionsPresent','biogenicEmissionSources','biogenicEmissionsPlanned',
+      // Step 3
+      'ghgProtocolScopes','directGHGEmissions','indirectGHGEmissions','electricitySupplyMethod','indirectGHGEmissionsFromTransportation','indirectGHGEmissionsFromProducts','indirectGHGEmissionsAssociated','indirectGHGEmissionsFromOtherSources','relevantCategories',
+    ];
+    const total = keys.length;
+    const filled = keys.reduce((acc, key) => {
+      const v: any = (data as any)[key];
+      if (Array.isArray(v)) return acc + (v.length > 0 ? 1 : 0);
+      return acc + (v !== undefined && v !== null && String(v).toString().trim() !== '' ? 1 : 0);
+    }, 0);
+    return Math.round((filled / Math.max(total, 1)) * 100);
+  };
 
   // Handle form submission for each step
   const handleStepFormSubmit = async (step: number, data: any) => {
@@ -219,6 +255,12 @@ const GHGManage = () => {
         // Refresh data to get latest from server
         await fetchGHGData();
       }
+      // Report progress up using merged snapshot
+      const merged = { ...(ghgData || {}), ...(fullPayload as any) } as Partial<GHGManagementData>;
+      try {
+        const pct = computeProgressPercent(merged);
+        onProgressChange && onProgressChange(pct);
+      } catch {}
     } catch (error) {
       console.error('Error submitting step data:', error);
     }

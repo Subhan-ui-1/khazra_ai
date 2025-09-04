@@ -4,30 +4,201 @@ import WorkingConditionalForm, {
 import React, { useState } from "react";
 
 const COUNTRIES: string[] = [
-  "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan",
-  "Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi",
-  "Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (Congo-Brazzaville)","Costa Rica","Côte d’Ivoire","Croatia","Cuba","Cyprus","Czechia",
-  "Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic",
-  "Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia",
-  "Fiji","Finland","France",
-  "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana",
-  "Haiti","Honduras","Hungary",
-  "Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy",
-  "Jamaica","Japan","Jordan",
-  "Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan",
-  "Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg",
-  "Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar",
-  "Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway",
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Antigua and Barbuda",
+  "Argentina",
+  "Armenia",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bhutan",
+  "Bolivia",
+  "Bosnia and Herzegovina",
+  "Botswana",
+  "Brazil",
+  "Brunei",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cabo Verde",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Central African Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Colombia",
+  "Comoros",
+  "Congo (Congo-Brazzaville)",
+  "Costa Rica",
+  "Côte d’Ivoire",
+  "Croatia",
+  "Cuba",
+  "Cyprus",
+  "Czechia",
+  "Democratic Republic of the Congo",
+  "Denmark",
+  "Djibouti",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Estonia",
+  "Eswatini",
+  "Ethiopia",
+  "Fiji",
+  "Finland",
+  "France",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Greece",
+  "Grenada",
+  "Guatemala",
+  "Guinea",
+  "Guinea-Bissau",
+  "Guyana",
+  "Haiti",
+  "Honduras",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran",
+  "Iraq",
+  "Ireland",
+  "Israel",
+  "Italy",
+  "Jamaica",
+  "Japan",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kiribati",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Marshall Islands",
+  "Mauritania",
+  "Mauritius",
+  "Mexico",
+  "Micronesia",
+  "Moldova",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nauru",
+  "Nepal",
+  "Netherlands",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "North Korea",
+  "North Macedonia",
+  "Norway",
   "Oman",
-  "Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal",
+  "Pakistan",
+  "Palau",
+  "Panama",
+  "Papua New Guinea",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
   "Qatar",
-  "Romania","Russia","Rwanda",
-  "Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria",
-  "Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu",
-  "Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan",
-  "Vanuatu","Vatican City","Venezuela","Vietnam",
+  "Romania",
+  "Russia",
+  "Rwanda",
+  "Saint Kitts and Nevis",
+  "Saint Lucia",
+  "Saint Vincent and the Grenadines",
+  "Samoa",
+  "San Marino",
+  "Sao Tome and Principe",
+  "Saudi Arabia",
+  "Senegal",
+  "Serbia",
+  "Seychelles",
+  "Sierra Leone",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "Solomon Islands",
+  "Somalia",
+  "South Africa",
+  "South Korea",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "Sudan",
+  "Suriname",
+  "Sweden",
+  "Switzerland",
+  "Syria",
+  "Taiwan",
+  "Tajikistan",
+  "Tanzania",
+  "Thailand",
+  "Timor-Leste",
+  "Togo",
+  "Tonga",
+  "Trinidad and Tobago",
+  "Tunisia",
+  "Turkey",
+  "Turkmenistan",
+  "Tuvalu",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "Uruguay",
+  "Uzbekistan",
+  "Vanuatu",
+  "Vatican City",
+  "Venezuela",
+  "Vietnam",
   "Yemen",
-  "Zambia","Zimbabwe"
+  "Zambia",
+  "Zimbabwe",
 ];
 
 interface Section4Props {
@@ -42,17 +213,17 @@ const Section4: React.FC<Section4Props> = ({
 }) => {
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
-  
+
   // Shared form data state to persist data across navigation
   const [sharedFormData, setSharedFormData] = useState<Record<string, any>>({});
-  
+
   // Define the order of forms within this section
-  const formOrder = ['g1', 'g2', 'g3', 'g4'];
+  const formOrder = ["g1", "g2", "g3", "g4"];
   const formTitles = {
-    g1: 'Overview',
-    g2: 'Facilities',
-    g3: 'Assets',
-    g4: 'Processes'
+    g1: "Overview",
+    g2: "Facilities",
+    g3: "Assets",
+    g4: "Processes",
   };
   const fields: ConditionalField[] = [
     {
@@ -63,7 +234,7 @@ const Section4: React.FC<Section4Props> = ({
       placeholder: "Select your primary operating country",
       options: [
         { label: "United Arab Emirates", value: "United Arab Emirates" },
-        { label: "Others", value: "Other" },
+        // { label: "Others", value: "Other" },
       ],
     },
     {
@@ -140,7 +311,9 @@ const Section4: React.FC<Section4Props> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               {selected.length === 0 ? (
-                <span className="text-sm text-gray-500">No countries selected</span>
+                <span className="text-sm text-gray-500">
+                  No countries selected
+                </span>
               ) : (
                 selected.map((c) => (
                   <span
@@ -154,8 +327,18 @@ const Section4: React.FC<Section4Props> = ({
                       className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
                       aria-label={`Remove ${c}`}
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </span>
@@ -508,7 +691,12 @@ const Section4: React.FC<Section4Props> = ({
     },
   ];
   const [partial, setPartial] = React.useState<Record<string, any>>({});
-  const [done, setDone] = React.useState({ g1: false, g2: false, g3: false, g4: false });
+  const [done, setDone] = React.useState({
+    g1: false,
+    g2: false,
+    g3: false,
+    g4: false,
+  });
   const handlePartial = (groupKey: keyof typeof done) => (data: any) => {
     // Save group immediately (per-form update)
     onFormSubmit(data);
@@ -527,14 +715,16 @@ const Section4: React.FC<Section4Props> = ({
       if (Object.keys(currentData).length > 0) {
         onFormSubmit(currentData);
       }
-      
+
       const currentIndex = formOrder.indexOf(currentOpenForm);
       if (currentIndex > 0) {
         const previousFormId = formOrder[currentIndex - 1];
         setCurrentOpenForm(previousFormId);
         // Trigger opening the previous form's modal
         setTimeout(() => {
-          const previousFormElement = document.querySelector(`[data-form-id="${previousFormId}"] button`);
+          const previousFormElement = document.querySelector(
+            `[data-form-id="${previousFormId}"] button`
+          );
           if (previousFormElement) {
             (previousFormElement as HTMLButtonElement).click();
           }
@@ -550,14 +740,16 @@ const Section4: React.FC<Section4Props> = ({
       if (Object.keys(currentData).length > 0) {
         onFormSubmit(currentData);
       }
-      
+
       const currentIndex = formOrder.indexOf(currentOpenForm);
       if (currentIndex < formOrder.length - 1) {
         const nextFormId = formOrder[currentIndex + 1];
         setCurrentOpenForm(nextFormId);
         // Trigger opening the next form's modal
         setTimeout(() => {
-          const nextFormElement = document.querySelector(`[data-form-id="${nextFormId}"] button`);
+          const nextFormElement = document.querySelector(
+            `[data-form-id="${nextFormId}"] button`
+          );
           if (nextFormElement) {
             (nextFormElement as HTMLButtonElement).click();
           }
@@ -570,7 +762,8 @@ const Section4: React.FC<Section4Props> = ({
     const currentIndex = formOrder.indexOf(formId);
     return {
       onPreviousForm: currentIndex > 0 ? handlePreviousForm : undefined,
-      onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
+      onNextForm:
+        currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
       hasPreviousForm: currentIndex > 0,
       hasNextForm: currentIndex < formOrder.length - 1,
       previousFormText: "Previous",
@@ -580,69 +773,123 @@ const Section4: React.FC<Section4Props> = ({
 
   // Handle form data changes to persist across navigation
   const handleFormDataChange = (data: Record<string, any>) => {
-    setSharedFormData(prev => ({ ...prev, ...data }));
+    setSharedFormData((prev) => ({ ...prev, ...data }));
   };
   return (
     <div className="space-y-10">
       {/* {!isCompleted ? ( */}
-        <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
-          <div data-form-id="g1">
-            <WorkingConditionalForm
-              fields={fields.filter(f => ['primaryOperatingCountry','primaryOperating','abroadOperations','operationsCountries','percentageOperations','geographicReportingScope'].includes(f.name))}
-              onSubmit={handlePartial('g1')}
-              submitText={'Save'}
-              title="Overview"
-              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-              initialData={{ ...initialData, ...sharedFormData }}
-              onModalOpen={() => setCurrentOpenForm('g1')}
-              onFormDataChange={handleFormDataChange}
-              externalFormData={sharedFormData}
-              {...getFormNavigationProps('g1')}
-            />
-          </div>
-          <div data-form-id="g2">
-            <WorkingConditionalForm
-              fields={fields.filter(f => ['facilityInventoryAvailable','doYouHaveFacilities','ownedFacilities','typesOfFacilities','haveLeasedFacilities','leasedFacilities','leasedFacilitiesNames','percentageOfDistrictCooling'].includes(f.name))}
-              onSubmit={handlePartial('g2')}
-              submitText={'Save'}
-              title="Facilities"
-              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-              initialData={{ ...initialData, ...sharedFormData }}
-              onModalOpen={() => setCurrentOpenForm('g2')}
-              onFormDataChange={handleFormDataChange}
-              externalFormData={sharedFormData}
-              {...getFormNavigationProps('g2')}
-            />
-          </div>
-          <div data-form-id="g3">
-            <WorkingConditionalForm
-              fields={fields.filter(f => [,'haveMobileAssets','typesOfVehicles','numberOfVehicles','haveStationary','typesOfEquipment','districtCooling'].includes(f.name))}
-              onSubmit={handlePartial('g3')}
-              submitText={'Save'}
-              title="Assets"
-              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-              initialData={{ ...initialData, ...sharedFormData }}
-              onModalOpen={() => setCurrentOpenForm('g3')}
-              onFormDataChange={handleFormDataChange}
-              externalFormData={sharedFormData}
-              {...getFormNavigationProps('g3')}
-            />
-          </div>
-          <div data-form-id="g4">
-            <WorkingConditionalForm
-              fields={fields.filter(f => !['primaryOperatingCountry','primaryOperating','abroadOperations','operationsCountries','percentageOperations','geographicReportingScope','facilityInventoryAvailable','doYouHaveFacilities','ownedFacilities','typesOfFacilities','haveLeasedFacilities','leasedFacilities','leasedFacilitiesNames','haveMobileAssets','typesOfVehicles','numberOfVehicles','haveStationary','typesOfEquipment','districtCooling','percentageOfDistrictCooling'].includes(f.name))}
-              onSubmit={handlePartial('g4')}
-              submitText={'Save'}
-              title="Processes"
-              className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-              initialData={{ ...initialData, ...sharedFormData }}
-              onModalOpen={() => setCurrentOpenForm('g4')}
-              onFormDataChange={handleFormDataChange}
-              externalFormData={sharedFormData}
-              {...getFormNavigationProps('g4')}
-            />
-          </div>
+      <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
+        <div data-form-id="g1">
+          <WorkingConditionalForm
+            fields={fields.filter((f) =>
+              [
+                "primaryOperatingCountry",
+                "primaryOperating",
+                "abroadOperations",
+                "operationsCountries",
+                "percentageOperations",
+                "geographicReportingScope",
+              ].includes(f.name)
+            )}
+            onSubmit={handlePartial("g1")}
+            submitText={"Save"}
+            title="Overview"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={{ ...initialData, ...sharedFormData }}
+            onModalOpen={() => setCurrentOpenForm("g1")}
+            onFormDataChange={handleFormDataChange}
+            externalFormData={sharedFormData}
+            {...getFormNavigationProps("g1")}
+          />
         </div>
+        <div data-form-id="g2">
+          <WorkingConditionalForm
+            fields={fields.filter((f) =>
+              [
+                "facilityInventoryAvailable",
+                "doYouHaveFacilities",
+                "ownedFacilities",
+                "typesOfFacilities",
+                "haveLeasedFacilities",
+                "leasedFacilities",
+                "leasedFacilitiesNames",
+              ].includes(f.name)
+            )}
+            onSubmit={handlePartial("g2")}
+            submitText={"Save"}
+            title="Facilities"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={{ ...initialData, ...sharedFormData }}
+            onModalOpen={() => setCurrentOpenForm("g2")}
+            onFormDataChange={handleFormDataChange}
+            externalFormData={sharedFormData}
+            {...getFormNavigationProps("g2")}
+          />
+        </div>
+        <div data-form-id="g3">
+          <WorkingConditionalForm
+            fields={fields.filter((f) =>
+              [
+                ,
+                "haveMobileAssets",
+                "typesOfVehicles",
+                "numberOfVehicles",
+                "haveStationary",
+                "typesOfEquipment",
+                "districtCooling",
+                "percentageOfDistrictCooling",
+              ].includes(f.name)
+            )}
+            onSubmit={handlePartial("g3")}
+            submitText={"Save"}
+            title="Assets"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={{ ...initialData, ...sharedFormData }}
+            onModalOpen={() => setCurrentOpenForm("g3")}
+            onFormDataChange={handleFormDataChange}
+            externalFormData={sharedFormData}
+            {...getFormNavigationProps("g3")}
+          />
+        </div>
+        <div data-form-id="g4">
+          <WorkingConditionalForm
+            fields={fields.filter(
+              (f) =>
+                ![
+                  "primaryOperatingCountry",
+                  "primaryOperating",
+                  "abroadOperations",
+                  "operationsCountries",
+                  "percentageOperations",
+                  "geographicReportingScope",
+                  "facilityInventoryAvailable",
+                  "doYouHaveFacilities",
+                  "ownedFacilities",
+                  "typesOfFacilities",
+                  "haveLeasedFacilities",
+                  "leasedFacilities",
+                  "leasedFacilitiesNames",
+                  "haveMobileAssets",
+                  "typesOfVehicles",
+                  "numberOfVehicles",
+                  "haveStationary",
+                  "typesOfEquipment",
+                  "districtCooling",
+                  "percentageOfDistrictCooling",
+                ].includes(f.name)
+            )}
+            onSubmit={handlePartial("g4")}
+            submitText={"Save"}
+            title="Processes"
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            initialData={{ ...initialData, ...sharedFormData }}
+            onModalOpen={() => setCurrentOpenForm("g4")}
+            onFormDataChange={handleFormDataChange}
+            externalFormData={sharedFormData}
+            {...getFormNavigationProps("g4")}
+          />
+        </div>
+      </div>
       {/* ) : (
         <div className="p-6 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center space-x-3">

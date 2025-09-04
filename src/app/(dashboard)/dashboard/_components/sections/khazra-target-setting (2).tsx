@@ -43,6 +43,7 @@ const FlexibleTargetPlatform = () => {
   const [editingTarget, setEditingTarget] = useState<any>(null);
 
   const [baselineData, setBaselineData] = useState<any>(null);
+  const [showScope3, setShowScope3] = useState(false);
 
   const [targetData, setTargetData] = useState({
     // Organization Info
@@ -134,7 +135,35 @@ const FlexibleTargetPlatform = () => {
     }
   };
 
+  const fetchGHGData = async () => {
+    try {
+      const response = await getRequest(
+        "ghg-managment/getGhgManagment",
+        getToken()
+      );
+      if (response.success && response.data.ghgManagment) {
+        // Pre-populate form data for edit mode
+        const data = response.data.ghgManagment[0];
+
+        if (data?.ghgProtocolScopes?.length > 0) {
+          if (data?.ghgProtocolScopes?.length === 3) {
+            setShowScope3(true);
+          }
+          safeLocalStorage.setItem(
+            "ghgProtocolScopes",
+            JSON.stringify(data?.ghgProtocolScopes)
+          );
+        } else {
+          safeLocalStorage.removeItem("ghgProtocolScopes");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching GHG data:", error);
+    }
+  };
+
   useEffect(() => {
+    fetchGHGData();
     fetchBaselineData();
   }, []);
 
@@ -400,22 +429,22 @@ const FlexibleTargetPlatform = () => {
 
   function generateNextTwentyYears(startYear: number) {
     // Check if the input is a valid number
-    if (typeof startYear !== 'number' || !Number.isInteger(startYear)) {
+    if (typeof startYear !== "number" || !Number.isInteger(startYear)) {
       console.error("Input must be an integer.");
       return [];
     }
-  
+
     const years = [];
     const currentYear = new Date().getFullYear();
-  
+
     // Ensure the startYear is not in the future relative to the current year
     const effectiveStartYear = Math.min(startYear, currentYear);
-  
+
     // Loop 20 times to generate the next 20 years
     for (let i = 1; i <= 20; i++) {
       years.push(effectiveStartYear + i);
     }
-  
+
     return years;
   }
 
@@ -693,41 +722,43 @@ const FlexibleTargetPlatform = () => {
                   <br />• Heating & cooling
                 </div>
               </div>
-              <div className="border border-green-200 rounded-lg p-4">
-                <div className="flex items-center space-x-3 mb-3">
-                  <input
-                    type="checkbox"
-                    id="scope3"
-                    checked={targetData.scopeCoverage.scope3}
-                    onChange={(e) =>
-                      setTargetData((prev) => ({
-                        ...prev,
-                        scopeCoverage: {
-                          ...prev.scopeCoverage,
-                          scope3: e.target.checked,
-                        },
-                      }))
-                    }
-                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                  />
-                  <Zap className="w-5 h-5 text-green-600" />
-                  <label
-                    htmlFor="scope3"
-                    className="font-medium text-green-900"
-                  >
-                    Scope 3
-                  </label>
+              {showScope3 && (
+                <div className="border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <input
+                      type="checkbox"
+                      id="scope3"
+                      checked={targetData.scopeCoverage.scope3}
+                      onChange={(e) =>
+                        setTargetData((prev) => ({
+                          ...prev,
+                          scopeCoverage: {
+                            ...prev.scopeCoverage,
+                            scope3: e.target.checked,
+                          },
+                        }))
+                      }
+                      className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <Zap className="w-5 h-5 text-green-600" />
+                    <label
+                      htmlFor="scope3"
+                      className="font-medium text-green-900"
+                    >
+                      Scope 3
+                    </label>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    Other indirect emissions in value chain
+                  </p>
+                  <div className="mt-2 text-xs text-green-600">
+                    • Supply chain
+                    <br />
+                    • Business travel
+                    <br />• Product lifecycle
+                  </div>
                 </div>
-                <p className="text-sm text-green-700">
-                  Other indirect emissions in value chain
-                </p>
-                <div className="mt-2 text-xs text-green-600">
-                  • Supply chain
-                  <br />
-                  • Business travel
-                  <br />• Product lifecycle
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Coverage Parameters */}
@@ -793,7 +824,9 @@ const FlexibleTargetPlatform = () => {
                   }
                   className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  {generateNextTwentyYears(parseInt(baselineData?.baselineYear)).map((year) => (
+                  {generateNextTwentyYears(
+                    parseInt(baselineData?.baselineYear)
+                  ).map((year) => (
                     <option key={year} value={year}>
                       {year}
                     </option>

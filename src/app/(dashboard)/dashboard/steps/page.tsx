@@ -68,9 +68,15 @@ export default function StepsPage() {
   const completedCount = completedSteps.size;
   const totalSteps = steps.length;
   const progressPercentage = useMemo(() => {
-    const values = steps.map(s => stepProgress[s.id] ?? (completedSteps.has(s.id) ? 100 : 0));
-    const sum = values.reduce((a, b) => a + b, 0);
-    return Math.round(sum / Math.max(values.length, 1));
+    // Only average across steps that have reported progress or are completed
+    const considered = steps
+      .map(s => ({ id: s.id, value: stepProgress[s.id], completed: completedSteps.has(s.id) }))
+      .filter(s => typeof s.value === 'number' || s.completed);
+
+    if (considered.length === 0) return 0;
+
+    const sum = considered.reduce((acc, s) => acc + (typeof s.value === 'number' ? s.value! : 100), 0);
+    return Math.round(sum / considered.length);
   }, [stepProgress, completedSteps]);
 
     return (
@@ -84,7 +90,7 @@ export default function StepsPage() {
         </div> 
       </GlobalHeader>
       
-      <div className="flex pt-3">
+      <div className="flex pt-12">
         {/* Sidebar */}
         <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen fixed left-0 top-16 z-10">
           {/* Progress Section */}
@@ -104,9 +110,9 @@ export default function StepsPage() {
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-white/80 mt-2">
+              {/* <p className="text-xs text-white/80 mt-2">
                 {completedCount} of {totalSteps} steps completed
-              </p>
+              </p> */}
             </div>
           </div>
 
@@ -186,7 +192,7 @@ export default function StepsPage() {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => router.push('/dashboard')}
-          className="inline-flex items-center px-6 py-3 bg-green-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-white font-medium hover:bg-gray-50"
+          className="inline-flex items-center px-6 py-3 bg-green-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
         >
           <span>Add Later</span>
           <ArrowRight className="w-4 h-4 ml-2" />
