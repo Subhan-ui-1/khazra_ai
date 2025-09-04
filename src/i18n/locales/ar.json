@@ -31,6 +31,36 @@
     "of": "من",
     "completed": "خطوات مكتملة"
   },
+  "sic": {
+    "PS01": "PS01 - عمليات الشرطة وإنفاذ القانون",
+    "PS02": "PS02 - إدارة المرور وسلامة الطرق",
+    "PS03": "PS03 - خدمات الاستجابة للطوارئ",
+    "PS04": "PS04 - خدمات التحقيقات الجنائية",
+    "PS05": "PS05 - سلامة المجتمع والوقاية من الجريمة",
+    "PS06": "PS06 - أمن الحدود ومراقبة الهجرة",
+    "PS07": "PS07 - الأمن السيبراني والجريمة الرقمية",
+    "PS08": "PS08 - مكافحة الإرهاب والأمن القومي",
+    "PS09": "PS09 - الأمن البحري وخفر السواحل",
+    "PS10": "PS10 - أمن الطيران",
+    "PS11": "PS11 - حماية الشخصيات التنفيذية وكبار الشخصيات",
+    "PS12": "PS12 - السجون وخدمات الإصلاح",
+    "SS01": "SS01 - الخدمات الإدارية",
+    "SS02": "SS02 - الموارد البشرية والتدريب",
+    "SS03": "SS03 - خدمات تكنولوجيا المعلومات",
+    "SS04": "SS04 - إدارة الأسطول والنقل",
+    "SS05": "SS05 - إدارة المرافق والصيانة",
+    "SS06": "SS06 - المشتريات وسلسلة التوريد",
+    "SS07": "SS07 - المالية وإعداد الميزانية",
+    "SS08": "SS08 - الشؤون القانونية والامتثال",
+    "SS09": "SS09 - العلاقات العامة والاتصالات",
+    "SS10": "SS10 - البحث والتطوير",
+    "SU01": "SU01 - علوم الطب الشرعي وخدمات المختبرات",
+    "SU02": "SU02 - وحدات الكلاب والشرطة الراكبة",
+    "SU03": "SU03 - قوات التدخل الخاصة (SWAT) والعمليات الخاصة",
+    "SU04": "SU04 - الاستخبارات والمراقبة",
+    "OTHER_SPECIFY": "أخرى (يرجى التحديد)",
+    "DUMMY": "وهمي"
+  },
   "navigation": {
     "dashboard": "لوحة التحكم",
     "home": "الرئيسية",
@@ -173,5 +203,482 @@
     "validation": "يرجى التحقق من إدخالك والمحاولة مرة أخرى.",
     "server": "خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.",
     "timeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى."
+  },
+  "steps": {
+    "sidebar": {
+      "setupProgress": "تقدم الإعداد",
+      "setupSteps": "خطوات الإعداد",
+      "addLater": "الإضافة لاحقاً"
+    },
+    "nav": {
+      "boundary": "الحدود التنظيمية",
+      "ghg": "إدارة الغازات الدفيئة",
+      "baseline": "خط الأساس والتقرير",
+      "addLater": "إضافة لاحقاً"
+    },
+    "boundary": {
+      "step1": { "title": "تفاصيل المنظمة والصناعة", "desc": "قم بتكوين تفاصيل المنظمة والصناعة" },
+      "step2": { "title": "التحكم التنظيمي والملكية", "desc": "حدد التحكم التنظيمي والملكية" },
+      "step3": { "title": "العملات والحدود المالية", "desc": "اختر العملة والحدود المالية" },
+      "step4": { "title": "الحدود الجغرافية والتشغيلية", "desc": "اختر الحدود الجغرافية والتشغيلية" },
+      "validation": {
+        "step1": "يرجى إكمال تكوين تفاصيل المنظمة والصناعة قبل المتابعة",
+        "step2": "يرجى إكمال تكوين التحكم التنظيمي والملكية قبل المتابعة",
+        "step3": "يرجى إكمال تكوين الحدود المالية والعملة قبل المتابعة",
+        "step4": "يرجى إكمال تكوين الحدود المالية والعملة قبل المتابعة"
+      },
+      "loading": "جاري تحميل بيانات تكوين الحدود...",
+      "buttons": {
+        "edit": "تعديل الإعدادات",
+        "cancel": "إلغاء"
+      },
+      "section10": {
+        "primaryFunctionalCurrency": {
+          "label": "العملة الوظيفية الأساسية",
+          "placeholder": "اختر عملتك الوظيفية الأساسية"
+        },
+        "secondaryFunctionalCurrency": {
+          "label": "عملة التقرير الثانوية",
+          "placeholder": "اختر عملة التقرير الثانوية"
+        },
+        "currencyConversionApproach": {
+          "label": "نهج تحويل العملة",
+          "placeholder": "اختر نهج تحويل العملة"
+        },
+        "options": {
+          "aed": "درهم إماراتي - AED",
+          "usd": "دولار أمريكي - USD",
+          "eur": "يورو - EUR",
+          "gbp": "جنيه إسترليني - GBP",
+          "other": "أخرى",
+          "none": "بدون",
+          "avgAnnual": "متوسط أسعار الصرف السنوية",
+          "monthEnd": "أسعار الصرف لنهاية الشهر",
+          "txDate": "أسعار الصرف بتاريخ العملية",
+          "fixedYear": "سعر ثابت للسنة"
+        },
+        "submit": "حفظ ومتابعة",
+        "group": {
+          "financial": "الحدود المالية"
+        }
+      }
+    },
+    "ghg": {
+      "step1": {
+        "title": "نظام إدارة الغازات الدفيئة",
+        "description": "قم بتكوين نهج نظام إدارة الغازات الدفيئة"
+      },
+      "step2": {
+        "title": "مصادر الغازات الدفيئة ونهج القياس",
+        "description": "عرّف مصادر الانبعاثات وطرق القياس"
+      },
+      "step3": {
+        "title": "نطاقات الانبعاثات والفئات",
+        "description": "اختر نطاقات الانبعاثات والفئات للتتبع"
+      },
+      "loading": "جاري تحميل بيانات إدارة الغازات الدفيئة..."
+    },
+    "emissions": {
+      "step1": {
+        "title": "بيانات الانبعاثات",
+        "description": "قم بتكوين بيانات الانبعاثات وتفصيل النطاق"
+      },
+      "step2": {
+        "title": "إعدادات خط الأساس والتقارير",
+        "description": "قم بإعداد سنة الأساس ومعايير التقارير"
+      },
+      "loading": "جاري تحميل بيانات تكوين خط الأساس..."
+    }
+  },
+  "boundarySections": {
+    "section1": {
+      "titles": {
+        "industry": "الصناعة والتصنيف",
+        "businessProfile": "الملف التجاري",
+        "scaleRevenue": "الحجم والإيرادات",
+        "otherDetails": "تفاصيل أخرى"
+      },
+      "fields": {
+        "industrySector": {"label": "قطاع الصناعة", "placeholder": "اختر قطاع الصناعة"},
+        "businessNature": {"label": "طبيعة العمل", "placeholder": "اختر طبيعة عملك"},
+        "primaryBusinessActivities": {"label": "الأنشطة التجارية الرئيسية", "placeholder": "صِف أنشطتك التجارية الرئيسية"},
+        "standardIndustrialClassification": {"label": "رمز التصنيف الصناعي القياسي (SIC)", "placeholder": "اختر رمز التصنيف الصناعي القياسي (SIC)"},
+        "numberOfEmployees": {"label": "عدد الموظفين", "placeholder": "أدخل عدد الموظفين"},
+        "annualRevenue": {"label": "الإيرادات السنوية (درهم)", "placeholder": "أدخل الإيرادات السنوية"},
+        "businessFormationDate": {"label": "تاريخ تأسيس العمل", "placeholder": "اختر تاريخ تأسيس العمل"},
+        "tradeLicenseNumber": {"label": "رقم الرخصة التجارية في الإمارات", "placeholder": "أدخل رقم الرخصة التجارية"},
+        "freeZoneOperationQuestion": {"label": "المنطقة الحرة", "placeholder": "اختر وضع المنطقة الحرة"},
+        "freeZoneOperation": {"label": "اسم المنطقة الحرة", "placeholder": "أدخل اسم المنطقة الحرة"}
+      }
+    }
+    ,
+    "options": {
+      "industrySector": {
+        "energyUtilities": "الطاقة والمرافق",
+        "oilGas": "النفط والغاز",
+        "manufacturing": "التصنيع",
+        "financialServices": "الخدمات المالية",
+        "realEstateConstruction": "العقارات والإنشاءات",
+        "hospitalityTourism": "الضيافة والسياحة",
+        "transportationLogistics": "النقل والخدمات اللوجستية",
+        "technology": "التكنولوجيا",
+        "healthcare": "الرعاية الصحية",
+        "retailConsumer": "البيع بالتجزئة والسلع الاستهلاكية",
+        "agriculture": "الزراعة",
+        "governmentPublic": "القطاع الحكومي/العام",
+        "education": "التعليم",
+        "other": "أخرى"
+      },
+      "businessNature": {
+        "publicListed": "شركة مدرجة",
+        "privateCompany": "شركة خاصة",
+        "publicSector": "جهة حكومية/قطاع عام",
+        "stateOwned": "مؤسسة مملوكة للدولة",
+        "nonProfit": "منظمة غير ربحية",
+        "partnership": "شراكة/مشروع مشترك",
+        "subsidiary": "شركة تابعة/قسم",
+        "freeZone": "منشأة منطقة حرة",
+        "branchOffice": "فرع"
+      },
+      "employees": {
+        "r1": "1-10",
+        "r2": "11-50",
+        "r3": "51-250",
+        "r4": "251-1,000",
+        "r5": "1,001-5,000",
+        "r6": "5,001-10,000",
+        "r7": "10,001+"
+      },
+      "revenue": {
+        "under1m": "أقل من مليون درهم",
+        "m1_10": "1-10 مليون درهم",
+        "m10_50": "10-50 مليون درهم",
+        "m50_250": "50-250 مليون درهم",
+        "m250_1b": "250 مليون - 1 مليار درهم",
+        "b1_5": "1-5 مليار درهم",
+        "over5b": "أكثر من 5 مليارات درهم"
+      },
+      "freeZoneNames": {
+        "n1": "المنطقة الحرة 1",
+        "n2": "المنطقة الحرة 2",
+        "n3": "المنطقة الحرة 3",
+        "n4": "المنطقة الحرة 4",
+        "n5": "المنطقة الحرة 5",
+        "n6": "المنطقة الحرة 6",
+        "n7": "المنطقة الحرة 7"
+      }
+    }
+    ,
+    "section3": {
+      "titles": {
+        "controlOwnership": "التحكم والملكية",
+        "ventures": "المشاريع المشتركة",
+        "franchisedOps": "العمليات بالامتياز",
+        "otherConsiderations": "اعتبارات أخرى"
+      },
+      "fields": {
+        "organizationalControlApproach": {"label": "نهج التحكم التنظيمي", "placeholder": "اختر نهج التحكم التنظيمي"},
+        "legalOwnership": {"label": "الملكية القانونية مقابل التوثيق التشغيلي", "placeholder": "اختر حالة التوثيق القانوني مقابل التشغيلي"},
+        "subsidiariesQuestion": {"label": "هل لديك شركات تابعة؟", "placeholder": "اختر حالة الشركات التابعة"},
+        "subsidiaries": {"label": "كم عدد الشركات التابعة؟", "placeholder": "أدخل عدد الشركات التابعة"},
+        "reportingBoundary": {"label": "هل جميع الشركات التابعة ضمن حدود التقرير؟", "placeholder": "اختر حالة شمول الشركات التابعة"},
+        "assessmentCompleted": {"label": "هل اكتمل تقييم التحكم في الشركات التابعة؟", "placeholder": "اختر حالة اكتمال التقييم"},
+        "controlPercentage": {"label": "اذكر جميع الشركات التابعة مع نسبة التحكم", "placeholder": "أدخل الشركات التابعة مع نسب التحكم"},
+        "jointVentures": {"label": "هل لديك مشاريع مشتركة أو شراكات؟", "placeholder": "اختر حالة المشاريع المشتركة أو الشراكات"},
+        "ventures": {"label": "كم عدد المشاريع المشتركة؟", "placeholder": "أدخل عدد المشاريع المشتركة"},
+        "ownershipPercentage": {"label": "ما هي نسبة الملكية المعتادة لديك؟", "placeholder": "اختر نسبة الملكية"},
+        "ventureAgreements": {"label": "هل تحدد اتفاقيات المشاريع المشتركة مسؤولية الغازات الدفيئة؟", "placeholder": "اختر حالة الاتفاقيات"},
+        "decisionMakingAuthority": {"label": "هل تم توثيق سلطة اتخاذ القرار في الأمور البيئية؟", "placeholder": "اختر حالة التوثيق"},
+        "operateFranchisedLocation": {"label": "هل تدير مواقع بالامتياز؟", "placeholder": "اختر حالة التشغيل بالامتياز"},
+        "franchisee": {"label": "هل أنت مانح الامتياز أم صاحب الامتياز؟", "placeholder": "اختر مانح الامتياز أم صاحب الامتياز"},
+        "franchisedLocations": {"label": "كم عدد المواقع بالامتياز؟", "placeholder": "أدخل عدد المواقع بالامتياز"},
+        "activities": {"label": "هل لديك عمليات مستأجرة أو خدمات خارجية؟", "placeholder": "اختر حالة العمليات المستأجرة أو الخدمات الخارجية"},
+        "leasedOperations": {"label": "ما الأنواع؟", "placeholder": "اختر أنواع الأنشطة", "errorRequired": "مطلوب تحديد أنواع الأنشطة"},
+        "complexOwnershipStructure": {"label": "هل توجد هياكل ملكية معقدة؟", "placeholder": "اختر حالة وجود الهياكل المعقدة"},
+        "ownershipStructures": {"label": "هل تم الحصول على استشارة مهنية لتعريف الحدود؟", "placeholder": "اختر حالة الاستشارة المهنية"},
+        "organizationalStructureExpected": {"label": "هل متوقع تغييرات في الهيكل التنظيمي؟", "placeholder": "اختر إذا كانت التغييرات متوقعة"},
+        "structureExpected": {"label": "هل تم تحديد عملية إدارة التغيير لحدود الغازات الدفيئة؟", "placeholder": "اختر حالة عملية إدارة التغيير"}
+      }
+    }
+    ,
+    "section2": {
+      "titles": { "overview": "نظرة عامة", "training": "التدريب والكفاءة" },
+      "fields": {
+        "existingEnvironmentalManagement": { "label": "هل لديك نظام إدارة بيئية قائم؟", "placeholder": "اختر تكامل نظام الإدارة" },
+        "ghgManagementIntegration": { "label": "نهج تكامل إدارة الغازات الدفيئة", "placeholder": "اختر نهج تكامل إدارة الغازات الدفيئة" },
+        "responsibleOfGHGManagement": { "label": "من المسؤول عن إدارة الغازات الدفيئة؟", "placeholder": "اختر الشخص المسؤول عن إدارة الغازات الدفيئة" },
+        "ghgPolicyEstablishment": { "label": "إرساء سياسة الغازات الدفيئة", "placeholder": "اختر حالة إرساء سياسة الغازات الدفيئة" },
+        "ghgQuantification": { "label": "كفاءة الموظفين في قياس الغازات الدفيئة", "placeholder": "اختر كفاءة الموظفين في القياس" },
+        "trainingAssessment": { "label": "هل اكتمل تقييم احتياجات التدريب؟", "placeholder": "اختر حالة اكتمال تقييم احتياجات التدريب" },
+        "trainingAssessed": { "label": "متى سيتم تقييم احتياجات التدريب؟", "placeholder": "اختر تاريخ تقييم احتياجات التدريب" }
+      }
+    }
+    ,
+    "section4": {
+      "titles": {
+        "overview": "نظرة عامة",
+        "facilities": "المرافق",
+        "assets": "الأصول",
+        "processes": "العمليات"
+      },
+      "ui": {
+        "searchCountries": "ابحث واختر الدول",
+        "noCountriesSelected": "لم يتم اختيار دول"
+      },
+      "fields": {
+        "primaryOperatingCountry": {"label": "الدولة الرئيسية للتشغيل", "placeholder": "اختر الدولة الرئيسية للتشغيل"},
+        "primaryOperating": {"label": "الإمارة الرئيسية للتشغيل", "placeholder": "اختر الإمارة الرئيسية للتشغيل"},
+        "abroadOperations": {"label": "هل لديك عمليات خارج الإمارات؟", "placeholder": "اختر حالة العمليات خارج الإمارات"},
+        "operationsCountries": {"label": "ما هي الدول", "placeholder": "اختر الدول", "errorRequired": "الدول مطلوبة"},
+        "percentageOperations": {"label": "ما نسبة إجمالي العمليات خارج الإمارات؟", "placeholder": "اختر نسبة إجمالي العمليات خارج الإمارات"},
+        "geographicReportingScope": {"label": "نطاق التقارير الجغرافي", "placeholder": "اختر نطاق التقارير الجغرافي"},
+        "facilityInventoryAvailable": {"label": "هل يتوفر جرد كامل للمرافق؟", "placeholder": "اختر حالة جرد المرافق"},
+        "crossBorderActivities": {"label": "توثيق الأنشطة عبر الحدود", "placeholder": "اختر حالة توثيق الأنشطة عبر الحدود"},
+        "doYouHaveFacilities": {"label": "هل لديك مرافق مملوكة؟", "placeholder": "هل لديك مرافق؟"},
+        "ownedFacilities": {"label": "كم عدد المرافق المملوكة؟", "placeholder": "أدخل عدد المرافق المملوكة"},
+        "typesOfFacilities": {"label": "ما أنواع المرافق المملوكة؟", "placeholder": "اختر أنواع المرافق المملوكة", "errorRequired": "مطلوب تحديد أنواع المرافق"},
+        "haveLeasedFacilities": {"label": "هل لديك مرافق مؤجرة؟", "placeholder": "اختر حالة المرافق المؤجرة"},
+        "leasedFacilities": {"label": "كم عدد المرافق المؤجرة؟", "placeholder": "أدخل عدد المرافق المؤجرة"},
+        "leasedFacilitiesNames": {"label": "هل تدفع تكاليف الخدمات للمرافق المؤجرة؟", "placeholder": "اختر الكيفية"},
+        "haveMobileAssets": {"label": "هل لديك أصول متنقلة (مركبات)؟", "placeholder": "اختر حالة الأصول المتنقلة"},
+        "typesOfVehicles": {"label": "ما أنواع المركبات؟", "placeholder": "اختر أنواع المركبات", "errorRequired": "مطلوب تحديد أنواع المركبات"},
+        "numberOfVehicles": {"label": "ما العدد التقريبي للمركبات؟", "placeholder": "أدخل العدد التقريبي للمركبات"},
+        "haveStationary": {"label": "هل لديك معدات ثابتة؟", "placeholder": "اختر حالة المعدات الثابتة"},
+        "typesOfEquipment": {"label": "ما أنواع المعدات؟", "placeholder": "اختر أنواع المعدات", "errorRequired": "مطلوب تحديد أنواع المعدات"},
+        "districtCooling": {"label": "هل تستخدم تبريد المناطق؟", "placeholder": "اختر حالة تبريد المناطق"},
+        "percentageOfDistrictCooling": {"label": "ما النسبة من احتياجات التبريد؟", "placeholder": "اختر النسبة من احتياجات التبريد"},
+        "emissionGeneratingActivities": {"label": "هل تم تحديد جميع الأنشطة المولدة للانبعاثات؟", "placeholder": "اختر حالة الأنشطة المولدة للانبعاثات"},
+        "activityDataCollection": {"label": "هل توجد أنظمة لجمع بيانات الأنشطة؟", "placeholder": "اختر حالة أنظمة جمع البيانات"}
+      }
+    }
+    ,
+    "section5": {
+      "titles": {
+        "core": "مصادر الغازات الدفيئة والقياس — الأساسي",
+        "removals": "إزالة الغازات الدفيئة",
+        "biogenic": "الانبعاثات الحيوية"
+      },
+      "fields": {
+        "ghgSourceInventory": {"label": "اكتمال جرد مصادر الغازات الدفيئة", "placeholder": "اختر حالة اكتمال جرد المصادر"},
+        "quantificationApproach": {"label": "اختيار نهج القياس", "placeholder": "اختر نهج القياس"},
+        "emissionFactorsSelectionCriteria": {"label": "معايير اختيار عوامل الانبعاث", "placeholder": "اختر معايير اختيار عوامل الانبعاث"},
+        "directMeasurementCapabilities": {"label": "قدرات القياس المباشر", "placeholder": "اختر قدرات القياس المباشر", "errorRequired": "مطلوب تحديد قدرات القياس المباشر"},
+        "haveGHGRemoval": {"label": "هل لديك أنشطة إزالة أو تخزين للغازات الدفيئة؟", "placeholder": "اختر حالة الإزالة أو التخزين"},
+        "ghgRemovals": {"label": "ما أنواع الإزالة/التخزين؟", "placeholder": "اختر أنواع الإزالة/التخزين", "errorRequired": "مطلوب تحديد أنواع الإزالة/التخزين"},
+        "approachForRemovals": {"label": "نهج القياس للإزالة؟", "placeholder": "اختر نهج القياس للإزالة"},
+        "biogenicEmissionsPresent": {"label": "هل توجد انبعاثات حيوية؟", "placeholder": "اختر حالة وجود الانبعاثات الحيوية"},
+        "biogenicEmissionSources": {"label": "ما مصادر الانبعاثات الحيوية؟", "placeholder": "اختر مصادر الانبعاثات الحيوية", "errorRequired": "مطلوب تحديد مصادر الانبعاثات الحيوية"},
+        "biogenicEmissionsPlanned": {"label": "هل التخطيط لتتبع منفصل للانبعاثات الحيوية؟", "placeholder": "اختر حالة التخطيط للتتبع المنفصل"}
+      }
+    }
+    ,
+    "section6": {
+      "titles": {
+        "selection": "نطاقات الانبعاثات — الاختيار",
+        "scope1": "النطاق 1 — الانبعاثات المباشرة",
+        "scope2": "النطاق 2 — الطاقة المشتراة",
+        "scope3": "النطاق 3 — انبعاثات سلسلة القيمة"
+      },
+      "fields": {
+        "ghgProtocolScopes": {"label": "ما نطاقات بروتوكول الغازات الدفيئة التي ستتتبعها؟", "placeholder": "اختر نطاقات بروتوكول الغازات الدفيئة"},
+        "directGHGEmissions": {"label": "انبعاثات الغازات الدفيئة المباشرة (الفئة 1/النطاق 1)", "placeholder": "اختر الانبعاثات المباشرة", "errorRequired": "مطلوب تحديد الانبعاثات المباشرة"},
+        "indirectGHGEmissions": {"label": "انبعاثات الغازات الدفيئة غير المباشرة من الطاقة المستوردة (الفئة 2/النطاق 2)", "placeholder": "اختر الانبعاثات غير المباشرة", "errorRequired": "مطلوب تحديد الانبعاثات غير المباشرة"},
+        "electricitySupplyMethod": {"label": "طريقة تزويد الكهرباء", "placeholder": "اختر طريقة تزويد الكهرباء"},
+        "indirectGHGEmissionsFromTransportation": {"label": "الانبعاثات غير المباشرة من النقل (الفئة 3)", "placeholder": "اختر الانبعاثات غير المباشرة من النقل", "errorRequired": "مطلوب تحديد الانبعاثات غير المباشرة من النقل"},
+        "indirectGHGEmissionsFromProducts": {"label": "الانبعاثات غير المباشرة من المنتجات المستخدمة في المنظمة (الفئة 4)", "placeholder": "اختر الانبعاثات غير المباشرة من المنتجات", "errorRequired": "مطلوب تحديد الانبعاثات غير المباشرة من المنتجات"},
+        "indirectGHGEmissionsAssociated": {"label": "الانبعاثات غير المباشرة المرتبطة باستخدام منتجات المنظمة (الفئة 5)", "placeholder": "اختر الانبعاثات غير المباشرة المرتبطة باستخدام المنتجات", "errorRequired": "مطلوب تحديد الانبعاثات غير المباشرة المرتبطة بالاستخدام"},
+        "indirectGHGEmissionsFromOtherSources": {"label": "الانبعاثات غير المباشرة من مصادر أخرى (الفئة 6)", "placeholder": "اختر الانبعاثات غير المباشرة من مصادر أخرى", "errorRequired": "مطلوب تحديد الانبعاثات غير المباشرة من مصادر أخرى"},
+        "relevantCategories": {"label": "ما فئات النطاق 3 ذات الصلة بعملك؟", "placeholder": "اختر الفئات ذات الصلة", "errorRequired": "مطلوب تحديد الفئات ذات الصلة"}
+      }
+    }
+    ,
+    "section9": {
+      "titles": {
+        "core": "خط الأساس والتقارير — أساسي",
+        "additional": "خط الأساس والتقارير — إضافي"
+      },
+      "fields": {
+        "baselineDataCompleteness": {"label": "اكتمال بيانات خط الأساس", "placeholder": "اختر اكتمال بيانات خط الأساس"},
+        "baselineYearSelectionCriteria": {"label": "معايير اختيار سنة الأساس", "placeholder": "اختر معايير اختيار سنة الأساس", "errorRequired": "مطلوب تحديد معايير اختيار سنة الأساس"},
+        "baselineRecalculationPolicy": {"label": "سياسة إعادة حساب خط الأساس", "placeholder": "اختر سياسة إعادة الحساب"},
+        "baselineRecalculationTriggers": {"label": "محفزات إعادة حساب خط الأساس", "placeholder": "اختر محفزات إعادة الحساب", "errorRequired": "مطلوب تحديد محفزات إعادة الحساب"},
+        "changeManagementProcessEstablished": {"label": "هل يوجد إجراء لإدارة التغيير؟", "placeholder": "اختر حالة إجراء إدارة التغيير"},
+        "financialYearPeriodStart": {"label": "تاريخ بداية السنة المالية", "placeholder": "اختر تاريخ بداية السنة المالية", "errorFuture": "لا يمكن أن يتجاوز تاريخ البدء {years} سنوات في المستقبل", "errorBeforeEnd": "يجب أن يكون تاريخ البدء قبل تاريخ الانتهاء", "errorRange": "لا يمكن أن يتجاوز تاريخ الانتهاء {years} سنوات بعد تاريخ البدء"},
+        "financialYearPeriodEnd": {"label": "تاريخ نهاية السنة المالية", "placeholder": "اختر تاريخ نهاية السنة المالية", "errorFuture": "لا يمكن أن يتجاوز تاريخ الانتهاء {years} سنوات في المستقبل", "errorAfterStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء", "errorRange": "لا يمكن أن يتجاوز تاريخ الانتهاء {years} سنوات بعد تاريخ البدء"},
+        "environmentalReportingPeriod": {"label": "فترة التقرير البيئي", "placeholder": "اختر فترة التقرير البيئي"},
+        "dataCollectionFrequency": {"label": "تكرار جمع البيانات", "placeholder": "اختر تكرار جمع البيانات"},
+        "historicalDataRetentionPeriod": {"label": "فترة الاحتفاظ بالبيانات التاريخية", "placeholder": "اختر فترة الاحتفاظ بالبيانات التاريخية"},
+        "dataArchivingAndRetrievalSystem": {"label": "نظام أرشفة واسترجاع البيانات", "placeholder": "اختر نظام الأرشفة والاسترجاع"}
+      }
+    }
+  },
+  "overview": {
+    "header": {
+      "title": "نظرة عامة على لوحة الاستدامة",
+      "subtitle": "عرض شامل لأداء الاستدامة في منظمتك عبر جميع المقاييس البيئية والاجتماعية والحوكمة مع بيانات فورية ورؤى قابلة للتنفيذ."
+    },
+    "metrics": {
+      "totalEmissions": {
+        "title": "إجمالي الانبعاثات",
+        "subtitle": "أطنان مكافئ ثاني أكسيد الكربون • جميع النطاقات",
+        "onTrack": "▲ على المسار لعام 2025"
+      },
+      "baselineTargets": {
+        "title": "أهداف خط الأساس",
+        "subtitle": "مدققة ومُتحقَّق منها",
+        "improvement": "▲ تحسن بنسبة {value}%"
+      },
+      "targetProgress": {
+        "title": "تقدم الأهداف",
+        "subtitle": "أهداف SBTi • قبل شهرين",
+        "onTrack": "▲ على المسار لعام 2025"
+      },
+      "dataQuality": {
+        "title": "جودة البيانات",
+        "subtitle": "مدققة ومُتحقَّق منها",
+        "improvement": "▲ تحسن بنسبة {value}%"
+      }
+    },
+    "charts": {
+      "emissionTrends": "📊 اتجاهات الانبعاثات حسب النطاق",
+      "byVehicle": "🔥 الانبعاثات حسب المركبات",
+      "byEquipments": "🔥 الانبعاثات حسب المعدات",
+      "byFacility": "📊 الانبعاثات حسب المرفق",
+      "complianceStatus": "🥇 حالة الامتثال"
+    },
+    "scopes": {
+      "scope1": {
+        "title": "انبعاثات النطاق 1",
+        "subtitle": "انبعاثات مباشرة من مصادر مملوكة",
+        "stationary": "الاحتراق الثابت",
+        "mobile": "الاحتراق المتنقل",
+        "fugitive": "انبعاثات هاربة",
+        "process": "انبعاثات العمليات"
+      },
+      "scope2": {
+        "title": "انبعاثات النطاق 2",
+        "subtitle": "انبعاثات غير مباشرة للطاقة",
+        "purchasedElectricity": "كهرباء مشتراة",
+        "purchasedSteam": "بخار مشتراة"
+      }
+    },
+    "activities": {
+      "title": "أحدث أنشطة الاستدامة",
+      "empty": "لا توجد أنشطة حديثة",
+      "columns": {
+        "date": "التاريخ",
+        "activity": "النشاط",
+        "scope": "النطاق",
+        "impact": "الأثر",
+        "status": "الحالة"
+      },
+      "status": {
+        "completed": "مكتمل"
+      },
+      "impact": {
+        "high": "عالي",
+        "medium": "متوسط",
+        "low": "منخفض"
+      }
+    },
+    "cta": {
+      "badge": "مرحباً بك في مركز الاستدامة",
+      "title": "ابدأ رحلتك نحو الكربون المنخفض",
+      "desc": "حوّل أثر منظمتك البيئي عبر تتبع ذكي ورؤى جميلة وتقارير استدامة قابلة للتنفيذ.",
+      "stationary": {
+        "title": "الاحتراق الثابت",
+        "subtitle": "المباني والمرافق والمعدات",
+        "description":"تتبع الانبعاثات من المباني والمرافق والمعدات. مثالي للمباني والمصانع والمصانع.",
+        "add": "أضف الاحتراق الثابت"
+      },
+      "mobile": {
+        "title": "الاحتراق المتنقل",
+        "subtitle": "المركبات والنقل والأسطول",
+        "description":"تتبع الانبعاثات من المركبات والشاحنات والأسطول. ضروري لشركات الملاحة والمنظمات التي تملك أسطول مركبات.",
+        "add": "أضف الاحتراق المتنقل"
+      },
+      "features": {
+        "insights": { "title": "رؤى فورية", "desc": "مقاييس واتجاهات مباشرة تتحدث مع إضافة البيانات" },
+        "guided": { "title": "إعداد موجّه", "desc": "معالج بخطوات بسيطة يستغرق دقائق" },
+        "reports": { "title": "تقارير جميلة", "desc": "لوحات جاهزة للتصدير يسعد فريقك بمشاركتها" },
+        "security": { "title": "أمان على مستوى المؤسسة", "desc": "أمان بمستوى البنوك يتوسع مع منظمتك" }
+      },
+      "help": "تحتاج مساعدة للبدء؟ فريقنا هنا لدعمك."
+    }
+  },
+  "welcome": {
+    "titlePrefix": "مرحباً، ",
+    "description": "أنشئ برنامجاً موثوقاً للمناخ: قم بتكوين الحدود، وتحديد خطوط الأساس، وإدارة الانبعاثات عبر سير عمل حديث ومتوافق.",
+    "ctaStart": "ابدأ رحلتك نحو الاستدامة",
+    "ctaDashboard": "اذهب إلى لوحة التحكم",
+    "stats": {
+      "reporting": "التقارير",
+      "iso": "ISO و IFRS S1-S2",
+      "materiality": "الأهمية النسبية",
+      "today": "اليوم",
+      "compliance": "الامتثال",
+      "onTrack": "على المسار"
+    },
+    "nextStep": {
+      "title": "الخطوة التالية",
+      "finalizeBaseline": "إكمال مدخلات خط الأساس"
+    },
+    "tags": {
+      "scope1": "النطاق 1",
+      "scope2": "النطاق 2",
+      "reporting": "التقارير"
+    },
+    "grid": {
+      "boundaries": {
+        "title": "الحدود التنظيمية",
+        "desc": "حدد الحدود الجغرافية والتشغيلية والمالية لتحديد نطاق الانبعاثات.",
+        "configure": "إعداد"
+      },
+      "ghg": {
+        "title": "إدارة الغازات الدفيئة",
+        "desc": "حدد السياسات والتدريب وممارسات الجرد لحوكمة قوية للغازات الدفيئة.",
+        "configure": "إعداد"
+      },
+      "baseline": {
+        "title": "خط الأساس والتقارير",
+        "desc": "اختر سنة الأساس وحدد فترات التقارير وأدخل البيانات بحسب النطاق.",
+        "configure": "إعداد"
+      }
+    },
+    "tips": {
+      "title": "نصائح للبدء",
+      "list1": "أكمل إعداد المنظمة لتخصيص الحدود وخطوط الأساس.",
+      "list2": "استخدم \"وضع اختيار الإدخال\" ليتوافق مع طريقة تتبع الانبعاثات لديك.",
+      "list3": "احفظ كل خطوة للحفاظ على تقدمك وتمكين الاستمرارية بين الخطوات."
+    },
+    "help": {
+      "title": "تحتاج مساعدة؟",
+      "desc": "يمكن لوثائقنا ودعمنا إرشادك خلال الإعداد والتقارير.",
+      "docs": "الوثائق",
+      "contact": "اتصل بالدعم"
+    }
+  }
+  ,
+  "emissionsSetup": {
+    "titles": {
+      "baselineSetup": "إعداد خط الأساس",
+      "emissionConfiguration": "تكوين الانبعاثات"
+    },
+    "fields": {
+      "baselineYear": { "label": "سنة خط الأساس لتتبع الانبعاثات", "placeholder": "اختر سنة خط الأساس" },
+      "reasonChooseBaselineYear": { "label": "لماذا اخترت هذه السنة كخط أساس؟", "placeholder": "اختر سبب سنة خط الأساس" },
+      "baselineCategory": { "label": "اختر وضع الإدخال", "placeholder": "اختر وضع الإدخال" },
+      "scope1TotalEmissions": { "label": "إجمالي انبعاثات النطاق 1 (tCO2e)" },
+      "scope2TotalEmissions": { "label": "إجمالي انبعاثات النطاق 2 (tCO2e)" },
+      "scope1Stationary": { "label": "النطاق 1 - الثابت (tCO2e)" },
+      "scope1Mobile": { "label": "النطاق 1 - المتنقل (tCO2e)" },
+      "scope2PurchasedElectricity": { "label": "النطاق 2 - الكهرباء المشتراة (tCO2e)" },
+      "scope2Heating": { "label": "النطاق 2 - التدفئة (tCO2e)" },
+      "scope2Cooling": { "label": "النطاق 2 - التبريد (tCO2e)" },
+      "scope2Steam": { "label": "النطاق 2 - البخار (tCO2e)" },
+      "facilitiesTotal": { "label": "إجمالي المرافق" },
+      "equipmentTotal": { "label": "إجمالي المعدات" },
+      "vehiclesTotal": { "label": "إجمالي المركبات" }
+    }
   }
 }

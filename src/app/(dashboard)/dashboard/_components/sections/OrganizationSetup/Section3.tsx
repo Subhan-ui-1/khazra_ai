@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
+import { useI18n } from "@/i18n/context";
 
 interface Section3Props {
   onFormSubmit: (data: any) => void;
@@ -13,6 +14,7 @@ const Section3: React.FC<Section3Props> = ({
   isCompleted,
   initialData = {},
 }) => {
+  const { t, locale } = useI18n();
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
   
@@ -22,10 +24,10 @@ const Section3: React.FC<Section3Props> = ({
   // Define the order of forms within this section
   const formOrder = ['g1', 'g2', 'g3', 'g4'];
   const formTitles = {
-    g1: 'Control & Ownership',
-    g2: 'Ventures',
-    g3: 'Franchised Operations',
-    g4: 'Other Considerations'
+    g1: t('boundarySections.section3.titles.controlOwnership'),
+    g2: t('boundarySections.section3.titles.ventures'),
+    g3: t('boundarySections.section3.titles.franchisedOps'),
+    g4: t('boundarySections.section3.titles.otherConsiderations')
   };
   // organizationalControlApproach,
   // legalOwnership,
@@ -45,10 +47,10 @@ const Section3: React.FC<Section3Props> = ({
   const fields: ConditionalField[] = [
     {
       name: "organizationalControlApproach",
-      label: "Organizational control Approach",
+      label: t('boundarySections.section3.fields.organizationalControlApproach.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your organizational control",
+      placeholder: t('boundarySections.section3.fields.organizationalControlApproach.placeholder'),
       options: [
         {
           label:
@@ -72,11 +74,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "legalOwnership",
-      label: "Legal ownership vs operational control documentation",
+      label: t('boundarySections.section3.fields.legalOwnership.label'),
       type: "dropdown",
       required: true,
-      placeholder:
-        "Select your legal ownership vs operational control documentation",
+      placeholder: t('boundarySections.section3.fields.legalOwnership.placeholder'),
       options: [
         {
           label: "Full legal documentation available",
@@ -98,10 +99,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "subsidiariesQuestion",
-      label: "Do you have subsidiaries?",
+      label: t('boundarySections.section3.fields.subsidiariesQuestion.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your subsidiaries",
+      placeholder: t('boundarySections.section3.fields.subsidiariesQuestion.placeholder'),
       options: [
         { label: "Yes", value: 'Yes' },
         { label: "No", value: 'No' },
@@ -109,19 +110,19 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "subsidiaries",
-      label: "How many subsidiaries?",
+      label: t('boundarySections.section3.fields.subsidiaries.label'),
       type: "number",
       required: true,
-      placeholder: "Enter the number of subsidiaries",
+      placeholder: t('boundarySections.section3.fields.subsidiaries.placeholder'),
       showWhen: [{ field: "subsidiariesQuestion", value: 'Yes' }],
       min: 0,
     },
     {
       name: "reportingBoundary",
-      label: "Are all subsidiaries included in reporting boundary?",
+      label: t('boundarySections.section3.fields.reportingBoundary.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your included in reporting boundary",
+      placeholder: t('boundarySections.section3.fields.reportingBoundary.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -131,10 +132,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "assessmentCompleted",
-      label: "Subsidiary control assessment completed?",
+      label: t('boundarySections.section3.fields.assessmentCompleted.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your subsidiary control assessment completed",
+      placeholder: t('boundarySections.section3.fields.assessmentCompleted.placeholder'),
       options: [
         { label: "Yes", value: 'true'  },
         { label: "No", value: 'false' },
@@ -143,10 +144,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "controlPercentage",
-      label: "List all subsidiaries with control percentage",
+      label: t('boundarySections.section3.fields.controlPercentage.label'),
       type: "textarea",
       required: true,
-      placeholder: "Enter the subsidiaries with control percentage",
+      placeholder: t('boundarySections.section3.fields.controlPercentage.placeholder'),
       showWhen: [
         { field: "subsidiariesQuestion", value: "Yes" },
         { field: "assessmentCompleted", value: true },
@@ -154,10 +155,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "jointVentures",
-      label: "Do you have joint ventures or partnerships?",
+      label: t('boundarySections.section3.fields.jointVentures.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your joint ventures or partnerships",
+      placeholder: t('boundarySections.section3.fields.jointVentures.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -165,19 +166,19 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "ventures",
-      label: "How many joint ventures?",
+      label: t('boundarySections.section3.fields.ventures.label'),
       type: "number",
       required: true,
-      placeholder: "Enter the number of joint ventures",
+      placeholder: t('boundarySections.section3.fields.ventures.placeholder'),
       showWhen: [{ field: "jointVentures", value: "Yes" }],
       min: 0,
     },
     {
       name: "ownershipPercentage",
-      label: "Your typical ownership percentage?",
+      label: t('boundarySections.section3.fields.ownershipPercentage.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your ownership percentage",
+      placeholder: t('boundarySections.section3.fields.ownershipPercentage.placeholder'),
       options: [
         { label: "<25%", value: "<25%" },
         { label: "25-50%", value: "25-50%" },
@@ -189,11 +190,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "ventureAgreements",
-      label: "Joint venture agreements specify GHG responsibility?",
+      label: t('boundarySections.section3.fields.ventureAgreements.label'),
       type: "dropdown",
       required: true,
-      placeholder:
-        "Select your joint venture agreements specify GHG responsibility",
+      placeholder: t('boundarySections.section3.fields.ventureAgreements.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -204,11 +204,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "decisionMakingAuthority",
-      label: "Decision-making authority for environmental matters documented?",
+      label: t('boundarySections.section3.fields.decisionMakingAuthority.label'),
       type: "dropdown",
       required: true,
-      placeholder:
-        "Select your decision-making authority for environmental matters documented",
+      placeholder: t('boundarySections.section3.fields.decisionMakingAuthority.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -218,10 +217,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "operateFranchisedLocation",
-      label: "Do you operate franchised locations?",
+      label: t('boundarySections.section3.fields.operateFranchisedLocation.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your operate franchised locations",
+      placeholder: t('boundarySections.section3.fields.operateFranchisedLocation.placeholder'),
       options: [
         { label: "Yes", value: 'true' },
         { label: "No", value: 'false' },
@@ -229,10 +228,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "franchisee",
-      label: "Are you the franchisor or franchisee?",
+      label: t('boundarySections.section3.fields.franchisee.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your franchisor or franchisee",
+      placeholder: t('boundarySections.section3.fields.franchisee.placeholder'),
       options: [
         { label: "Franchisor", value: 'false' },
         { label: "Franchisee", value: 'true' },
@@ -241,19 +240,19 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "franchisedLocations",
-      label: "How many franchised locations?",
+      label: t('boundarySections.section3.fields.franchisedLocations.label'),
       type: "number",
       required: true,
-      placeholder: "Enter the number of franchised locations",
+      placeholder: t('boundarySections.section3.fields.franchisedLocations.placeholder'),
       showWhen: [{ field: "operateFranchisedLocation", value: true }],
       min: 0,
     },
     {
       name: "activities",
-      label: "Do you have leased operations or outsourced activities?",
+      label: t('boundarySections.section3.fields.activities.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your leased operations or outsourced activities",
+      placeholder: t('boundarySections.section3.fields.activities.placeholder'),
       options: [
         { label: "Yes", value: 'true' },
         { label: "No", value: 'false' },
@@ -261,10 +260,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "leasedOperations",
-      label: "What types?",
+      label: t('boundarySections.section3.fields.leasedOperations.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the types of activities",
+      placeholder: t('boundarySections.section3.fields.leasedOperations.placeholder'),
       options: [
         { label: "Manufacturing", value: "Manufacturing" },
         { label: "Logistics", value: "Logistics" },
@@ -276,7 +275,7 @@ const Section3: React.FC<Section3Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Types of activities is required";
+            return t('boundarySections.section3.fields.leasedOperations.errorRequired', 'Types of activities is required');
           } else {
             return null;
           }
@@ -285,10 +284,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "complexOwnershipStructure",
-      label: "Complex ownership structures present?",
+      label: t('boundarySections.section3.fields.complexOwnershipStructure.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your complex ownership structures present",
+      placeholder: t('boundarySections.section3.fields.complexOwnershipStructure.placeholder'),
       options: [
         { label: "Yes", value: 'true' },
         { label: "No", value: 'false' },
@@ -296,11 +295,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "ownershipStructures",
-      label: "Professional advice obtained for boundary definition?",
+      label: t('boundarySections.section3.fields.ownershipStructures.label'),
       type: "dropdown",
       required: true,
-      placeholder:
-        "Select your professional advice obtained for boundary definition",
+      placeholder: t('boundarySections.section3.fields.ownershipStructures.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -310,10 +308,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "organizationalStructureExpected",
-      label: "Changes in organizational structure expected?",
+      label: t('boundarySections.section3.fields.organizationalStructureExpected.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your changes in organizational structure expected",
+      placeholder: t('boundarySections.section3.fields.organizationalStructureExpected.placeholder'),
       options: [
         { label: "Yes", value: 'true' },
         { label: "No", value: 'false' },
@@ -321,11 +319,10 @@ const Section3: React.FC<Section3Props> = ({
     },
     {
       name: "structureExpected",
-      label: "Change management process for GHG boundaries defined?",
+      label: t('boundarySections.section3.fields.structureExpected.label'),
       type: "dropdown",
       required: true,
-      placeholder:
-        "Select your change management process for GHG boundaries defined",
+      placeholder: t('boundarySections.section3.fields.structureExpected.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -419,7 +416,7 @@ const Section3: React.FC<Section3Props> = ({
               fields={fields.filter(f => ['organizationalControlApproach','legalOwnership','subsidiariesQuestion','subsidiaries','reportingBoundary','assessmentCompleted','controlPercentage'].includes(f.name))}
               onSubmit={handlePartial('g1')}
               submitText={done.g1 ? 'Saved' : 'Save'}
-              title="Control & Ownership"
+              title={t('boundarySections.section3.titles.controlOwnership')}
               className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
               initialData={{ ...initialData, ...sharedFormData }}
               onModalOpen={() => setCurrentOpenForm('g1')}
@@ -433,7 +430,7 @@ const Section3: React.FC<Section3Props> = ({
               fields={fields.filter(f => ['jointVentures','ventures','ownershipPercentage','ventureAgreements','decisionMakingAuthority'].includes(f.name))}
               onSubmit={handlePartial('g2')}
               submitText={done.g2 ? 'Saved' : 'Save'}
-              title="Ventures"
+              title={t('boundarySections.section3.titles.ventures')}
               className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
               initialData={{ ...initialData, ...sharedFormData }}
               onModalOpen={() => setCurrentOpenForm('g2')}
@@ -447,7 +444,7 @@ const Section3: React.FC<Section3Props> = ({
               fields={fields.filter(f => ['operateFranchisedLocation','franchisee','franchisedLocations'].includes(f.name))}
               onSubmit={handlePartial('g3')}
               submitText={done.g3 ? 'Saved' : 'Save'}
-              title="Franchised Operations"
+              title={t('boundarySections.section3.titles.franchisedOps')}
               className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
               initialData={{ ...initialData, ...sharedFormData }}
               onModalOpen={() => setCurrentOpenForm('g3')}
@@ -461,7 +458,7 @@ const Section3: React.FC<Section3Props> = ({
               fields={fields.filter(f => ['activities','leasedOperations','complexOwnershipStructure','ownershipStructures','organizationalStructureExpected','structureExpected'].includes(f.name))}
               onSubmit={handlePartial('g4')}
               submitText={done.g4 ? 'Saved' : 'Save'}
-              title="Other Considerations"
+              title={t('boundarySections.section3.titles.otherConsiderations')}
               className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
               initialData={{ ...initialData, ...sharedFormData }}
               onModalOpen={() => setCurrentOpenForm('g4')}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
+import { useI18n } from "@/i18n/context";
 
 const today = new Date();
 
@@ -28,6 +29,7 @@ interface Section2Props {
 }
 
 const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
+  const { t, locale } = useI18n();
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
   
@@ -37,16 +39,16 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
   // Define the order of forms within this section
   const formOrder = ['overview', 'training'];
   const formTitles = {
-    overview: 'Overview',
-    training: 'Training & Competence'
+    overview: t('boundarySections.section2.titles.overview'),
+    training: t('boundarySections.section2.titles.training')
   };
   const fields: ConditionalField[] = [
     {
       name: "existingEnvironmentalManagement",
-      label: "Do you have an existing environmental management system?",
+      label: t('boundarySections.section2.fields.existingEnvironmentalManagement.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your management system integration",
+      placeholder: t('boundarySections.section2.fields.existingEnvironmentalManagement.placeholder'),
       options: [
         {
           label: "ISO 14001 certified system",
@@ -69,10 +71,10 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "ghgManagementIntegration",
-      label: "GHG management integration approach",
+      label: t('boundarySections.section2.fields.ghgManagementIntegration.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your GHG management integration approach",
+      placeholder: t('boundarySections.section2.fields.ghgManagementIntegration.placeholder'),
       options: [
         {
           label: "Integrate with existing environmental management system",
@@ -94,10 +96,10 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "responsibleOfGHGManagement",
-      label: "Who is responsible for GHG management?",
+      label: t('boundarySections.section2.fields.responsibleOfGHGManagement.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the person responsible for GHG management",
+      placeholder: t('boundarySections.section2.fields.responsibleOfGHGManagement.placeholder'),
       options: [
         {
           label: "Senior management (C-level)",
@@ -115,10 +117,10 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "ghgPolicyEstablishment",
-      label: "GHG Policy Establishment",
+      label: t('boundarySections.section2.fields.ghgPolicyEstablishment.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your GHG policy establishment",
+      placeholder: t('boundarySections.section2.fields.ghgPolicyEstablishment.placeholder'),
       options: [
         {
           label: "Formal GHG policy already exists",
@@ -139,10 +141,10 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
     // Next subsection from here.
     {
       name: "ghgQuantification",
-      label: "Staff competence for GHG quantification",
+      label: t('boundarySections.section2.fields.ghgQuantification.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your staff competence for GHG quantification",
+      placeholder: t('boundarySections.section2.fields.ghgQuantification.placeholder'),
       options: [
         {
           label: "Internal staff fully trained",
@@ -165,10 +167,10 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "trainingAssessment",
-      label: "Training needs assessment completed?",
+      label: t('boundarySections.section2.fields.trainingAssessment.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your training needs assessment completed",
+      placeholder: t('boundarySections.section2.fields.trainingAssessment.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -176,10 +178,10 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "trainingAssessed",
-      label: "When will training needs be assessed?",
+      label: t('boundarySections.section2.fields.trainingAssessed.label'),
       type: "date",
       required: true,
-      placeholder: "Select the date when training needs will be assessed",
+      placeholder: t('boundarySections.section2.fields.trainingAssessed.placeholder'),
       validation: {
         min: todayFormatted as any,
         max: sixMonthsAgoFormatted,
@@ -247,8 +249,8 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
       onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
       hasPreviousForm: currentIndex > 0,
       hasNextForm: currentIndex < formOrder.length - 1,
-      previousFormText: "Previous",
-      nextFormText: "Next",
+      previousFormText: t('common.previous'),
+      nextFormText: t('common.next'),
     };
   };
 
@@ -263,6 +265,7 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
       <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
       <div data-form-id="overview">
         <WorkingConditionalForm
+          key={`overview-${locale}`}
           fields={fields.filter(f => [
             'existingEnvironmentalManagement',
             'ghgManagementIntegration',
@@ -270,8 +273,8 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
             'ghgPolicyEstablishment',
           ].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Overview"
+          submitText={t('common.save')}
+          title={formTitles.overview}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('overview')}
@@ -282,14 +285,15 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
       </div>
       <div data-form-id="training">
         <WorkingConditionalForm
+          key={`training-${locale}`}
           fields={fields.filter(f => [
             'ghgQuantification',
             'trainingAssessment',
             'trainingAssessed',
           ].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Training & Competence"
+          submitText={t('common.save')}
+          title={formTitles.training}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('training')}

@@ -2,6 +2,7 @@ import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
 import React, { useState } from "react";
+import { useI18n } from "@/i18n/context";
 
 interface Section6Props {
   onFormSubmit: (data: any) => void;
@@ -10,6 +11,7 @@ interface Section6Props {
 }
 
 const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
+  const { t, locale } = useI18n();
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
   
@@ -19,18 +21,18 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
   // Define the order of forms within this section
   const formOrder = ['g1', 'g2', 'g3', 'g4'];
   const formTitles = {
-    g1: 'Emission Scopes — Selection',
-    g2: 'Scope 1 — Direct Emissions',
-    g3: 'Scope 2 — Purchased Energy',
-    g4: 'Scope 3 — Value Chain Emissions'
+    g1: t('boundarySections.section6.titles.selection'),
+    g2: t('boundarySections.section6.titles.scope1'),
+    g3: t('boundarySections.section6.titles.scope2'),
+    g4: t('boundarySections.section6.titles.scope3')
   };
   const fields: ConditionalField[] = [
     {
       name: "ghgProtocolScopes",
-      label: "Which GHG Protocol Scopes will you track?",
+      label: t('boundarySections.section6.fields.ghgProtocolScopes.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the GHG Protocol Scopes",
+      placeholder: t('boundarySections.section6.fields.ghgProtocolScopes.placeholder'),
       options: [
         {
           label: "Scope 1 - Direct Emissions (Required)",
@@ -50,10 +52,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "directGHGEmissions",
-      label: "Direct GHG emissions (ISO Category 1 / Scope 1)",
+      label: t('boundarySections.section6.fields.directGHGEmissions.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the Direct GHG emissions",
+      placeholder: t('boundarySections.section6.fields.directGHGEmissions.placeholder'),
       options: [
         { label: "Natural gas combustion", value: "Natural gas combustion" },
         { label: "Diesel fuel combustion", value: "Diesel fuel combustion" },
@@ -74,7 +76,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Direct GHG emissions is required";
+            return t('boundarySections.section6.fields.directGHGEmissions.errorRequired');
           } else {
             return null;
           }
@@ -84,10 +86,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     {
       name: "indirectGHGEmissions",
       label:
-        "Indirect GHG emissions from imported energy (ISO Category 2 / Scope 2)",
+        t('boundarySections.section6.fields.indirectGHGEmissions.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the Indirect GHG emissions",
+      placeholder: t('boundarySections.section6.fields.indirectGHGEmissions.placeholder'),
       options: [
         { label: "Purchased electricity", value: "Purchased electricity" },
         { label: "District cooling", value: "District cooling" },
@@ -98,7 +100,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Indirect GHG emissions is required";
+            return t('boundarySections.section6.fields.indirectGHGEmissions.errorRequired');
           } else {
             return null;
           }
@@ -107,10 +109,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "electricitySupplyMethod",
-      label: "Electricity Supply Method",
+      label: t('boundarySections.section6.fields.electricitySupplyMethod.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the Electricity Supply Method",
+      placeholder: t('boundarySections.section6.fields.electricitySupplyMethod.placeholder'),
       options: [
         {
           label: "ADWEA/DEWA grid electricity only",
@@ -130,10 +132,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "indirectGHGEmissionsFromTransportation",
-      label: "Indirect GHG emissions from transportation (ISO Category 3)",
+      label: t('boundarySections.section6.fields.indirectGHGEmissionsFromTransportation.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the Indirect GHG emissions from transportation",
+      placeholder: t('boundarySections.section6.fields.indirectGHGEmissionsFromTransportation.placeholder'),
       options: [
         { label: "Business travel", value: "Business travel" },
         { label: "Employee commuting", value: "Employee commuting" },
@@ -165,7 +167,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Indirect GHG emissions from transportation is required";
+            return t('boundarySections.section6.fields.indirectGHGEmissionsFromTransportation.errorRequired');
           } else {
             return null;
           }
@@ -175,10 +177,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     {
       name: "indirectGHGEmissionsFromProducts",
       label:
-        "Indirect GHG emissions from products used by organization (ISO Category 4)",
+        t('boundarySections.section6.fields.indirectGHGEmissionsFromProducts.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the Indirect GHG emissions from products",
+      placeholder: t('boundarySections.section6.fields.indirectGHGEmissionsFromProducts.placeholder'),
       options: [
         {
           label: "Purchased goods and services",
@@ -206,7 +208,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Indirect GHG emissions from products is required";
+            return t('boundarySections.section6.fields.indirectGHGEmissionsFromProducts.errorRequired');
           } else {
             return null;
           }
@@ -216,11 +218,11 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     {
       name: "indirectGHGEmissionsAssociated",
       label:
-        "Indirect GHG emissions associated with use of products from organization (ISO Category 5)",
+        t('boundarySections.section6.fields.indirectGHGEmissionsAssociated.label'),
       type: "multiselect",
       required: true,
       placeholder:
-        "Select the Indirect GHG emissions associated with use of products from organization",
+        t('boundarySections.section6.fields.indirectGHGEmissionsAssociated.placeholder'),
       options: [
         { label: "Use of sold products", value: "Use of sold products" },
         {
@@ -247,7 +249,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Indirect GHG emissions associated with use of products is required";
+            return t('boundarySections.section6.fields.indirectGHGEmissionsAssociated.errorRequired');
           } else {
             return null;
           }
@@ -256,10 +258,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "indirectGHGEmissionsFromOtherSources",
-      label: "Indirect GHG emissions from other sources (ISO Category 6)",
+      label: t('boundarySections.section6.fields.indirectGHGEmissionsFromOtherSources.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the Indirect GHG emissions from other sources",
+      placeholder: t('boundarySections.section6.fields.indirectGHGEmissionsFromOtherSources.placeholder'),
       options: [
         { label: "Investments", value: "Investments" },
         { label: "Waste treatment", value: "Waste treatment" },
@@ -290,7 +292,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Indirect GHG emissions from other sources is required";
+            return t('boundarySections.section6.fields.indirectGHGEmissionsFromOtherSources.errorRequired');
           } else {
             return null;
           }
@@ -299,10 +301,10 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "relevantCategories",
-      label: "Which Scope 3 categories are relevant to your business?",
+      label: t('boundarySections.section6.fields.relevantCategories.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the relevant categories",
+      placeholder: t('boundarySections.section6.fields.relevantCategories.placeholder'),
       options: [
         {
           label: "Purchased goods and services",
@@ -354,7 +356,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Relevant categories is required";
+            return t('boundarySections.section6.fields.relevantCategories.errorRequired');
           } else {
             return null;
           }
@@ -422,8 +424,8 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
       hasPreviousForm: currentIndex > 0,
       hasNextForm: currentIndex < formOrder.length - 1,
-      previousFormText: "Previous",
-      nextFormText: "Next",
+      previousFormText: t('common.previous'),
+      nextFormText: t('common.next'),
     };
   };
 
@@ -438,10 +440,11 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
       <div data-form-id="g1">
         <WorkingConditionalForm
+          key={`g1-${locale}`}
           fields={fields.filter(f => ['ghgProtocolScopes'].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Emission Scopes — Selection"
+          submitText={t('common.save')}
+          title={formTitles.g1}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g1')}
@@ -452,10 +455,11 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       </div>
       <div data-form-id="g2">
         <WorkingConditionalForm
+          key={`g2-${locale}`}
           fields={fields.filter(f => ['directGHGEmissions'].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Scope 1 — Direct Emissions"
+          submitText={t('common.save')}
+          title={formTitles.g2}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g2')}
@@ -466,10 +470,11 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       </div>
       <div data-form-id="g3">
         <WorkingConditionalForm
+          key={`g3-${locale}`}
           fields={fields.filter(f => ['indirectGHGEmissions','electricitySupplyMethod'].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Scope 2 — Purchased Energy"
+          submitText={t('common.save')}
+          title={formTitles.g3}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g3')}
@@ -480,10 +485,11 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
       </div>
       <div data-form-id="g4">
         <WorkingConditionalForm
+          key={`g4-${locale}`}
           fields={fields.filter(f => ['indirectGHGEmissionsFromTransportation','indirectGHGEmissionsFromProducts','indirectGHGEmissionsAssociated','indirectGHGEmissionsFromOtherSources','relevantCategories'].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Scope 3 — Value Chain Emissions"
+          submitText={t('common.save')}
+          title={formTitles.g4}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g4')}

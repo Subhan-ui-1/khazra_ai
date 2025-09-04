@@ -8,6 +8,7 @@ import { CheckCircle, BarChart3, Globe, Target, Edit, Eye, Save, X, Building2, M
 import { postRequest, getRequest } from "@/utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/i18n/context";
 
 interface BoundaryData {
   _id: string;
@@ -104,6 +105,8 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
   const router = useRouter();
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   
+  const { t } = useI18n();
+
   // State to track form completion for each step
   const [formCompletionStatus, setFormCompletionStatus] = useState({
     step1: false,
@@ -123,26 +126,26 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
   const steps: Step[] = [
     {
       id: 1,
-      title: "Organization & Industry Details",
-      description: "Configure your organization and industry details",
+      title: t('steps.boundary.step1.title'),
+      description: t('steps.boundary.step1.desc'),
       icon: <Building2 className="w-5 h-5" />,
     },
     {
       id: 2,
-      title: "Organizational Control & Ownership",
-      description: "Define your organizational control and ownership",
+      title: t('steps.boundary.step2.title'),
+      description: t('steps.boundary.step2.desc'),
       icon: <Globe className="w-5 h-5" />,
     },
     {
       id: 3,
-      title: "Currency & Financial Boundaries",
-      description: "Select your currency and financial boundaries",
+      title: t('steps.boundary.step3.title'),
+      description: t('steps.boundary.step3.desc'),
       icon: <BarChart3 className="w-5 h-5" />,
     },
     {
       id: 4,
-      title: "Geographic & Operational Boundaries",
-      description: "Select your geographic and operational boundaries",
+      title: t('steps.boundary.step4.title'),
+      description: t('steps.boundary.step4.desc'),
       icon: <MapPin className="w-5 h-5" />,
     },
   ];
@@ -456,25 +459,25 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
     switch (step) {
       case 1:
         if (!formCompletionStatus.step1) {
-          return "Please complete the Organization & Industry Details configuration before proceeding";
+          return t('steps.boundary.validation.step1');
         }
         return true;
       
       case 2:
         if (!formCompletionStatus.step2) {
-          return "Please complete the Organizational Control & Ownership configuration before proceeding";
+          return t('steps.boundary.validation.step2');
         }
         return true;
       
       case 3:
         if (!formCompletionStatus.step3) {
-          return "Please complete the Currency & Financial Boundaries configuration before proceeding";
+          return t('steps.boundary.validation.step3');
         }
         return true;
       
       case 4:
         if (!formCompletionStatus.step4) {
-          return "Please complete the Currency & Financial Boundaries configuration before proceeding";
+          return t('steps.boundary.validation.step4');
         }
         return true;
       
@@ -946,7 +949,7 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading boundary configuration data...</p>
+            <p className="mt-4 text-gray-600">{t('steps.boundary.loading')}</p>
           </div>
         </div>
       </div>

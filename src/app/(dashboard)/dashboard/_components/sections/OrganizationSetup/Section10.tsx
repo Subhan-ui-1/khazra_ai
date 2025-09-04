@@ -2,6 +2,7 @@ import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
 import React from "react";
+import { useI18n } from "@/i18n/context";
 
 interface Section10Props {
   onFormSubmit: (data: any) => void;
@@ -13,51 +14,52 @@ const Section10: React.FC<Section10Props> = ({
   isCompleted,
   initialData = {},
 }) => {
+  const { t } = useI18n();
   const fields: ConditionalField[] = [
     {
       name: "primaryFunctionalCurrency",
-      label: "Primary functional currency",
+      label: t('steps.boundary.section10.primaryFunctionalCurrency.label', 'Primary functional currency'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your primary functional currency",
+      placeholder: t('steps.boundary.section10.primaryFunctionalCurrency.placeholder', 'Select your primary functional currency'),
       options: [
-        { label: "AED - UAE Dirham", value: "AED - UAE Dirham" },
-        { label: "USD - US Dollar", value: "USD - US Dollar" },
-        { label: "EUR - Euro", value: "EUR - Euro" },
-        { label: "GBP - British Pound", value: "GBP - British Pound" },
-        { label: "Other", value: "Other" },
+        { label: 'AED - UAE Dirham', value: "AED - UAE Dirham" },
+        { label: 'USD - US Dollar', value: "USD - US Dollar" },
+        { label: 'EUR - Euro', value: "EUR - Euro" },
+        { label: 'GBP - British Pound', value: "GBP - British Pound" },
+        { label: 'Other', value: "Other" },
       ],
     },
     {
       name: "secondaryFunctionalCurrency",
-      label: "Secondary reporting currency",
+      label: t('steps.boundary.section10.secondaryFunctionalCurrency.label', 'Secondary reporting currency'),
       type: "dropdown",
       required: false,
-      placeholder: "Select your secondary reporting currency",
+      placeholder: t('steps.boundary.section10.secondaryFunctionalCurrency.placeholder', 'Select your secondary reporting currency'),
       options: [
-        { label: "None", value: "None" },
-        { label: "USD - US Dollar", value: "USD - US Dollar" },
-        { label: "EUR - Euro", value: "EUR - Euro" },
-        { label: "Other", value: "Other" },
+        { label: 'None', value: "None" },
+        { label: 'USD - US Dollar', value: "USD - US Dollar" },
+        { label: 'EUR - Euro', value: "EUR - Euro" },
+        { label: 'Other', value: "Other" },
       ],
     },
     {
       name: "currencyConversionApproach",
-      label: "Currency conversion approach",
+      label: t('steps.boundary.section10.currencyConversionApproach.label', 'Currency conversion approach'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your currency conversion approach",
+      placeholder: t('steps.boundary.section10.currencyConversionApproach.placeholder', 'Select your currency conversion approach'),
       options: [
         {
-          label: "Average annual exchange rates",
+          label: 'Average annual exchange rates',
           value: "Average annual exchange rates",
         },
         {
-          label: "Month-end exchange rates",
+          label: 'Month-end exchange rates',
           value: "Month-end exchange rates",
         },
-        { label: "Transaction date rates", value: "Transaction date rates" },
-        { label: "Fixed rate for the year", value: "Fixed rate for the year" },
+        { label: 'Transaction date rates', value: "Transaction date rates" },
+        { label: 'Fixed rate for the year', value: "Fixed rate for the year" },
       ],
     },
   ];
@@ -72,10 +74,10 @@ const Section10: React.FC<Section10Props> = ({
         <WorkingConditionalForm
           fields={fields}
           onSubmit={handleSubmit}
-          submitText="Save & Continue"
-          title="Currency & Financial Boundaries"
+          submitText={t('steps.boundary.section10.submit', 'Save & Continue')}
+          title={t('steps.boundary.step3.title', 'Currency & Financial Boundaries')}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
-          groups={[{ title: 'Financial Boundaries', remaining: true }]}
+          groups={[{ title: t('steps.boundary.section10.group.financial', 'Financial Boundaries'), remaining: true }]}
                       initialData={initialData}
 
           />
