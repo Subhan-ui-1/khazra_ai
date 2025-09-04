@@ -2,6 +2,7 @@ import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
 import React, { useState } from "react";
+import { useI18n } from "@/i18n/context";
 
 interface Section5Props {
   onFormSubmit: (data: any) => void;
@@ -14,6 +15,7 @@ const Section5: React.FC<Section5Props> = ({
   isCompleted,
   initialData = {},
 }) => {
+  const { t, locale } = useI18n();
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
   
@@ -23,17 +25,17 @@ const Section5: React.FC<Section5Props> = ({
   // Define the order of forms within this section
   const formOrder = ['g1', 'g2', 'g3'];
   const formTitles = {
-    g1: 'GHG Sources & Quantification — Core',
-    g2: 'GHG Removals',
-    g3: 'Biogenic Emissions'
+    g1: t('boundarySections.section5.titles.core'),
+    g2: t('boundarySections.section5.titles.removals'),
+    g3: t('boundarySections.section5.titles.biogenic')
   };
   const fields: ConditionalField[] = [
     {
       name: "ghgSourceInventory",
-      label: "GHG source inventory completeness",
+      label: t('boundarySections.section5.fields.ghgSourceInventory.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your GHG source inventory completeness",
+      placeholder: t('boundarySections.section5.fields.ghgSourceInventory.placeholder'),
       options: [
         {
           label: "Complete source inventory conducted",
@@ -55,10 +57,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "quantificationApproach",
-      label: "Quantification approach selection",
+      label: t('boundarySections.section5.fields.quantificationApproach.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your quantification approach selection",
+      placeholder: t('boundarySections.section5.fields.quantificationApproach.placeholder'),
       options: [
         {
           label: "Measurement-based approach (continuous monitoring)",
@@ -82,10 +84,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "emissionFactorsSelectionCriteria",
-      label: "Emission factors selection criteria",
+      label: t('boundarySections.section5.fields.emissionFactorsSelectionCriteria.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your emission factors selection criteria",
+      placeholder: t('boundarySections.section5.fields.emissionFactorsSelectionCriteria.placeholder'),
       options: [
         {
           label: "Country-specific factors prioritized (UAE/ADNOC factors)",
@@ -111,10 +113,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "directMeasurementCapabilities",
-      label: "Direct measurement capabilities",
+      label: t('boundarySections.section5.fields.directMeasurementCapabilities.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select your direct measurement capabilities",
+      placeholder: t('boundarySections.section5.fields.directMeasurementCapabilities.placeholder'),
       options: [
         {
           label: "Continuous emissions monitoring systems",
@@ -141,7 +143,7 @@ const Section5: React.FC<Section5Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Direct measurement capabilities is required";
+            return t('boundarySections.section5.fields.directMeasurementCapabilities.errorRequired');
           } else {
             return null;
           }
@@ -150,10 +152,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "haveGHGRemoval",
-      label: "Do you have GHG removals or storage activities?",
+      label: t('boundarySections.section5.fields.haveGHGRemoval.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your GHG removals or storage activities",
+      placeholder: t('boundarySections.section5.fields.haveGHGRemoval.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -161,10 +163,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "ghgRemovals",
-      label: "Types of removals/storage?",
+      label: t('boundarySections.section5.fields.ghgRemovals.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select your types of removals/storage?",
+      placeholder: t('boundarySections.section5.fields.ghgRemovals.placeholder'),
       options: [
         { label: "Forests/vegetation", value: "Forests/vegetation" },
         { label: "Carbon capture", value: "Carbon capture" },
@@ -176,7 +178,7 @@ const Section5: React.FC<Section5Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Types of removals/storage is required";
+            return t('boundarySections.section5.fields.ghgRemovals.errorRequired');
           } else {
             return null;
           }
@@ -185,10 +187,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "approachForRemovals",
-      label: "Quantification approach for removals?",
+      label: t('boundarySections.section5.fields.approachForRemovals.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your quantification approach for removals?",
+      placeholder: t('boundarySections.section5.fields.approachForRemovals.placeholder'),
       options: [
         { label: "Measurement", value: "Measurement" },
         { label: "Calculation", value: "Calculation" },
@@ -198,10 +200,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "biogenicEmissionsPresent",
-      label: "Biogenic emissions present?",
+      label: t('boundarySections.section5.fields.biogenicEmissionsPresent.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select your biogenic emissions present?",
+      placeholder: t('boundarySections.section5.fields.biogenicEmissionsPresent.placeholder'),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -209,10 +211,10 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "biogenicEmissionSources",
-      label: "Biogenic emission sources?",
+      label: t('boundarySections.section5.fields.biogenicEmissionSources.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select your biogenic emission sources?",
+      placeholder: t('boundarySections.section5.fields.biogenicEmissionSources.placeholder'),
       options: [
         { label: "Biomass combustion", value: "Biomass combustion" },
         { label: "Biofuels", value: "Biofuels" },
@@ -224,7 +226,7 @@ const Section5: React.FC<Section5Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Biogenic emission sources is required";
+            return t('boundarySections.section5.fields.biogenicEmissionSources.errorRequired');
           } else {
             return null;
           }
@@ -233,15 +235,15 @@ const Section5: React.FC<Section5Props> = ({
     },
     {
       name: "biogenicEmissionsPlanned",
-      label: "Separate tracking of biogenic emissions planned?",
+      label: t('boundarySections.section5.fields.biogenicEmissionsPlanned.label'),
       type: "dropdown",
       required: true,
       placeholder:
-        "Select your separate tracking of biogenic emissions planned?",
-      options: [
+        t('boundarySections.section5.fields.biogenicEmissionsPlanned.placeholder'),
+      options: ([
         { label: "Yes", value: true },
         { label: "No", value: false },
-      ],
+      ] as any),
       showWhen: [{ field: "biogenicEmissionsPresent", value: "Yes" }],
     },
   ];
@@ -305,8 +307,8 @@ const Section5: React.FC<Section5Props> = ({
       onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
       hasPreviousForm: currentIndex > 0,
       hasNextForm: currentIndex < formOrder.length - 1,
-      previousFormText: "Previous",
-      nextFormText: "Next",
+      previousFormText: t('common.previous'),
+      nextFormText: t('common.next'),
     };
   };
 
@@ -321,12 +323,13 @@ const Section5: React.FC<Section5Props> = ({
       <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
       <div data-form-id="g1">
         <WorkingConditionalForm
+          key={`g1-${locale}`}
           fields={fields.filter(f => [
             'ghgSourceInventory','quantificationApproach','emissionFactorsSelectionCriteria','directMeasurementCapabilities'
           ].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="GHG Sources & Quantification — Core"
+          submitText={t('common.save')}
+          title={formTitles.g1}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g1')}
@@ -337,12 +340,13 @@ const Section5: React.FC<Section5Props> = ({
       </div>
       <div data-form-id="g2">
         <WorkingConditionalForm
+          key={`g2-${locale}`}
           fields={fields.filter(f => [
             'haveGHGRemoval','ghgRemovals','approachForRemovals'
           ].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="GHG Removals"
+          submitText={t('common.save')}
+          title={formTitles.g2}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g2')}
@@ -353,12 +357,13 @@ const Section5: React.FC<Section5Props> = ({
       </div>
       <div data-form-id="g3">
         <WorkingConditionalForm
+          key={`g3-${locale}`}
           fields={fields.filter(f => [
             'biogenicEmissionsPresent','biogenicEmissionSources','biogenicEmissionsPlanned'
           ].includes(f.name))}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Biogenic Emissions"
+          submitText={t('common.save')}
+          title={formTitles.g3}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('g3')}

@@ -2,6 +2,7 @@ import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
 import React, { useState } from "react";
+import { useI18n } from "@/i18n/context";
 
 const COUNTRIES: string[] = [
   "Afghanistan",
@@ -211,6 +212,7 @@ const Section4: React.FC<Section4Props> = ({
   isCompleted,
   initialData = {},
 }) => {
+  const { t, locale } = useI18n();
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
 
@@ -220,18 +222,18 @@ const Section4: React.FC<Section4Props> = ({
   // Define the order of forms within this section
   const formOrder = ["g1", "g2", "g3", "g4"];
   const formTitles = {
-    g1: "Overview",
-    g2: "Facilities",
-    g3: "Assets",
-    g4: "Processes",
+    g1: t("boundarySections.section4.titles.overview"),
+    g2: t("boundarySections.section4.titles.facilities"),
+    g3: t("boundarySections.section4.titles.assets"),
+    g4: t("boundarySections.section4.titles.processes"),
   };
   const fields: ConditionalField[] = [
     {
       name: "primaryOperatingCountry",
-      label: "Primary Operating Country",
+      label: t("boundarySections.section4.fields.primaryOperatingCountry.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select your primary operating country",
+      placeholder: t("boundarySections.section4.fields.primaryOperatingCountry.placeholder"),
       options: [
         { label: "United Arab Emirates", value: "United Arab Emirates" },
         // { label: "Others", value: "Other" },
@@ -239,10 +241,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "primaryOperating",
-      label: "Primary Operating Emirate",
+      label: t("boundarySections.section4.fields.primaryOperating.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select your primary operating emirate",
+      placeholder: t("boundarySections.section4.fields.primaryOperating.placeholder"),
       options: [
         { label: "Abu Dhabi", value: "Abu Dhabi" },
         { label: "Dubai", value: "Dubai" },
@@ -256,10 +258,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "abroadOperations",
-      label: "Do you have operations outside UAE?",
+      label: t("boundarySections.section4.fields.abroadOperations.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select your operations outside UAE",
+      placeholder: t("boundarySections.section4.fields.abroadOperations.placeholder"),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -270,10 +272,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "operationsCountries",
-      label: "Which Countries",
+      label: t("boundarySections.section4.fields.operationsCountries.label"),
       type: "multiselect",
       required: true,
-      placeholder: "Select the countries",
+      placeholder: t("boundarySections.section4.fields.operationsCountries.placeholder"),
       options: COUNTRIES.map((c) => ({ label: c, value: c })),
       customRender: ({ value, onChange, field }) => {
         const selected: string[] = Array.isArray(value) ? value : [];
@@ -292,7 +294,7 @@ const Section4: React.FC<Section4Props> = ({
             <div className="flex gap-2">
               <input
                 list={datalistId}
-                placeholder={field.placeholder || "Search and select countries"}
+                placeholder={field.placeholder || t("boundarySections.section4.ui.searchCountries")}
                 className="w-full px-3 py-2.5 rounded-lg border bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300 hover:border-gray-400"
                 onChange={(e) => {
                   const country = e.target.value;
@@ -312,7 +314,7 @@ const Section4: React.FC<Section4Props> = ({
             <div className="flex flex-wrap gap-2">
               {selected.length === 0 ? (
                 <span className="text-sm text-gray-500">
-                  No countries selected
+                  {t("boundarySections.section4.ui.noCountriesSelected")}
                 </span>
               ) : (
                 selected.map((c) => (
@@ -325,7 +327,7 @@ const Section4: React.FC<Section4Props> = ({
                       type="button"
                       onClick={() => handleRemove(c)}
                       className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
-                      aria-label={`Remove ${c}`}
+                      aria-label={`${t("common.delete")}: ${c}`}
                     >
                       <svg
                         className="w-3.5 h-3.5"
@@ -355,7 +357,7 @@ const Section4: React.FC<Section4Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Countries is required";
+            return t("boundarySections.section4.fields.operationsCountries.errorRequired");
           } else {
             return null;
           }
@@ -364,10 +366,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "percentageOperations",
-      label: "What percentage of total operations is outside UAE?",
+      label: t("boundarySections.section4.fields.percentageOperations.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the percentage of total operations is outside UAE",
+      placeholder: t("boundarySections.section4.fields.percentageOperations.placeholder"),
       options: [
         { label: "<10%", value: "<10%" },
         { label: "10-25%", value: "10-25%" },
@@ -382,10 +384,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "geographicReportingScope",
-      label: "Geographic Reporting Scope",
+      label: t("boundarySections.section4.fields.geographicReportingScope.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the geographic reporting scope",
+      placeholder: t("boundarySections.section4.fields.geographicReportingScope.placeholder"),
       options: [
         { label: "UAE operations only", value: "UAE operations only" },
         { label: "GCC region operations", value: "GCC region operations" },
@@ -395,10 +397,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "facilityInventoryAvailable",
-      label: "Complete facility inventory available?",
+      label: t("boundarySections.section4.fields.facilityInventoryAvailable.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the complete facility inventory available",
+      placeholder: t("boundarySections.section4.fields.facilityInventoryAvailable.placeholder"),
       options: [
         {
           label: "Complete inventory with addresses and activities",
@@ -420,10 +422,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "crossBorderActivities",
-      label: "Cross-border activities documentation",
+      label: t("boundarySections.section4.fields.crossBorderActivities.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the cross-border activities documentation",
+      placeholder: t("boundarySections.section4.fields.crossBorderActivities.placeholder"),
       options: [
         {
           label: "All cross-border activities documented",
@@ -445,10 +447,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "doYouHaveFacilities",
-      label: "Do you have owned facilities?",
+      label: t("boundarySections.section4.fields.doYouHaveFacilities.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Do you have Facilities?",
+      placeholder: t("boundarySections.section4.fields.doYouHaveFacilities.placeholder"),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -456,19 +458,19 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "ownedFacilities",
-      label: "How many owned facilities?",
+      label: t("boundarySections.section4.fields.ownedFacilities.label"),
       type: "number",
       required: true,
       min: 1,
-      placeholder: "Enter the number of owned facilities",
+      placeholder: t("boundarySections.section4.fields.ownedFacilities.placeholder"),
       showWhen: [{ field: "doYouHaveFacilities", value: "Yes" }],
     },
     {
       name: "typesOfFacilities",
-      label: "Types of owned facilities?",
+      label: t("boundarySections.section4.fields.typesOfFacilities.label"),
       type: "multiselect",
       required: true,
-      placeholder: "Select the types of owned facilities",
+      placeholder: t("boundarySections.section4.fields.typesOfFacilities.placeholder"),
       options: [
         { label: "Offices", value: "Offices" },
         { label: "Manufacturing", value: "Manufacturing" },
@@ -483,7 +485,7 @@ const Section4: React.FC<Section4Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Types of owned facilities is required";
+            return t("boundarySections.section4.fields.typesOfFacilities.errorRequired");
           } else {
             return null;
           }
@@ -492,10 +494,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "haveLeasedFacilities",
-      label: "Do you have leased facilities?",
+      label: t("boundarySections.section4.fields.haveLeasedFacilities.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the leased facilities",
+      placeholder: t("boundarySections.section4.fields.haveLeasedFacilities.placeholder"),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -503,19 +505,19 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "leasedFacilities",
-      label: "How many leased facilities?",
+      label: t("boundarySections.section4.fields.leasedFacilities.label"),
       type: "number",
       required: true,
       min: 1,
-      placeholder: "Enter the number of leased facilities",
+      placeholder: t("boundarySections.section4.fields.leasedFacilities.placeholder"),
       showWhen: [{ field: "haveLeasedFacilities", value: "Yes" }],
     },
     {
       name: "leasedFacilitiesNames", // need to ask for confirmation
-      label: "Do you pay utilities for leased facilities?",
+      label: t("boundarySections.section4.fields.leasedFacilitiesNames.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select how?",
+      placeholder: t("boundarySections.section4.fields.leasedFacilitiesNames.placeholder"),
       options: [
         { label: "All", value: "All" },
         { label: "Some", value: "Some" },
@@ -525,10 +527,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "haveMobileAssets",
-      label: "Do you have mobile assets? (vehicles)",
+      label: t("boundarySections.section4.fields.haveMobileAssets.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the mobile assets",
+      placeholder: t("boundarySections.section4.fields.haveMobileAssets.placeholder"),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -536,10 +538,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "typesOfVehicles",
-      label: "Types of vehicles?",
+      label: t("boundarySections.section4.fields.typesOfVehicles.label"),
       type: "multiselect",
       required: true,
-      placeholder: "Select the types of vehicles",
+      placeholder: t("boundarySections.section4.fields.typesOfVehicles.placeholder"),
       options: [
         { label: "Patrol Cars", value: "Patrol Cars" },
         { label: "Motorcycles", value: "Motorcycles" },
@@ -555,7 +557,7 @@ const Section4: React.FC<Section4Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Types of vehicles is required";
+            return t("boundarySections.section4.fields.typesOfVehicles.errorRequired");
           } else {
             return null;
           }
@@ -564,10 +566,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "numberOfVehicles",
-      label: "Approximate number of vehicles?",
+      label: t("boundarySections.section4.fields.numberOfVehicles.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Enter the approximate number of vehicles",
+      placeholder: t("boundarySections.section4.fields.numberOfVehicles.placeholder"),
       options: [
         { label: "1-10", value: "1-10" },
         { label: "11-50", value: "11-50" },
@@ -579,10 +581,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "haveStationary",
-      label: "Do you have stationary equipment?",
+      label: t("boundarySections.section4.fields.haveStationary.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the stationary equipment",
+      placeholder: t("boundarySections.section4.fields.haveStationary.placeholder"),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -590,10 +592,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "typesOfEquipment",
-      label: "Types of equipment?",
+      label: t("boundarySections.section4.fields.typesOfEquipment.label"),
       type: "multiselect",
       required: true,
-      placeholder: "Select the types of equipment",
+      placeholder: t("boundarySections.section4.fields.typesOfEquipment.placeholder"),
       options: [
         { label: "Boilers", value: "Boilers" },
         { label: "Generators", value: "Generators" },
@@ -607,7 +609,7 @@ const Section4: React.FC<Section4Props> = ({
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Types of equipment is required";
+            return t("boundarySections.section4.fields.typesOfEquipment.errorRequired");
           } else {
             return null;
           }
@@ -616,10 +618,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "districtCooling",
-      label: "Do you use district cooling?",
+      label: t("boundarySections.section4.fields.districtCooling.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the district cooling",
+      placeholder: t("boundarySections.section4.fields.districtCooling.placeholder"),
       options: [
         { label: "Yes", value: "Yes" },
         { label: "No", value: "No" },
@@ -627,10 +629,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "percentageOfDistrictCooling",
-      label: "For what percentage of your cooling needs?",
+      label: t("boundarySections.section4.fields.percentageOfDistrictCooling.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the percentage of your cooling needs",
+      placeholder: t("boundarySections.section4.fields.percentageOfDistrictCooling.placeholder"),
       options: [
         { label: "<25%", value: "<25%" },
         { label: "25-50%", value: "25-50%" },
@@ -641,10 +643,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "emissionGeneratingActivities",
-      label: "All emission-generating activities identified?",
+      label: t("boundarySections.section4.fields.emissionGeneratingActivities.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the emission-generating activities",
+      placeholder: t("boundarySections.section4.fields.emissionGeneratingActivities.placeholder"),
       options: [
         {
           label: "Comprehensive activity assessment completed",
@@ -666,10 +668,10 @@ const Section4: React.FC<Section4Props> = ({
     },
     {
       name: "activityDataCollection",
-      label: "Activity data collection systems in place?",
+      label: t("boundarySections.section4.fields.activityDataCollection.label"),
       type: "dropdown",
       required: true,
-      placeholder: "Select the data collection systems",
+      placeholder: t("boundarySections.section4.fields.activityDataCollection.placeholder"),
       options: [
         {
           label: "Comprehensive data systems operational",
@@ -766,8 +768,8 @@ const Section4: React.FC<Section4Props> = ({
         currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
       hasPreviousForm: currentIndex > 0,
       hasNextForm: currentIndex < formOrder.length - 1,
-      previousFormText: "Previous",
-      nextFormText: "Next",
+      previousFormText: t("common.previous"),
+      nextFormText: t("common.next"),
     };
   };
 
@@ -781,6 +783,7 @@ const Section4: React.FC<Section4Props> = ({
       <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
         <div data-form-id="g1">
           <WorkingConditionalForm
+            key={`g1-${locale}`}
             fields={fields.filter((f) =>
               [
                 "primaryOperatingCountry",
@@ -792,8 +795,8 @@ const Section4: React.FC<Section4Props> = ({
               ].includes(f.name)
             )}
             onSubmit={handlePartial("g1")}
-            submitText={"Save"}
-            title="Overview"
+            submitText={t("common.save")}
+            title={formTitles.g1}
             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
             initialData={{ ...initialData, ...sharedFormData }}
             onModalOpen={() => setCurrentOpenForm("g1")}
@@ -804,6 +807,7 @@ const Section4: React.FC<Section4Props> = ({
         </div>
         <div data-form-id="g2">
           <WorkingConditionalForm
+            key={`g2-${locale}`}
             fields={fields.filter((f) =>
               [
                 "facilityInventoryAvailable",
@@ -816,8 +820,8 @@ const Section4: React.FC<Section4Props> = ({
               ].includes(f.name)
             )}
             onSubmit={handlePartial("g2")}
-            submitText={"Save"}
-            title="Facilities"
+            submitText={t("common.save")}
+            title={formTitles.g2}
             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
             initialData={{ ...initialData, ...sharedFormData }}
             onModalOpen={() => setCurrentOpenForm("g2")}
@@ -828,9 +832,9 @@ const Section4: React.FC<Section4Props> = ({
         </div>
         <div data-form-id="g3">
           <WorkingConditionalForm
+            key={`g3-${locale}`}
             fields={fields.filter((f) =>
               [
-                ,
                 "haveMobileAssets",
                 "typesOfVehicles",
                 "numberOfVehicles",
@@ -841,8 +845,8 @@ const Section4: React.FC<Section4Props> = ({
               ].includes(f.name)
             )}
             onSubmit={handlePartial("g3")}
-            submitText={"Save"}
-            title="Assets"
+            submitText={t("common.save")}
+            title={formTitles.g3}
             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
             initialData={{ ...initialData, ...sharedFormData }}
             onModalOpen={() => setCurrentOpenForm("g3")}
@@ -853,6 +857,7 @@ const Section4: React.FC<Section4Props> = ({
         </div>
         <div data-form-id="g4">
           <WorkingConditionalForm
+            key={`g4-${locale}`}
             fields={fields.filter(
               (f) =>
                 ![
@@ -879,8 +884,8 @@ const Section4: React.FC<Section4Props> = ({
                 ].includes(f.name)
             )}
             onSubmit={handlePartial("g4")}
-            submitText={"Save"}
-            title="Processes"
+            submitText={t("common.save")}
+            title={formTitles.g4}
             className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
             initialData={{ ...initialData, ...sharedFormData }}
             onModalOpen={() => setCurrentOpenForm("g4")}

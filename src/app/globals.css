@@ -254,3 +254,16 @@ input[type=number] {
     transform: translateX(0);
   }
 }
+
+
+/* A class to remove the scrollbar completely for an element */
+.no-scrollbar {
+  /* For WebKit browsers (Chrome, Safari, etc.) */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: 0px;    /* Firefox */
+}
+
+/* For WebKit browsers (Chrome, Safari, etc.) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

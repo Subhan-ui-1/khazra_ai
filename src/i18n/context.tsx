@@ -4,10 +4,11 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { i18nConfig, Locale, isRTL, getDirection, getUAEArabicLocale } from './config';
 import { safeLocalStorage } from '@/utils/localStorage';
 import en from './locales/en.json';
+import componentsEn from './locales/components/index.en';
 import ar from './locales/ar.json';
 
 const translationsMap: Record<Locale, any> = {
-  en,
+  en: { ...en, ...componentsEn },
   ar,
 };
 
@@ -17,6 +18,10 @@ interface I18nContextType {
   direction: 'ltr' | 'rtl';
   isRTL: boolean;
   t: (key: string, fallback?: string) => string;
+  /**
+   * Returns a namespaced translator for a component, so ct('key') looks up `${component}.${key}`
+   */
+  makeComponentT: (componentKey: string) => ((key: string, fallback?: string) => string);
   switchLanguage: () => void;
   getCurrentLanguageName: () => string;
   isReady: boolean;
@@ -58,7 +63,8 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   };
 
   const t = (key: string, fallback?: string): string => {
-    const translations = translationsMap[locale] || translationsMap[i18nConfig.fallbackLocale];
+    const fallbackLocale = i18nConfig.fallbackLocale as Locale;
+    const translations = translationsMap[locale] || translationsMap[fallbackLocale];
     const keys = key.split('.');
     let value: any = translations;
     for (const k of keys) {
@@ -92,6 +98,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     direction: getDirection(locale),
     isRTL: isRTL(locale),
     t,
+    makeComponentT: (componentKey: string) => (key: string, fallback?: string) => t(`${componentKey}.${key}`, fallback),
     switchLanguage,
     getCurrentLanguageName,
     isReady,

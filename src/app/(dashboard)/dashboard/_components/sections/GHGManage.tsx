@@ -7,6 +7,7 @@ import { CheckCircle, BarChart3, Globe, Target, Edit, Eye, Save, X } from "lucid
 import { postRequest, getRequest } from "@/utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/i18n/context";
 
 interface GHGManagementData {
   _id: string;
@@ -67,23 +68,24 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
     step3: {},
   });
 
+  const { t } = useI18n();
   const steps: Step[] = [
     {
       id: 1,
-      title: "GHG Management System",
-      description: "Configure your GHG management system approach",
+      title: t('steps.ghg.step1.title'),
+      description: t('steps.ghg.step1.description'),
       icon: <Target className="w-5 h-5" />,
     },
     {
       id: 2,
-      title: "GHG Sources and Quantification Approach",
-      description: "Define your emission sources and measurement methods",
+      title: t('steps.ghg.step2.title'),
+      description: t('steps.ghg.step2.description'),
       icon: <Globe className="w-5 h-5" />,
     },
     {
       id: 3,
-      title: "Emission Scopes & Categories",
-      description: "Select emission scopes and categories to track",
+      title: t('steps.ghg.step3.title'),
+      description: t('steps.ghg.step3.description'),
       icon: <BarChart3 className="w-5 h-5" />,
     },
   ];
@@ -656,7 +658,7 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading GHG management data...</p>
+            <p className="mt-4 text-gray-600">{t('steps.ghg.loading')}</p>
           </div>
         </div>
       </div>

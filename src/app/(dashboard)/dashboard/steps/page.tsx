@@ -22,21 +22,21 @@ interface Step {
 const steps: Step[] = [
   {
     id: 'boundary',
-    title: 'Organizational Boundaries',
+    title: '',
     // description: 'Set up your organization boundaries and baseline information',
     icon: <Building2 className="w-5 h-5" />,
     component: BoundarySetupSteps,
   },
   {
     id: 'ghg',
-    title: 'GHG Management',
+    title: '',
     // description: 'Define policies, training, and inventory practices for robust GHG governance',
     icon: <Shield className="w-5 h-5" />,
     component: GHGManage,
   },
   {
     id: 'emissions',
-    title: 'Baseline & Reporting',
+    title: '',
     // description: 'Select baseline year, define reporting periods, and enter scope-wise data',
     icon: <TrendingUp className="w-5 h-5" />,
     component: AddEmissionSection,
@@ -44,7 +44,7 @@ const steps: Step[] = [
 ];
 
 export default function StepsPage() {
-  const { t, isRTL } = useI18n();
+  const { t, isRTL, setLocale } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [stepProgress, setStepProgress] = useState<Record<string, number>>({});
@@ -64,7 +64,14 @@ export default function StepsPage() {
     setStepProgress(prev => ({ ...prev, [stepId]: clamped }));
   };
 
-  const CurrentStepComponent = steps[currentStep].component;
+  const localizedSteps = steps.map(s => ({
+    ...s,
+    title:
+      s.id === 'boundary' ? t('steps.nav.boundary') :
+      s.id === 'ghg' ? t('steps.nav.ghg') :
+      s.id === 'emissions' ? t('steps.nav.baseline') : s.title,
+  }));
+  const CurrentStepComponent = localizedSteps[currentStep].component;
   const completedCount = completedSteps.size;
   const totalSteps = steps.length;
   const progressPercentage = useMemo(() => {
@@ -98,7 +105,7 @@ export default function StepsPage() {
             <div className="bg-white/10 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-white">
-                  Setup Progress
+                  {t('steps.sidebar.setupProgress')}
                 </span>
                 <span className="text-sm font-medium text-white">
                   {progressPercentage}%
@@ -119,10 +126,10 @@ export default function StepsPage() {
           {/* Steps Navigation */}
           <div className="px-2">
             <p className="px-3 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider mb-3">
-              Setup Steps
+              {t('steps.sidebar.setupSteps')}
             </p>
             <div className="space-y-1">
-              {steps.map((step, index) => {
+              {localizedSteps.map((step, index) => {
                 const isCompleted = completedSteps.has(step.id);
                 const isCurrent = index === currentStep;
                 const pct = stepProgress[step.id] ?? (isCompleted ? 100 : 0);
@@ -189,12 +196,27 @@ export default function StepsPage() {
       </div>
 
       {/* Add Later Button - Fixed Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-40">
         <button
-          onClick={() => router.push('/dashboard')}
-          className="inline-flex items-center px-6 py-3 bg-green-600 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
+          onClick={() => {
+            router.push('/dashboard')
+            setLocale('en')
+          }}
+          className="inline-flex items-center px-6 py-3 bg-[#8c3738] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
         >
-          <span>Add Later</span>
+          <span>{t('steps.nav.addLater')}</span>
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </button>
+      </div>
+      <div className="fixed bottom-6 right-46 z-40">
+        <button
+          onClick={() => {
+            router.push('/dashboard')
+            setLocale('en')
+          }}
+          className="inline-flex items-center px-6 py-3 bg-[#8c3738] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
+        >
+          <span>{t("welcome.ctaDashboard")}</span>
           <ArrowRight className="w-4 h-4 ml-2" />
         </button>
       </div>

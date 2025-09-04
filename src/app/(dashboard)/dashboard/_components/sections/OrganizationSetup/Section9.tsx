@@ -2,6 +2,7 @@ import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
 import React, { useState } from "react";
+import { useI18n } from "@/i18n/context";
 
 interface Section9Props {
   onFormSubmit: (data: any) => void;
@@ -10,6 +11,7 @@ interface Section9Props {
 }
 
 const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialData = {} }) => {
+  const { t, locale } = useI18n();
   // State to track which form is currently open in modal
   const [currentOpenForm, setCurrentOpenForm] = useState<string | null>(null);
   
@@ -19,16 +21,16 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
   // Define the order of forms within this section
   const formOrder = ['core', 'additional'];
   const formTitles = {
-    core: 'Baseline & Reporting — Core',
-    additional: 'Baseline & Reporting — Additional'
+    core: t('boundarySections.section9.titles.core'),
+    additional: t('boundarySections.section9.titles.additional')
   };
   const fields: ConditionalField[] = [
     {
       name: "baselineDataCompleteness",
-      label: "Baseline data completeness",
+      label: t('boundarySections.section9.fields.baselineDataCompleteness.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the baseline data completeness",
+      placeholder: t('boundarySections.section9.fields.baselineDataCompleteness.placeholder'),
       options: [
         {
           label: "Complete baseline data available",
@@ -50,10 +52,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "baselineYearSelectionCriteria",
-      label: "Baseline year selection criteria",
+      label: t('boundarySections.section9.fields.baselineYearSelectionCriteria.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the baseline year selection criteria",
+      placeholder: t('boundarySections.section9.fields.baselineYearSelectionCriteria.placeholder'),
       options: [
         {
           label: "Data availability and quality",
@@ -73,7 +75,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Baseline year selection criteria is required";
+            return t('boundarySections.section9.fields.baselineYearSelectionCriteria.errorRequired');
           } else {
             return null;
           }
@@ -82,10 +84,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "baselineRecalculationPolicy",
-      label: "Baseline recalculation policy",
+      label: t('boundarySections.section9.fields.baselineRecalculationPolicy.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the baseline recalculation policy",
+      placeholder: t('boundarySections.section9.fields.baselineRecalculationPolicy.placeholder'),
       options: [
         {
           label: "Recalculate for structural changes >5%",
@@ -107,10 +109,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "baselineRecalculationTriggers",
-      label: "Baseline recalculation triggers",
+      label: t('boundarySections.section9.fields.baselineRecalculationTriggers.label'),
       type: "multiselect",
       required: true,
-      placeholder: "Select the baseline recalculation triggers",
+      placeholder: t('boundarySections.section9.fields.baselineRecalculationTriggers.placeholder'),
       options: [
         {
           label: "Structural changes to organization",
@@ -133,7 +135,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
       validation: {
         custom: (value, formData) => {
           if (value.length === 0) {
-            return "Baseline recalculation triggers is required";
+            return t('boundarySections.section9.fields.baselineRecalculationTriggers.errorRequired');
           } else {
             return null;
           }
@@ -142,10 +144,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "changeManagementProcessEstablished",
-      label: "Change management process established?",
+      label: t('boundarySections.section9.fields.changeManagementProcessEstablished.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the change management process established",
+      placeholder: t('boundarySections.section9.fields.changeManagementProcessEstablished.placeholder'),
       options: [
         {
           label: "Formal change management process operational",
@@ -167,10 +169,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "financialYearPeriodStart",
-      label: "Financial year period Start Date",
+      label: t('boundarySections.section9.fields.financialYearPeriodStart.label'),
       type: "date",
       required: true,
-      placeholder: "Select the financial year period Start Date",
+      placeholder: t('boundarySections.section9.fields.financialYearPeriodStart.placeholder'),
       validation: {
         custom: (value, formData) => {
           if (value) {
@@ -184,7 +186,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
             maxFutureDate.setFullYear(today.getFullYear() + maxFutureYears);
 
             if (startDate > maxFutureDate) {
-              return `Start date cannot be more than ${maxFutureYears} years in the future`;
+              return t('boundarySections.section9.fields.financialYearPeriodStart.errorFuture', { years: maxFutureYears } as any);
             }
 
             // Check if end date exists and validate against it
@@ -192,7 +194,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
               const endDate = new Date(formData.financialYearPeriodEnd);
 
               if (startDate >= endDate) {
-                return "Start date must be before end date";
+                return t('boundarySections.section9.fields.financialYearPeriodStart.errorBeforeEnd');
               }
 
               // Ensure reasonable date range (e.g., not more than 10 years)
@@ -201,7 +203,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
               maxEndDate.setFullYear(startDate.getFullYear() + maxYears);
 
               if (endDate > maxEndDate) {
-                return `End date cannot be more than ${maxYears} years after start date`;
+                return t('boundarySections.section9.fields.financialYearPeriodStart.errorRange', { years: maxYears } as any);
               }
             }
           }
@@ -211,10 +213,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "financialYearPeriodEnd",
-      label: "Financial year period End Date",
+      label: t('boundarySections.section9.fields.financialYearPeriodEnd.label'),
       type: "date",
       required: true,
-      placeholder: "Select the financial year period End Date",
+      placeholder: t('boundarySections.section9.fields.financialYearPeriodEnd.placeholder'),
       validation: {
         custom: (value, formData) => {
           if (value) {
@@ -228,7 +230,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
             maxFutureDate.setFullYear(today.getFullYear() + maxFutureYears);
 
             if (endDate > maxFutureDate) {
-              return `End date cannot be more than ${maxFutureYears} years in the future`;
+              return t('boundarySections.section9.fields.financialYearPeriodEnd.errorFuture', { years: maxFutureYears } as any);
             }
 
             // Check if start date exists and validate against it
@@ -236,7 +238,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
               const startDate = new Date(formData.financialYearPeriodStart);
 
               if (endDate <= startDate) {
-                return "End date must be after start date";
+                return t('boundarySections.section9.fields.financialYearPeriodEnd.errorAfterStart');
               }
 
               // Ensure reasonable date range (e.g., not more than 10 years)
@@ -245,7 +247,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
               maxEndDate.setFullYear(startDate.getFullYear() + maxYears);
 
               if (endDate > maxEndDate) {
-                return `End date cannot be more than ${maxYears} years after start date`;
+                return t('boundarySections.section9.fields.financialYearPeriodEnd.errorRange', { years: maxYears } as any);
               }
             }
           }
@@ -255,10 +257,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "environmentalReportingPeriod",
-      label: "Environmental reporting period",
+      label: t('boundarySections.section9.fields.environmentalReportingPeriod.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the environmental reporting period",
+      placeholder: t('boundarySections.section9.fields.environmentalReportingPeriod.placeholder'),
       options: [
         { label: "Same as financial year", value: "Same as financial year" },
         { label: "Calendar year (Jan-Dec)", value: "Calendar year (Jan-Dec)" },
@@ -271,10 +273,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "dataCollectionFrequency",
-      label: "Data collection frequency",
+      label: t('boundarySections.section9.fields.dataCollectionFrequency.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the data collection frequency",
+      placeholder: t('boundarySections.section9.fields.dataCollectionFrequency.placeholder'),
       options: [
         { label: "Monthly data collection", value: "Monthly data collection" },
         {
@@ -293,10 +295,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "historicalDataRetentionPeriod",
-      label: "Historical data retention period",
+      label: t('boundarySections.section9.fields.historicalDataRetentionPeriod.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the historical data retention period",
+      placeholder: t('boundarySections.section9.fields.historicalDataRetentionPeriod.placeholder'),
       options: [
         {
           label: "Minimum 7 years (ISO recommendation)",
@@ -312,10 +314,10 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
     },
     {
       name: "dataArchivingAndRetrievalSystem",
-      label: "Data archiving and retrieval system",
+      label: t('boundarySections.section9.fields.dataArchivingAndRetrievalSystem.label'),
       type: "dropdown",
       required: true,
-      placeholder: "Select the data archiving and retrieval system",
+      placeholder: t('boundarySections.section9.fields.dataArchivingAndRetrievalSystem.placeholder'),
       options: [
         {
           label: "Comprehensive digital archiving system",
@@ -393,8 +395,8 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
       onNextForm: currentIndex < formOrder.length - 1 ? handleNextForm : undefined,
       hasPreviousForm: currentIndex > 0,
       hasNextForm: currentIndex < formOrder.length - 1,
-      previousFormText: "Previous",
-      nextFormText: "Next",
+      previousFormText: t('common.previous'),
+      nextFormText: t('common.next'),
     };
   };
 
@@ -409,10 +411,11 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
       <div className="space-8 grid xl:grid-cols-2 grid-cols-1 gap-8">
       <div data-form-id="core">
         <WorkingConditionalForm
+          key={`core-${locale}`}
           fields={fields.slice(0,5)}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Baseline & Reporting — Core"
+          submitText={t('common.save')}
+          title={formTitles.core}
            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
                       initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('core')}
@@ -423,10 +426,11 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
       </div>
       <div data-form-id="additional">
         <WorkingConditionalForm
+          key={`additional-${locale}`}
           fields={fields.slice(5)}
           onSubmit={handleFormSubmit}
-          submitText="Save"
-          title="Baseline & Reporting — Additional"
+          submitText={t('common.save')}
+          title={formTitles.additional}
            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
                       initialData={{ ...initialData, ...sharedFormData }}
           onModalOpen={() => setCurrentOpenForm('additional')}

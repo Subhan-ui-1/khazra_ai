@@ -22,6 +22,7 @@ import { safeLocalStorage } from "@/utils/localStorage";
 import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
+import { useI18n } from "@/i18n/context";
 
 type baselineCategory =
   | "scopeTotals"
@@ -86,6 +87,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
   const [baselineData, setBaselineData] = useState<BaselineData | null>(null);
   const router = useRouter();
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
+  const { t, locale } = useI18n();
 
   // State to track form completion for each step
   const [formCompletionStatus, setFormCompletionStatus] = useState({
@@ -102,14 +104,14 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
   const steps: Step[] = [
     {
       id: 1,
-      title: "Emission Data",
-      description: "Configure your emission data and scope breakdown",
+      title: t('steps.emissions.step1.title'),
+      description: t('steps.emissions.step1.description'),
       icon: <TrendingUp className="w-5 h-5" />,
     },
     {
       id: 2,
-      title: "Baseline & Reporting Configuration",
-      description: "Set up baseline year and reporting parameters",
+      title: t('steps.emissions.step2.title'),
+      description: t('steps.emissions.step2.description'),
       icon: <Calendar className="w-5 h-5" />,
     },
   ];
@@ -567,10 +569,10 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
     return [
       {
         name: "baselineYear",
-        label: "Baseline year for emissions tracking",
+        label: t('emissionsSetup.fields.baselineYear.label'),
         type: "dropdown",
         required: true,
-        placeholder: "Select the Baseline year",
+        placeholder: t('emissionsSetup.fields.baselineYear.placeholder'),
         options: [
           { label: "2024", value: "2024" },
           { label: "2023", value: "2023" },
@@ -584,10 +586,10 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "reasonChooseBaselineYear",
-        label: "Why did you choose this baseline year? ",
+        label: t('emissionsSetup.fields.reasonChooseBaselineYear.label'),
         type: "dropdown",
         required: true,
-        placeholder: "Select the reason for baseline year",
+        placeholder: t('emissionsSetup.fields.reasonChooseBaselineYear.placeholder'),
         options: [
           {
             label: "Most recent year with complete data",
@@ -611,10 +613,10 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "baselineCategory",
-        label: "Select Input Mode",
+        label: t('emissionsSetup.fields.baselineCategory.label'),
         type: "dropdown",
         required: true,
-        placeholder: "Select your input mode",
+        placeholder: t('emissionsSetup.fields.baselineCategory.placeholder'),
         options: [
           { value: "scopeTotals", label: "Scope wise - 1, 2 total" },
           { value: "scopeCategory", label: "Scope and category wise" },
@@ -632,14 +634,14 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       // Mode 1: Scope totals
       {
         name: "scope1TotalEmissions",
-        label: "Scope 1 Total Emissions (tCO2e)",
+        label: t('emissionsSetup.fields.scope1TotalEmissions.label'),
         type: "number",
         required: true,
         showWhen: [{ field: "baselineCategory", value: "scopeTotals" }],
       },
       {
         name: "scope2TotalEmissions",
-        label: "Scope 2 Total Emissions (tCO2e)",
+        label: t('emissionsSetup.fields.scope2TotalEmissions.label'),
         type: "number",
         required: true,
         showWhen: [{ field: "baselineCategory", value: "scopeTotals" }],
@@ -656,7 +658,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       // Comprehensive fields
       {
         name: "scope1Stationary",
-        label: "Scope 1 - Stationary (tCO2e)",
+        label: t('emissionsSetup.fields.scope1Stationary.label'),
         type: "number",
         required: true,
         showWhen: [
@@ -667,7 +669,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "scope1Mobile",
-        label: "Scope 1 - Mobile (tCO2e)",
+        label: t('emissionsSetup.fields.scope1Mobile.label'),
         type: "number",
         required: true,
         showWhen: [
@@ -678,7 +680,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "scope2PurchasedElectricity",
-        label: "Scope 2 - Purchased Electricity (tCO2e)",
+        label: t('emissionsSetup.fields.scope2PurchasedElectricity.label'),
         type: "number",
         required: true,
         showWhen: [
@@ -689,7 +691,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "scope2Heating",
-        label: "Scope 2 - Heating (tCO2e)",
+        label: t('emissionsSetup.fields.scope2Heating.label'),
         type: "number",
         required: false,
         showWhen: [
@@ -700,7 +702,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "scope2Cooling",
-        label: "Scope 2 - Cooling (tCO2e)",
+        label: t('emissionsSetup.fields.scope2Cooling.label'),
         type: "number",
         required: false,
         showWhen: [
@@ -711,7 +713,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "scope2Steam",
-        label: "Scope 2 - Steam (tCO2e)",
+        label: t('emissionsSetup.fields.scope2Steam.label'),
         type: "number",
         required: false,
         showWhen: [
@@ -723,7 +725,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       // Comprehensive totals
       {
         name: "facilitiesTotal",
-        label: "Facilities Total",
+        label: t('emissionsSetup.fields.facilitiesTotal.label'),
         type: "number",
         required: false,
         showWhen: [
@@ -733,14 +735,14 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
       },
       {
         name: "equipmentTotal",
-        label: "Equipment Total",
+        label: t('emissionsSetup.fields.equipmentTotal.label'),
         type: "number",
         required: false,
         showWhen: [{ field: "baselineCategory", value: "comprehensive" }],
       },
       {
         name: "vehiclesTotal",
-        label: "Vehicle Total",
+        label: t('emissionsSetup.fields.vehiclesTotal.label'),
         type: "number",
         required: false,
         showWhen: [{ field: "baselineCategory", value: "comprehensive" }],
@@ -761,8 +763,8 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
                   ["baselineYear", "reasonChooseBaselineYear"].includes(f.name)
                 )}
                 onSubmit={(data) => handleStepFormSubmit(1, data)}
-                submitText="Save & Continue"
-                title="Baseline Setup"
+                submitText={t('common.continue')}
+                title={t('emissionsSetup.titles.baselineSetup')}
                 className="bg-white p-4 rounded-lg border border-gray-200 h-full shadow-sm"
                 initialData={formData.step1}
               />
@@ -774,8 +776,8 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
                     )
                 )}
                 onSubmit={(data) => handleStepFormSubmit(1, data)}
-                submitText="Save & Continue"
-                title="Emission Configuration"
+                submitText={t('common.continue')}
+                title={t('emissionsSetup.titles.emissionConfiguration')}
                 className="bg-white p-4 rounded-lg border border-gray-200 h-full shadow-sm"
                 initialData={formData.step1}
               />
@@ -1177,9 +1179,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">
-              Loading baseline configuration data...
-            </p>
+            <p className="mt-4 text-gray-600">{t('steps.emissions.loading')}</p>
           </div>
         </div>
       </div>

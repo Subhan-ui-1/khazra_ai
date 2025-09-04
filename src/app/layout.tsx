@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${plusJakartaSans.variable} antialiased`}>
+      <body className={`${plusJakartaSans.variable} antialiased no-scrollbar`}>
         <I18nProvider>
           <Suspense fallback={<div>Loading dashboard...</div>}>
             <Toaster />

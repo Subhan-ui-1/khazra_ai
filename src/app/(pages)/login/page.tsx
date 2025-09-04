@@ -11,6 +11,7 @@ import { postRequest } from "@/utils/api";
 import toast from "react-hot-toast";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { useI18n } from "@/i18n/context";
+import { Loader } from "lucide-react";
 
 export default function LoginPage() {
   const { t } = useI18n();
@@ -191,9 +192,9 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loadingBtn}
-            className="w-full bg-[#0D5942] text-white py-2 rounded-md hover:bg-[#0A4A37] transition-colors"
+            className="w-full bg-[#0D5942] h-[40px] text-white py-2 rounded-md hover:bg-[#0A4A37] disabled:opacity-50 transition-colors"
           >
-            {t('navigation.login')}
+           {loadingBtn?<Loader className="w-4 h-4 animate-spin mx-auto my-auto" />:t('navigation.login')}
           </button>
 
           <div className="text-center text-sm mt-2" style={{ color: "var(--Paragraph)" }}>

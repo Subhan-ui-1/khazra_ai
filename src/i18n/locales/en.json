@@ -173,5 +173,717 @@
     "validation": "Please check your input and try again.",
     "server": "Server error. Please try again later.",
     "timeout": "Request timed out. Please try again."
-  }
+  },
+  "steps": {
+    "sidebar": {
+      "setupProgress": "Setup Progress",
+      "setupSteps": "Setup Steps",
+      "addLater": "Add Later"
+    },
+    "nav": {
+      "boundary": "Organizational Boundaries",
+      "ghg": "GHG Management",
+      "baseline": "Baseline & Reporting",
+      "addLater": "Add Later"
+    },
+    "boundary": {
+      "step1": { "title": "Organization & Industry Details", "desc": "Configure your organization and industry details" },
+      "step2": { "title": "Organizational Control & Ownership", "desc": "Define your organizational control and ownership" },
+      "step3": { "title": "Currency & Financial Boundaries", "desc": "Select your currency and financial boundaries" },
+      "step4": { "title": "Geographic & Operational Boundaries", "desc": "Select your geographic and operational boundaries" },
+      "validation": {
+        "step1": "Please complete the Organization & Industry Details configuration before proceeding",
+        "step2": "Please complete the Organizational Control & Ownership configuration before proceeding",
+        "step3": "Please complete the Currency & Financial Boundaries configuration before proceeding",
+        "step4": "Please complete the Currency & Financial Boundaries configuration before proceeding"
+      },
+      "loading": "Loading boundary configuration data...",
+      "buttons": {
+        "edit": "Edit Configuration",
+        "cancel": "Cancel"
+      },
+      "section10": {
+        "primaryFunctionalCurrency": {
+          "label": "Primary functional currency",
+          "placeholder": "Select your primary functional currency"
+        },
+        "secondaryFunctionalCurrency": {
+          "label": "Secondary reporting currency",
+          "placeholder": "Select your secondary reporting currency"
+        },
+        "currencyConversionApproach": {
+          "label": "Currency conversion approach",
+          "placeholder": "Select your currency conversion approach"
+        },
+        "options": {
+          "aed": "AED - UAE Dirham",
+          "usd": "USD - US Dollar",
+          "eur": "EUR - Euro",
+          "gbp": "GBP - British Pound",
+          "other": "Other",
+          "none": "None",
+          "avgAnnual": "Average annual exchange rates",
+          "monthEnd": "Month-end exchange rates",
+          "txDate": "Transaction date rates",
+          "fixedYear": "Fixed rate for the year"
+        },
+        "submit": "Save & Continue",
+        "group": {
+          "financial": "Financial Boundaries"
+        }
+      }
+    },
+    "ghg": {
+      "step1": {
+        "title": "GHG Management System and Setup",
+        "description": "Configure your GHG management system approach"
+      },
+      "step2": {
+        "title": "GHG Sources and Quantification Approach",
+        "description": "Define your emission sources and measurement methods"
+      },
+      "step3": {
+        "title": "Emission Scopes & Categories",
+        "description": "Select emission scopes and categories to track"
+      },
+      "loading": "Loading GHG management data..."
+    },
+    "emissions": {
+      "step1": {
+        "title": "Baseline Emission System and Setup",
+        "description": "Configure your emission data and scope breakdown"
+      },
+      "step2": {
+        "title": "Baseline & Reporting Configuration",
+        "description": "Set up baseline year and reporting parameters"
+      },
+      "loading": "Loading baseline configuration data..."
+    }
+  },
+  "sic": {
+    "PS01": "PS01 - Police Operations and Law Enforcement",
+    "PS02": "PS02 - Traffic Management and Road Safety",
+    "PS03": "PS03 - Emergency Response Services",
+    "PS04": "PS04 - Criminal Investigation Services",
+    "PS05": "PS05 - Community Safety and Crime Prevention",
+    "PS06": "PS06 - Border Security and Immigration Control",
+    "PS07": "PS07 - Cyber Security and Digital Crime",
+    "PS08": "PS08 - Counter-terrorism and National Security",
+    "PS09": "PS09 - Maritime Security and Coast Guard",
+    "PS10": "PS10 - Aviation Security",
+    "PS11": "PS11 - VIP Protection and Executive Security",
+    "PS12": "PS12 - Prison and Correctional Services",
+    "SS01": "SS01 - Administrative Services",
+    "SS02": "SS02 - Human Resources and Training",
+    "SS03": "SS03 - Information Technology Services",
+    "SS04": "SS04 - Fleet Management and Transportation",
+    "SS05": "SS05 - Facilities Management and Maintenance",
+    "SS06": "SS06 - Procurement and Supply Chain",
+    "SS07": "SS07 - Finance and Budgeting",
+    "SS08": "SS08 - Legal Affairs and Compliance",
+    "SS09": "SS09 - Public Relations and Communications",
+    "SS10": "SS10 - Research and Development",
+    "SU01": "SU01 - Forensic Sciences and Laboratory Services",
+    "SU02": "SU02 - K-9 Units and Mounted Police",
+    "SU03": "SU03 - SWAT and Special Operations",
+    "SU04": "SU04 - Intelligence and Surveillance",
+    "OTHER_SPECIFY": "Other (Please Specify)",
+    "DUMMY": "Dummy"
+  },
+  "boundarySections": {
+    "section1": {
+      "titles": {
+        "industry": "Industry & Classification",
+        "businessProfile": "Business Profile",
+        "scaleRevenue": "Scale & Revenue",
+        "otherDetails": "Other Details"
+      },
+      "fields": {
+        "industrySector": {"label": "Industry Sector", "placeholder": "Select your industry sector"},
+        "businessNature": {"label": "Business Nature", "placeholder": "Choose your business nature"},
+        "primaryBusinessActivities": {"label": "Primary Business Activities", "placeholder": "Describe your primary business activities"},
+        "standardIndustrialClassification": {"label": "Standard Industrial Classification (SIC) Code", "placeholder": "Select your Standard Industrial Classification (SIC) Code"},
+        "numberOfEmployees": {"label": "Number of Employees", "placeholder": "Enter the number of employees"},
+        "annualRevenue": {"label": "Annual Revenue (AED)", "placeholder": "Enter the annual revenue"},
+        "businessFormationDate": {"label": "Business Formation Date", "placeholder": "Select the business formation date"},
+        "tradeLicenseNumber": {"label": "UAE Trade License Number", "placeholder": "Enter the UAE Trade License Number"},
+        "freeZoneOperationQuestion": {"label": "Free Zone Operation", "placeholder": "Select the free zone operation"},
+        "freeZoneOperation": {"label": "Free Zone Name", "placeholder": "Enter the free zone name"}
+      }
+      ,
+      "options": {
+        "industrySector": {
+          "energyUtilities": "Energy & Utilities",
+          "oilGas": "Oil & Gas",
+          "manufacturing": "Manufacturing",
+          "financialServices": "Financial Services",
+          "realEstateConstruction": "Real Estate & Construction",
+          "hospitalityTourism": "Hospitality & Tourism",
+          "transportationLogistics": "Transportation & Logistics",
+          "technology": "Technology",
+          "healthcare": "Healthcare",
+          "retailConsumer": "Retail & Consumer Goods",
+          "agriculture": "Agriculture",
+          "governmentPublic": "Government/Public Sector",
+          "education": "Education",
+          "other": "Other"
+        },
+        "businessNature": {
+          "publicListed": "Publicly Listed Company",
+          "privateCompany": "Private Company",
+          "publicSector": "Government Entity/Public Sector",
+          "stateOwned": "State-Owned Enterprise",
+          "nonProfit": "Non-Profit Organization",
+          "partnership": "Partnership/Joint Venture",
+          "subsidiary": "Subsidiary/Division",
+          "freeZone": "Free Zone Entity",
+          "branchOffice": "Branch Office"
+        },
+        "employees": {
+          "r1": "1-10",
+          "r2": "11-50",
+          "r3": "51-250",
+          "r4": "251-1,000",
+          "r5": "1,001-5,000",
+          "r6": "5,001-10,000",
+          "r7": "10,001+"
+        },
+        "revenue": {
+          "under1m": "Under AED 1 Million",
+          "m1_10": "AED 1M - 10M",
+          "m10_50": "AED 10M - 50M",
+          "m50_250": "AED 50M - 250M",
+          "m250_1b": "AED 250M - 1B",
+          "b1_5": "AED 1B - 5B",
+          "over5b": "Over AED 5B"
+        },
+        "freeZoneNames": {
+          "n1": "Free Zone 1",
+          "n2": "Free Zone 2",
+          "n3": "Free Zone 3",
+          "n4": "Free Zone 4",
+          "n5": "Free Zone 5",
+          "n6": "Free Zone 6",
+          "n7": "Free Zone 7"
+        }
+      }
+    }
+    ,
+    "section3": {
+      "titles": {
+        "controlOwnership": "Control & Ownership",
+        "ventures": "Ventures",
+        "franchisedOps": "Franchised Operations",
+        "otherConsiderations": "Other Considerations"
+      },
+      "fields": {
+        "organizationalControlApproach": {
+          "label": "Organizational Control Approach",
+          "placeholder": "Select your organizational control"
+        },
+        "legalOwnership": {
+          "label": "Legal ownership vs operational control documentation",
+          "placeholder": "Select your legal ownership vs operational control documentation"
+        },
+        "subsidiariesQuestion": {
+          "label": "Do you have subsidiaries?",
+          "placeholder": "Select your subsidiaries"
+        },
+        "subsidiaries": {
+          "label": "How many subsidiaries?",
+          "placeholder": "Enter the number of subsidiaries"
+        },
+        "reportingBoundary": {
+          "label": "Are all subsidiaries included in reporting boundary?",
+          "placeholder": "Select included in reporting boundary"
+        },
+        "assessmentCompleted": {
+          "label": "Subsidiary control assessment completed?",
+          "placeholder": "Select if assessment is completed"
+        },
+        "controlPercentage": {
+          "label": "List all subsidiaries with control percentage",
+          "placeholder": "Enter subsidiaries with control percentage"
+        },
+        "jointVentures": {
+          "label": "Do you have joint ventures or partnerships?",
+          "placeholder": "Select joint ventures or partnerships"
+        },
+        "ventures": {
+          "label": "How many joint ventures?",
+          "placeholder": "Enter the number of joint ventures"
+        },
+        "ownershipPercentage": {
+          "label": "Your typical ownership percentage?",
+          "placeholder": "Select your ownership percentage"
+        },
+        "ventureAgreements": {
+          "label": "Joint venture agreements specify GHG responsibility?",
+          "placeholder": "Select agreement status"
+        },
+        "decisionMakingAuthority": {
+          "label": "Decision-making authority for environmental matters documented?",
+          "placeholder": "Select documentation status"
+        },
+        "operateFranchisedLocation": {
+          "label": "Do you operate franchised locations?",
+          "placeholder": "Select franchised locations operation"
+        },
+        "franchisee": {
+          "label": "Are you the franchisor or franchisee?",
+          "placeholder": "Select franchisor or franchisee"
+        },
+        "franchisedLocations": {
+          "label": "How many franchised locations?",
+          "placeholder": "Enter the number of franchised locations"
+        },
+        "activities": {
+          "label": "Do you have leased operations or outsourced activities?",
+          "placeholder": "Select leased or outsourced activities"
+        },
+        "leasedOperations": {
+          "label": "What types?",
+          "placeholder": "Select the types of activities",
+          "errorRequired": "Types of activities is required"
+        },
+        "complexOwnershipStructure": {
+          "label": "Complex ownership structures present?",
+          "placeholder": "Select complex ownership structures presence"
+        },
+        "ownershipStructures": {
+          "label": "Professional advice obtained for boundary definition?",
+          "placeholder": "Select professional advice status"
+        },
+        "organizationalStructureExpected": {
+          "label": "Changes in organizational structure expected?",
+          "placeholder": "Select if changes are expected"
+        },
+        "structureExpected": {
+          "label": "Change management process for GHG boundaries defined?",
+          "placeholder": "Select change management process status"
+        }
+      }
+    }
+    ,
+    "section2": {
+      "titles": { "overview": "Overview", "training": "Training & Competence" },
+      "fields": {
+        "existingEnvironmentalManagement": { "label": "Do you have an existing environmental management system?", "placeholder": "Select your management system integration" },
+        "ghgManagementIntegration": { "label": "GHG management integration approach", "placeholder": "Select your GHG management integration approach" },
+        "responsibleOfGHGManagement": { "label": "Who is responsible for GHG management?", "placeholder": "Select the person responsible for GHG management" },
+        "ghgPolicyEstablishment": { "label": "GHG Policy Establishment", "placeholder": "Select your GHG policy establishment" },
+        "ghgQuantification": { "label": "Staff competence for GHG quantification", "placeholder": "Select your staff competence for GHG quantification" },
+        "trainingAssessment": { "label": "Training needs assessment completed?", "placeholder": "Select your training needs assessment completed" },
+        "trainingAssessed": { "label": "When will training needs be assessed?", "placeholder": "Select the date when training needs will be assessed" }
+      }
+    }
+    ,
+    "section4": {
+      "titles": {
+        "overview": "Overview",
+        "facilities": "Facilities",
+        "assets": "Assets",
+        "processes": "Processes"
+      },
+      "ui": {
+        "searchCountries": "Search and select countries",
+        "noCountriesSelected": "No countries selected"
+      },
+      "fields": {
+        "primaryOperatingCountry": {"label": "Primary Operating Country", "placeholder": "Select your primary operating country"},
+        "primaryOperating": {"label": "Primary Operating Emirate", "placeholder": "Select your primary operating emirate"},
+        "abroadOperations": {"label": "Do you have operations outside UAE?", "placeholder": "Select your operations outside UAE"},
+        "operationsCountries": {"label": "Which Countries", "placeholder": "Select the countries", "errorRequired": "Countries is required"},
+        "percentageOperations": {"label": "What percentage of total operations is outside UAE?", "placeholder": "Select the percentage of total operations is outside UAE"},
+        "geographicReportingScope": {"label": "Geographic Reporting Scope", "placeholder": "Select the geographic reporting scope"},
+        "facilityInventoryAvailable": {"label": "Complete facility inventory available?", "placeholder": "Select the complete facility inventory available"},
+        "crossBorderActivities": {"label": "Cross-border activities documentation", "placeholder": "Select the cross-border activities documentation"},
+        "doYouHaveFacilities": {"label": "Do you have owned facilities?", "placeholder": "Do you have Facilities?"},
+        "ownedFacilities": {"label": "How many owned facilities?", "placeholder": "Enter the number of owned facilities"},
+        "typesOfFacilities": {"label": "Types of owned facilities?", "placeholder": "Select the types of owned facilities", "errorRequired": "Types of owned facilities is required"},
+        "haveLeasedFacilities": {"label": "Do you have leased facilities?", "placeholder": "Select the leased facilities"},
+        "leasedFacilities": {"label": "How many leased facilities?", "placeholder": "Enter the number of leased facilities"},
+        "leasedFacilitiesNames": {"label": "Do you pay utilities for leased facilities?", "placeholder": "Select how?"},
+        "haveMobileAssets": {"label": "Do you have mobile assets? (vehicles)", "placeholder": "Select the mobile assets"},
+        "typesOfVehicles": {"label": "Types of vehicles?", "placeholder": "Select the types of vehicles", "errorRequired": "Types of vehicles is required"},
+        "numberOfVehicles": {"label": "Approximate number of vehicles?", "placeholder": "Enter the approximate number of vehicles"},
+        "haveStationary": {"label": "Do you have stationary equipment?", "placeholder": "Select the stationary equipment"},
+        "typesOfEquipment": {"label": "Types of equipment?", "placeholder": "Select the types of equipment", "errorRequired": "Types of equipment is required"},
+        "districtCooling": {"label": "Do you use district cooling?", "placeholder": "Select the district cooling"},
+        "percentageOfDistrictCooling": {"label": "For what percentage of your cooling needs?", "placeholder": "Select the percentage of your cooling needs"},
+        "emissionGeneratingActivities": {"label": "All emission-generating activities identified?", "placeholder": "Select the emission-generating activities"},
+        "activityDataCollection": {"label": "Activity data collection systems in place?", "placeholder": "Select the data collection systems"}
+      }
+    }
+    ,
+    "section5": {
+      "titles": {
+        "core": "GHG Sources & Quantification — Core",
+        "removals": "GHG Removals",
+        "biogenic": "Biogenic Emissions"
+      },
+      "fields": {
+        "ghgSourceInventory": {"label": "GHG source inventory completeness", "placeholder": "Select your GHG source inventory completeness"},
+        "quantificationApproach": {"label": "Quantification approach selection", "placeholder": "Select your quantification approach selection"},
+        "emissionFactorsSelectionCriteria": {"label": "Emission factors selection criteria", "placeholder": "Select your emission factors selection criteria"},
+        "directMeasurementCapabilities": {"label": "Direct measurement capabilities", "placeholder": "Select your direct measurement capabilities", "errorRequired": "Direct measurement capabilities is required"},
+        "haveGHGRemoval": {"label": "Do you have GHG removals or storage activities?", "placeholder": "Select your GHG removals or storage activities"},
+        "ghgRemovals": {"label": "Types of removals/storage?", "placeholder": "Select your types of removals/storage?", "errorRequired": "Types of removals/storage is required"},
+        "approachForRemovals": {"label": "Quantification approach for removals?", "placeholder": "Select your quantification approach for removals?"},
+        "biogenicEmissionsPresent": {"label": "Biogenic emissions present?", "placeholder": "Select your biogenic emissions present?"},
+        "biogenicEmissionSources": {"label": "Biogenic emission sources?", "placeholder": "Select your biogenic emission sources?", "errorRequired": "Biogenic emission sources is required"},
+        "biogenicEmissionsPlanned": {"label": "Separate tracking of biogenic emissions planned?", "placeholder": "Select your separate tracking of biogenic emissions planned?"}
+      }
+    }
+    ,
+    "section6": {
+      "titles": {
+        "selection": "Emission Scopes — Selection",
+        "scope1": "Scope 1 — Direct Emissions",
+        "scope2": "Scope 2 — Purchased Energy",
+        "scope3": "Scope 3 — Value Chain Emissions"
+      },
+      "fields": {
+        "ghgProtocolScopes": {"label": "Which GHG Protocol Scopes will you track?", "placeholder": "Select the GHG Protocol Scopes"},
+        "directGHGEmissions": {"label": "Direct GHG emissions (ISO Category 1 / Scope 1)", "placeholder": "Select the Direct GHG emissions", "errorRequired": "Direct GHG emissions is required"},
+        "indirectGHGEmissions": {"label": "Indirect GHG emissions from imported energy (ISO Category 2 / Scope 2)", "placeholder": "Select the Indirect GHG emissions", "errorRequired": "Indirect GHG emissions is required"},
+        "electricitySupplyMethod": {"label": "Electricity Supply Method", "placeholder": "Select the Electricity Supply Method"},
+        "indirectGHGEmissionsFromTransportation": {"label": "Indirect GHG emissions from transportation (ISO Category 3)", "placeholder": "Select the Indirect GHG emissions from transportation", "errorRequired": "Indirect GHG emissions from transportation is required"},
+        "indirectGHGEmissionsFromProducts": {"label": "Indirect GHG emissions from products used by organization (ISO Category 4)", "placeholder": "Select the Indirect GHG emissions from products", "errorRequired": "Indirect GHG emissions from products is required"},
+        "indirectGHGEmissionsAssociated": {"label": "Indirect GHG emissions associated with use of products from organization (ISO Category 5)", "placeholder": "Select the Indirect GHG emissions associated with use of products from organization", "errorRequired": "Indirect GHG emissions associated with use of products is required"},
+        "indirectGHGEmissionsFromOtherSources": {"label": "Indirect GHG emissions from other sources (ISO Category 6)", "placeholder": "Select the Indirect GHG emissions from other sources", "errorRequired": "Indirect GHG emissions from other sources is required"},
+        "relevantCategories": {"label": "Which Scope 3 categories are relevant to your business?", "placeholder": "Select the relevant categories", "errorRequired": "Relevant categories is required"}
+      }
+    }
+    ,
+    "section9": {
+      "titles": {
+        "core": "Baseline & Reporting — Core",
+        "additional": "Baseline & Reporting — Additional"
+      },
+      "fields": {
+        "baselineDataCompleteness": {"label": "Baseline data completeness", "placeholder": "Select the baseline data completeness"},
+        "baselineYearSelectionCriteria": {"label": "Baseline year selection criteria", "placeholder": "Select the baseline year selection criteria", "errorRequired": "Baseline year selection criteria is required"},
+        "baselineRecalculationPolicy": {"label": "Baseline recalculation policy", "placeholder": "Select the baseline recalculation policy"},
+        "baselineRecalculationTriggers": {"label": "Baseline recalculation triggers", "placeholder": "Select the baseline recalculation triggers", "errorRequired": "Baseline recalculation triggers is required"},
+        "changeManagementProcessEstablished": {"label": "Change management process established?", "placeholder": "Select the change management process established"},
+        "financialYearPeriodStart": {"label": "Financial year period Start Date", "placeholder": "Select the financial year period Start Date", "errorFuture": "Start date cannot be more than {years} years in the future", "errorBeforeEnd": "Start date must be before end date", "errorRange": "End date cannot be more than {years} years after start date"},
+        "financialYearPeriodEnd": {"label": "Financial year period End Date", "placeholder": "Select the financial year period End Date", "errorFuture": "End date cannot be more than {years} years in the future", "errorAfterStart": "End date must be after start date", "errorRange": "End date cannot be more than {years} years after start date"},
+        "environmentalReportingPeriod": {"label": "Environmental reporting period", "placeholder": "Select the environmental reporting period"},
+        "dataCollectionFrequency": {"label": "Data collection frequency", "placeholder": "Select the data collection frequency"},
+        "historicalDataRetentionPeriod": {"label": "Historical data retention period", "placeholder": "Select the historical data retention period"},
+        "dataArchivingAndRetrievalSystem": {"label": "Data archiving and retrieval system", "placeholder": "Select the data archiving and retrieval system"}
+      }
+    }
+  },
+  "overview": {
+    "header": {
+      "title": "Sustainability Dashboard Overview",
+      "subtitle": "Comprehensive view of your organization's sustainability performance across all environmental, social, and governance metrics with real-time data and actionable insights."
+    },
+    "metrics": {
+      "totalEmissions": {
+        "title": "Total Emissions",
+        "subtitle": "Tonnes CO₂e • All scopes",
+        "onTrack": "▲ On track for 2025"
+      },
+      "baselineTargets": {
+        "title": "Base Line Targets",
+        "subtitle": "Audited & Verified",
+        "improvement": "▲ {value}% improvement"
+      },
+      "targetProgress": {
+        "title": "Target Progress",
+        "subtitle": "SBTi Targets • 2 months ahead",
+        "onTrack": "▲ On track for 2025"
+      },
+      "dataQuality": {
+        "title": "Data Quality",
+        "subtitle": "Audited & Verified",
+        "improvement": "▲ {value}% improvement"
+      }
+    },
+    "charts": {
+      "emissionTrends": "📊 Emission Trends by Scope",
+      "byVehicle": "🔥 Emissions by Vehicle",
+      "byEquipments": "🔥 Emissions by Equipments",
+      "byFacility": "📊 Emissions by Facility",
+      "complianceStatus": "🥇 Compliance Status"
+    },
+    "scopes": {
+      "scope1": {
+        "title": "Scope 1 Emissions",
+        "subtitle": "Direct emissions from owned sources",
+        "stationary": "Stationary Combustion",
+        "mobile": "Mobile Combustion",
+        "fugitive": "Fugitive Emissions",
+        "process": "Process Emissions"
+      },
+      "scope2": {
+        "title": "Scope 2 Emissions",
+        "subtitle": "Energy indirect emissions",
+        "purchasedElectricity": "Purchased Electricity",
+        "purchasedSteam": "Purchased Steam"
+      }
+    },
+    "activities": {
+      "title": "Recent Sustainability Activities",
+      "empty": "No recent activities found",
+      "columns": {
+        "date": "Date",
+        "activity": "Activity",
+        "scope": "Scope",
+        "impact": "Impact",
+        "status": "Status"
+      },
+      "status": {
+        "completed": "Completed"
+      },
+      "impact": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "cta": {
+      "badge": "Welcome to your Sustainability Hub",
+      "title": "Start Your Carbon Journey",
+      "desc": "Transform your organization's environmental impact with intelligent tracking, beautiful insights, and actionable sustainability reports.",
+      "customTargets": {
+        "title": "Custom Targets",
+        "subtitle": "Set your sustainability goals",
+        "description": "Create and manage custom emission reduction targets tailored to your organization's sustainability objectives.",
+        "add": "Set Custom Targets"
+      },
+      "materiality": {
+        "title": "Materiality Engine",
+        "subtitle": "Assess material sustainability topics",
+        "description": "Identify and prioritize the most important environmental, social, and governance topics for your organization.",
+        "add": "Access Materiality"
+      },
+      "department": {
+        "title": "Organization Department",
+        "subtitle": "Manage organizational structure",
+        "description": "Set up and manage departments within your organization to better organize and track emissions data.",
+        "add": "Manage Departments"
+      },
+      "userManagement": {
+        "title": "User Management",
+        "subtitle": "Control user access and permissions",
+        "description": "Add, edit, and manage user accounts with appropriate roles and permissions for your sustainability platform.",
+        "add": "Manage Users"
+      },
+      "stationary": {
+        "title": "Stationary Combustion",
+        "subtitle": "Buildings, facilities, equipment",
+        "description":"Track emissions from boilers, furnaces, generators, and other stationary sources. Perfect for office buildings, manufacturing facilities, and industrial sites.",
+        "add": "Add Stationary Combustion"
+      },
+      "mobile": {
+        "title": "Mobile Combustion",
+        "description":"Monitor emissions from company vehicles, delivery trucks, and transportation fleets. Essential for logistics companies and organizations with vehicle fleets.",
+        "subtitle": "Vehicles, transportation, fleet",
+        "add": "Add Mobile Combustion"
+      },
+      "features": {
+        "insights": { "title": "Real-time Insights", "desc": "Live metrics and trends that update as you add data" },
+        "guided": { "title": "Guided Setup", "desc": "Step-by-step wizard takes just minutes to complete" },
+        "reports": { "title": "Beautiful Reports", "desc": "Export-ready dashboards your team will love sharing" },
+        "security": { "title": "Enterprise Security", "desc": "Bank-grade security that scales with your organization" }
+      },
+      "help": "Need help getting started? Our team is here to support you."
+    }
+  },
+  "welcome": {
+    "titlePrefix": "Welcome, ",
+    "description": "Build a credible climate program: configure boundaries, set baselines, and manage emissions with a modern, compliant workflow.",
+    "ctaStart": "Start your Sustainability Journey",
+    "ctaDashboard": "Go to Dashboard",
+    "stats": {
+      "reporting": "Reporting",
+      "iso": "ISO & IFRS S1-S2",
+      "materiality": "Materiality",
+      "today": "Today",
+      "compliance": "Compliance",
+      "onTrack": "On Track"
+    },
+    "nextStep": {
+      "title": "Next step",
+      "finalizeBaseline": "Finalize Baseline Inputs"
+    },
+    "tags": {
+      "scope1": "Scope 1",
+      "scope2": "Scope 2",
+      "reporting": "Reporting"
+    },
+    "grid": {
+      "boundaries": {
+        "title": "Organizational Boundaries",
+        "desc": "Set geographic, operational, and financial boundaries to scope emissions.",
+        "configure": "Configure"
+      },
+      "ghg": {
+        "title": "GHG Management",
+        "desc": "Define policies, training, and inventory practices for robust GHG governance.",
+        "configure": "Configure"
+      },
+      "baseline": {
+        "title": "Baseline & Reporting",
+        "desc": "Select baseline year, define reporting periods, and enter scope-wise data.",
+        "configure": "Configure"
+      }
+    },
+    "tips": {
+      "title": "Getting Started Tips",
+      "list1": "Complete Organization Setup to tailor boundaries and baselines.",
+      "list2": "Use the “Select Input Mode” to match how your emissions are tracked.",
+      "list3": "Save each step to keep your progress and enable cross‑step persistence."
+    },
+    "help": {
+      "title": "Need help?",
+      "desc": "Our documentation and support can guide you through setup and reporting.",
+      "docs": "Docs",
+      "contact": "Contact Support"
+    }
+  },
+  "AccountSettings": {},
+  "AddBoundarySection": {},
+  "AddDepartmentSection": {},
+  "AddEmissionSection": {},
+  "emissionsSetup": {
+    "titles": {
+      "baselineSetup": "Baseline Setup",
+      "emissionConfiguration": "Emission Configuration"
+    },
+    "fields": {
+      "baselineYear": { "label": "Baseline year for emissions tracking", "placeholder": "Select the Baseline year" },
+      "reasonChooseBaselineYear": { "label": "Why did you choose this baseline year?", "placeholder": "Select the reason for baseline year" },
+      "baselineCategory": { "label": "Select Input Mode", "placeholder": "Select your input mode" },
+      "scope1TotalEmissions": { "label": "Scope 1 Total Emissions (tCO2e)" },
+      "scope2TotalEmissions": { "label": "Scope 2 Total Emissions (tCO2e)" },
+      "scope1Stationary": { "label": "Scope 1 - Stationary (tCO2e)" },
+      "scope1Mobile": { "label": "Scope 1 - Mobile (tCO2e)" },
+      "scope2PurchasedElectricity": { "label": "Scope 2 - Purchased Electricity (tCO2e)" },
+      "scope2Heating": { "label": "Scope 2 - Heating (tCO2e)" },
+      "scope2Cooling": { "label": "Scope 2 - Cooling (tCO2e)" },
+      "scope2Steam": { "label": "Scope 2 - Steam (tCO2e)" },
+      "facilitiesTotal": { "label": "Facilities Total" },
+      "equipmentTotal": { "label": "Equipment Total" },
+      "vehiclesTotal": { "label": "Vehicle Total" }
+    }
+  },
+  "AddEntryModal": {},
+  "AddEquipmentSection": {},
+  "AddFacilitySection": {},
+  "AddRoleSection": {},
+  "AddUserSection": {},
+  "AddVehicleSection": {},
+  "AnalyticsSection": {},
+  "AppModal": {},
+  "Asset level targets": {},
+  "AuthLayout": {},
+  "AutoMobile": {},
+  "BillingTab": {},
+  "BoundarySetupSteps": {},
+  "BubbleChart": {},
+  "ChatbotSection": {},
+  "Chemical": {},
+  "Companies": {},
+  "Compliance": {},
+  "ConditionalForm": {},
+  "ConditionalFormExample": {},
+  "custom": {},
+  "DashboardHeader": {},
+  "DashboardSidebar": {},
+  "DataCollectionSection": {},
+  "DynamicForm": {},
+  "EmissionTrendsChart": {},
+  "EquipmentTypeSection": {},
+  "ESGKPIsSection": {},
+  "FeatureCard": {},
+  "FeedbackSection": {},
+  "FileUploadModal": {},
+  "Footer": {},
+  "FooterLine": {},
+  "FormInput": {},
+  "GHGManage": {},
+  "GlobalHeader": {
+    "title": ""
+  },
+  "granual": {},
+  "Hero": {},
+  "HighlightBox": {},
+  "HistoryModal": {},
+  "HorizontalScroll": {},
+  "HorizontalStackedChart": {},
+  "Icons": {},
+  "Industries": {},
+  "InsightsCard": {},
+  "InsightSection": {},
+  "khazra-target-setting (2)": {},
+  "LanguageSwitcher": {},
+  "lineChart": {},
+  "materiality_assessment_demo": {},
+  "Measurements": {},
+  "measurements_assessments": {},
+  "Medical": {},
+  "MetricsCard": {},
+  "MetricsModal": {},
+  "MobileCombustionSection": {},
+  "Navbar": {},
+  "OverallEmissionDashboard": {},
+  "OverviewSection": {},
+  "Partners": {},
+  "PerformanceSection": {},
+  "ProfileTab": {},
+  "ProgressChart": {},
+  "RecentActivitiesTable": {},
+  "Reduction": {},
+  "ReportGeneration": {},
+  "ReportModal": {},
+  "ReportPage": {},
+  "Scope1": {},
+  "Scope1Section": {},
+  "scope2-data-entry": {},
+  "Scope2": {},
+  "Scope2CoolingEntry": {},
+  "Scope2ElectricityEntry": {},
+  "Scope2HeatingEntry": {},
+  "Scope2Section": {},
+  "Scope2SteamEntry": {},
+  "Scope3": {},
+  "Scope3PieChart": {},
+  "Scope3Section": {},
+  "ScopeAlignmentChart": {},
+  "ScopeCard": {},
+  "ScopeChartData": {},
+  "ScopeModal": {},
+  "Section1": {},
+  "Section10": {},
+  "Section2": {},
+  "Section3": {},
+  "Section4": {},
+  "Section5": {},
+  "Section6": {},
+  "Section9": {},
+  "SectionEmission": {},
+  "SecurityTab": {},
+  "SideBar": {},
+  "SimpleConditionalForm": {},
+  "StackedBarWithLineChart": {},
+  "StationaryCombustionSection": {},
+  "StepWizard": {},
+  "StepWizardExample": {},
+  "SustainabilityReportingSection": {},
+  "Table": {},
+  "Tabs": {},
+  "TargetsSection": {},
+  "TeamTab": {},
+  "Tech": {},
+  "Testimonial": {},
+  "Textile": {},
+  "TrustedCompliance": {},
+  "TwoColumnLayout": {},
+  "ViewEntryModal": {},
+  "WorkingConditionalForm": {}
 }
