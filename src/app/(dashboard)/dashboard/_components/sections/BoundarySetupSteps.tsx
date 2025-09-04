@@ -437,6 +437,9 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
     if (response?.success) {
       // Optimistically merge full payload
       setBoundaryData((prev) => ({ ...(prev || {} as any), ...(fullPayload as any) } as any));
+      if(method==="post"){
+        await fetchBoundaryData();
+      }
       // await fetchBoundaryData();
       const merged = { ...(boundaryData || {}), ...(fullPayload as any) } as Partial<BoundaryData>;
       try {
