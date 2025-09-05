@@ -269,7 +269,8 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
       if (response.success && response.data.boundaries && response.data.boundaries.length > 0) {
         const data = response.data.boundaries[0];
         setBoundaryData(data);
-        
+        const user = safeLocalStorage.getItem("user");
+        safeLocalStorage.setItem("user", JSON.stringify({...JSON.parse(user || "{}"), boundary: data._id}))
         // Pre-populate form data for edit mode (MERGE with any locally added values)
         setFormData((prev) => ({
           step1: {
