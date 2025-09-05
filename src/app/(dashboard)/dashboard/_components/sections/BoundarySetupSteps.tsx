@@ -9,6 +9,7 @@ import { postRequest, getRequest } from "@/utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/context";
+import { isEmptyValue, sanitizePayload, clearDependentFields, hasMeaningfulData } from "@/utils/formUtils";
 
 interface BoundaryData {
   _id: string;
@@ -192,11 +193,10 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
     'freeZoneOperationQuestion',
   ];
 
-  const isEmptyValue = (v: any): boolean => {
-    if (v === undefined || v === null) return true;
-    if (typeof v === 'string' && v.trim() === '') return true;
-    if (Array.isArray(v) && v.length === 0) return true;
-    return false;
+  // Field dependencies for clearing dependent fields when parent changes
+  const fieldDependencies: Record<string, string[]> = {
+    // Add your field dependencies here
+    // Example: 'parentField': ['childField1', 'childField2']
   };
 
   const sanitizePayload = (obj: Record<string, any>) => {
@@ -204,7 +204,11 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
     Object.keys(obj).forEach((key) => {
       const value = obj[key];
       if (TRANSIENT_KEYS.includes(key)) return; // ignore unwanted keys
-      if (isEmptyValue(value)) return; // omit blanks to avoid clearing on backend
+      if (isEmptyValue(value)) {
+        // Convert empty values to null for dependent fields that were cleared
+        sanitized[key] = null;
+        return;
+      }
       sanitized[key] = value;
     });
     return sanitized;
@@ -369,10 +373,18 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
   const handleStepFormSubmit = async (step: number, data: any) => {
     console.log(`Step ${step} form submitted:`, data);
 
+    // Clear dependent fields when any field changes
+    let processedData = { ...data };
+    Object.keys(data).forEach(fieldName => {
+      if (data[fieldName] !== undefined) {
+        processedData = clearDependentFields(processedData, fieldName, fieldDependencies);
+      }
+    });
+
     // Merge this group's data into existing step state (preserve prior inputs)
     const mergedStep = {
       ...(formData as any)[`step${step}`],
-      ...(data || {}),
+      ...processedData,
     };
     const updated = {
       ...formData,
@@ -380,10 +392,11 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
     } as typeof formData;
     setFormData(updated);
 
-    // Mark step as completed
+    // Mark step as completed only if it has meaningful data
+    const hasMeaningfulStepData = hasMeaningfulData(processedData);
     setFormCompletionStatus(prev => ({
       ...prev,
-      [`step${step}`]: true
+      [`step${step}`]: hasMeaningfulStepData
     }));
 
     // Build full aggregated payload from server snapshot + all steps (ensure fields absent in GET but edited locally are included)
@@ -507,12 +520,18 @@ const BoundarySetupSteps: React.FC<BoundarySetupStepsProps> = ({ onProgressChang
       console.log('All boundary setup steps completed!', formData);
       const {step1, step2, step3, step4} = formData;
 
+    // Sanitize each step data to convert empty values to null
+    const sanitizedStep1 = sanitizePayload(step1 || {});
+    const sanitizedStep2 = sanitizePayload(step2 || {});
+    const sanitizedStep3 = sanitizePayload(step3 || {});
+    const sanitizedStep4 = sanitizePayload(step4 || {});
+
     const payload: any = {
       organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
-      ...step1,
-      ...step2,
-      ...step3,
-      ...step4,
+      ...sanitizedStep1,
+      ...sanitizedStep2,
+      ...sanitizedStep3,
+      ...sanitizedStep4,
       }
       console.log(payload, "payload")
       const endpoint = isEditMode && boundaryData 

@@ -802,6 +802,7 @@ const Section4: React.FC<Section4Props> = ({
             onModalOpen={() => setCurrentOpenForm("g1")}
             onFormDataChange={handleFormDataChange}
             externalFormData={sharedFormData}
+            confirmationMessage="Are you sure you want to save the geographic scope information?"
             {...getFormNavigationProps("g1")}
           />
         </div>
@@ -827,6 +828,7 @@ const Section4: React.FC<Section4Props> = ({
             onModalOpen={() => setCurrentOpenForm("g2")}
             onFormDataChange={handleFormDataChange}
             externalFormData={sharedFormData}
+            confirmationMessage="Are you sure you want to save the facility information?"
             {...getFormNavigationProps("g2")}
           />
         </div>
@@ -852,6 +854,7 @@ const Section4: React.FC<Section4Props> = ({
             onModalOpen={() => setCurrentOpenForm("g3")}
             onFormDataChange={handleFormDataChange}
             externalFormData={sharedFormData}
+            confirmationMessage="Are you sure you want to save the mobile assets information?"
             {...getFormNavigationProps("g3")}
           />
         </div>
@@ -891,6 +894,7 @@ const Section4: React.FC<Section4Props> = ({
             onModalOpen={() => setCurrentOpenForm("g4")}
             onFormDataChange={handleFormDataChange}
             externalFormData={sharedFormData}
+            confirmationMessage="Are you sure you want to save the operational boundaries information?"
             {...getFormNavigationProps("g4")}
           />
         </div>

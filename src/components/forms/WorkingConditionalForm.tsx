@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import ConfirmModal from "../modal/ConfirmModal";
 
 // Types for the conditional form system
 export interface ConditionalField {
@@ -85,6 +86,7 @@ export interface ConditionalFormProps {
   onNavigateToForm?: (formId: string) => void;
   onFormDataChange?: (data: Record<string, any>) => void;
   externalFormData?: Record<string, any>;
+  confirmationMessage?: string;
 }
 
 const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
@@ -109,6 +111,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
   onNavigateToForm,
   onFormDataChange,
   externalFormData,
+  confirmationMessage,
 }) => {
   // Form state management - initialize with default values
   const [formData, setFormData] = useState<Record<string, any>>(() => {
@@ -202,17 +205,20 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpening, setIsModalOpening] = useState(false);
-  // Determine if we have any initial values for display mode
+  // Determine if we have any meaningful initial values for display mode
   const hasInitialValues = useMemo(() => {
     return fields.some((f) => {
       const v = initialData[f.name];
       if (Array.isArray(v)) return v.length > 0;
-      return v !== undefined && v !== "" && v !== null;
+      // Check for meaningful values (not just empty strings, null, undefined, or "No")
+      return v !== undefined && v !== "" && v !== null && v !== "No" && v !== false;
     });
   }, [fields, initialData]);
   const [isViewing, setIsViewing] = useState<boolean>(true);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [transitionDirection, setTransitionDirection] = useState<'next' | 'previous' | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<any>(null);
 
   // Sync external form data when it changes
   React.useEffect(() => {
@@ -430,13 +436,45 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
 
     const newFormData = { ...formData, [fieldName]: normalizedValue };
 
-    // Reset dependent fields when a field with dynamicOptions changes
-    fields.forEach((field) => {
+    // Reset dependent fields when a field changes
+    fields.forEach((dependentField) => {
+      // Check for dynamicOptions dependencies
       if (
-        field.dynamicOptions &&
-        field.dynamicOptions.dependsOn === fieldName
+        dependentField.dynamicOptions &&
+        dependentField.dynamicOptions.dependsOn === fieldName
       ) {
-        newFormData[field.name] = field.type === "multiselect" ? [] : "";
+        // Always clear dependent fields when parent changes, set to null for better backend handling
+        newFormData[dependentField.name] = null;
+      }
+      
+      // Check for showWhen dependencies
+      if (dependentField.showWhen) {
+        const shouldShow = dependentField.showWhen.every(condition => {
+          const dependentValue = newFormData[condition.field];
+          switch (condition.operator) {
+            case "equals":
+              return dependentValue === condition.value;
+            case "notEquals":
+              return dependentValue !== condition.value;
+            case "contains":
+              return Array.isArray(dependentValue) && dependentValue.includes(condition.value);
+            case "greaterThan":
+              return Number(dependentValue) > Number(condition.value);
+            case "lessThan":
+              return Number(dependentValue) < Number(condition.value);
+            case "in":
+              return Array.isArray(condition.value) && condition.value.includes(dependentValue);
+            case "notIn":
+              return Array.isArray(condition.value) && !condition.value.includes(dependentValue);
+            default:
+              return dependentValue === condition.value;
+          }
+        });
+        
+        // If the dependent field should not be shown, clear its value to null
+        if (!shouldShow) {
+          newFormData[dependentField.name] = null;
+        }
       }
     });
 
@@ -555,26 +593,49 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
     visibleFields.forEach((field) => {
       if (formData[field.name] !== undefined) {
         if (field.type === "multiselect") {
-          // For multiselect, ensure defaultSelected options are always included
-          const currentValues = Array.isArray(formData[field.name])
-            ? formData[field.name]
-            : [];
-          const defaultSelectedValues =
-            field.options
-              ?.filter((option) => option.defaultSelected)
-              .map((option) => option.value) || [];
+          // For multiselect, handle null values properly
+          if (formData[field.name] === null) {
+            visibleFormData[field.name] = null;
+          } else {
+            const currentValues = Array.isArray(formData[field.name])
+              ? formData[field.name]
+              : [];
+            const defaultSelectedValues =
+              field.options
+                ?.filter((option) => option.defaultSelected)
+                .map((option) => option.value) || [];
 
-          // Combine current values with default selected values, removing duplicates
-          const combinedValues = [
-            ...new Set([...currentValues, ...defaultSelectedValues]),
-          ];
-          visibleFormData[field.name] = combinedValues;
+            // Combine current values with default selected values, removing duplicates
+            const combinedValues = [
+              ...new Set([...currentValues, ...defaultSelectedValues]),
+            ];
+            visibleFormData[field.name] = combinedValues;
+          }
         } else {
+          // For other field types, preserve null values
           visibleFormData[field.name] = formData[field.name];
         }
       }
     });
 
+    // Call onFormDataChange to update parent component
+    if (onFormDataChange) {
+      onFormDataChange(visibleFormData);
+    }
+
+    // Call onModalOpen if provided
+    if (onModalOpen) {
+      onModalOpen();
+    }
+
+    // If confirmation message is provided, show confirmation modal
+    if (confirmationMessage) {
+      setPendingFormData(visibleFormData);
+      setShowConfirmModal(true);
+      return;
+    }
+
+    // Otherwise submit directly
     setIsSubmitting(true);
     try {
       await onSubmit(visibleFormData);
@@ -588,10 +649,28 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
     }
   };
 
+  // Handle confirmation modal submission
+  const handleConfirmSubmit = async () => {
+    if (!pendingFormData) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onSubmit(pendingFormData);
+    } catch (error) {
+      console.error("Form submission error:", error);
+    } finally {
+      setIsModalOpen(false);
+      setIsSubmitting(false);
+      setIsViewing(true);
+      setShowConfirmModal(false);
+      setPendingFormData(null);
+    }
+  };
+
   // Render individual field based on type
   const renderField = (field: ConditionalField) => {
     const value =
-      formData[field.name] !== undefined ? formData[field.name] : "";
+      formData[field.name] !== undefined && formData[field.name] !== null ? formData[field.name] : "";
     const error = errors[field.name];
     const isTouched = touched[field.name];
     const showError = isTouched && error;
@@ -874,7 +953,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
             const v = formData[field.name];
             const hasValue = Array.isArray(v)
               ? v.length > 0
-              : v !== undefined && v !== "" && v !== null;
+              : v !== undefined && v !== "" && v !== null && v !== false;
             
             return (
               <div
@@ -1093,21 +1172,26 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                             visibleFields.forEach((field) => {
                               if (formData[field.name] !== undefined) {
                                 if (field.type === "multiselect") {
-                                  // For multiselect, ensure defaultSelected options are always included
-                                  const currentValues = Array.isArray(formData[field.name])
-                                    ? formData[field.name]
-                                    : [];
-                                  const defaultSelectedValues =
-                                    field.options
-                                      ?.filter((option) => option.defaultSelected)
-                                      .map((option) => option.value) || [];
+                                  // For multiselect, handle null values properly
+                                  if (formData[field.name] === null) {
+                                    visibleFormData[field.name] = null;
+                                  } else {
+                                    const currentValues = Array.isArray(formData[field.name])
+                                      ? formData[field.name]
+                                      : [];
+                                    const defaultSelectedValues =
+                                      field.options
+                                        ?.filter((option) => option.defaultSelected)
+                                        .map((option) => option.value) || [];
 
-                                  // Combine current values with default selected values, removing duplicates
-                                  const combinedValues = [
-                                    ...new Set([...currentValues, ...defaultSelectedValues]),
-                                  ];
-                                  visibleFormData[field.name] = combinedValues;
+                                    // Combine current values with default selected values, removing duplicates
+                                    const combinedValues = [
+                                      ...new Set([...currentValues, ...defaultSelectedValues]),
+                                    ];
+                                    visibleFormData[field.name] = combinedValues;
+                                  }
                                 } else {
+                                  // For other field types, preserve null values
                                   visibleFormData[field.name] = formData[field.name];
                                 }
                               }
@@ -1137,7 +1221,7 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                           }, 300);
                         }}
                         disabled={isTransitioning}
-                        className={`inline-flex items-center px-4 h-9 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`inline-flex items-center px-4 h-9 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1177,21 +1261,26 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
                             visibleFields.forEach((field) => {
                               if (formData[field.name] !== undefined) {
                                 if (field.type === "multiselect") {
-                                  // For multiselect, ensure defaultSelected options are always included
-                                  const currentValues = Array.isArray(formData[field.name])
-                                    ? formData[field.name]
-                                    : [];
-                                  const defaultSelectedValues =
-                                    field.options
-                                      ?.filter((option) => option.defaultSelected)
-                                      .map((option) => option.value) || [];
+                                  // For multiselect, handle null values properly
+                                  if (formData[field.name] === null) {
+                                    visibleFormData[field.name] = null;
+                                  } else {
+                                    const currentValues = Array.isArray(formData[field.name])
+                                      ? formData[field.name]
+                                      : [];
+                                    const defaultSelectedValues =
+                                      field.options
+                                        ?.filter((option) => option.defaultSelected)
+                                        .map((option) => option.value) || [];
 
-                                  // Combine current values with default selected values, removing duplicates
-                                  const combinedValues = [
-                                    ...new Set([...currentValues, ...defaultSelectedValues]),
-                                  ];
-                                  visibleFormData[field.name] = combinedValues;
+                                    // Combine current values with default selected values, removing duplicates
+                                    const combinedValues = [
+                                      ...new Set([...currentValues, ...defaultSelectedValues]),
+                                    ];
+                                    visibleFormData[field.name] = combinedValues;
+                                  }
                                 } else {
+                                  // For other field types, preserve null values
                                   visibleFormData[field.name] = formData[field.name];
                                 }
                               }
@@ -1236,6 +1325,21 @@ const WorkingConditionalForm: React.FC<ConditionalFormProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Confirm Action"
+        description={confirmationMessage || "Are you sure you want to submit this form?"}
+        confirmText={submitText || "Submit"}
+        cancelText={cancelText || "Cancel"}
+        loading={isSubmitting}
+        onConfirm={handleConfirmSubmit}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setPendingFormData(null);
+        }}
+      />
     </div>
   );
 };

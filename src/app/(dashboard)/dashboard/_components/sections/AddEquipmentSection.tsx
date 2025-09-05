@@ -113,6 +113,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
   const [showFileModal, setShowFileModal] = useState(false);
   const router = useRouter();
@@ -168,7 +169,6 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
 
   const fetchEquipments = async () => {
     try {
-
       setLoading(true);
       const queryParams = new URLSearchParams({
         page: filters.page.toString(),
@@ -183,7 +183,10 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         tokenData.accessToken
       );
       if (response.success) {
-        safeLocalStorage.setItem("equipments", JSON.stringify(response.data.equipments));
+        safeLocalStorage.setItem(
+          "equipments",
+          JSON.stringify(response.data.equipments)
+        );
         setEquipmentData(
           response.data.equipments.map((ep: any) => {
             return {
@@ -193,10 +196,10 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
             };
           }) || []
         );
-      } 
+      }
     } catch (error: any) {
       // toast.error(error.message || "Failed to fetch equipments");
-     return;
+      return;
     } finally {
       setLoading(false);
     }
@@ -212,7 +215,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         setFacilities(response.data.facilities || []);
       }
     } catch (error: any) {
-     return;
+      return;
     }
   };
 
@@ -226,120 +229,135 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         setEquipmentTypeData(response.data.equipmentTypes || []);
       }
     } catch (error: any) {
-     return; 
+      return;
     }
   };
 
   // Form fields configuration (memoized to avoid resetting DynamicForm state)
-  const equipmentFormFields: FormField[] = useMemo(() => [
-    {
-      name: "facilityId",
-      label: "Facility",
-      type: "select",
-      required: true,
-      placeholder: "Select Facility",
-      options: facilities.map((facility) => ({
-        value: facility._id,
-        label: facility.facilityName,
-      })),
-    },
-    {
-      name: "equipmentTypeId",
-      label: "Equipment Type",
-      type: "select",
-      required: true,
-      placeholder: "Select Equipment Type",
-      options: equipmentTypeData.map((type) => ({
-        value: type._id,
-        label: type.equipmentName,
-      })),
-    },
-    {
-      name: "equipmentName",
-      label: "Equipment Name",
-      type: "text",
-      required: true,
-      placeholder: "Enter equipment name",
-    },
-    {
-      name: "manufacturer",
-      label: "Manufacturer",
-      type: "text",
-      placeholder: "Enter Manufacturer",
-      required: true,
-      // options: manufacturers.map(manufacturer => ({ value: manufacturer, label: manufacturer }))
-    },
-    {
-      name: "model",
-      label: "Model",
-      type: "text",
-      placeholder: "Enter model",
-    },
-    {
-      name: "serialNumber",
-      label: "Serial Number",
-      type: "text",
-      placeholder: "Enter serial number",
-    },
-    {
-      name: "capacityValue",
-      label: "Capacity Value",
-      type: "number",
-      placeholder: "Enter capacity value",
-    },
-    {
-      name: "capacityUnit",
-      label: "Capacity Unit",
-      type: "select",
-      placeholder: "Select Capacity Unit",
-      options: capacityUnits.map((unit) => ({ value: unit, label: unit })),
-    },
-    {
-      name: "efficiency",
-      label: "Efficiency (%)",
-      type: "number",
-      placeholder: "Enter efficiency percentage",
-    },
-    {
-      name: "installationYear",
-      label: "Installation Year",
-      type: "select",
-      placeholder: "Select Installation Year",
-      options: installationYears.map((year) => ({
-        value: year.toString(),
-        label: year.toString(),
-      })),
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      required: true,
-      placeholder: "Select Status",
-      options: statusOptions.map((status) => ({
-        value: status,
-        label: status,
-      })),
-    },
-    {
-      name: "notes",
-      label: "Notes",
-      type: "textarea",
-      placeholder: "Enter additional notes",
-      rows: 3,
-    },
-    ...(!editingItem
-      ? [{
-          name: "attachment",
-          label: "Attachment",
-          type: "file" as const,
-          placeholder: "Upload attachment",
-          acceptedTypes: [".pdf", ".png", ".jpg", ".jpeg", ".csv", ".xlsx", ".xls"],
-          maxSize: 10,
-          showAttachment: true,
-        }]
-      : []),
-  ], [facilities, equipmentTypeData, editingItem]);
+  const equipmentFormFields: FormField[] = useMemo(
+    () => [
+      {
+        name: "facilityId",
+        label: "Facility",
+        type: "select",
+        required: true,
+        placeholder: "Select Facility",
+        options: facilities.map((facility) => ({
+          value: facility._id,
+          label: facility.facilityName,
+        })),
+      },
+      {
+        name: "equipmentTypeId",
+        label: "Equipment Type",
+        type: "select",
+        required: true,
+        placeholder: "Select Equipment Type",
+        options: equipmentTypeData.map((type) => ({
+          value: type._id,
+          label: type.equipmentName,
+        })),
+      },
+      {
+        name: "equipmentName",
+        label: "Equipment Name",
+        type: "text",
+        required: true,
+        placeholder: "Enter equipment name",
+      },
+      {
+        name: "manufacturer",
+        label: "Manufacturer",
+        type: "text",
+        placeholder: "Enter Manufacturer",
+        required: true,
+        // options: manufacturers.map(manufacturer => ({ value: manufacturer, label: manufacturer }))
+      },
+      {
+        name: "model",
+        label: "Model",
+        type: "text",
+        placeholder: "Enter model",
+      },
+      {
+        name: "serialNumber",
+        label: "Serial Number",
+        type: "text",
+        placeholder: "Enter serial number",
+      },
+      {
+        name: "capacityValue",
+        label: "Capacity Value",
+        type: "number",
+        placeholder: "Enter capacity value",
+      },
+      {
+        name: "capacityUnit",
+        label: "Capacity Unit",
+        type: "select",
+        placeholder: "Select Capacity Unit",
+        options: capacityUnits.map((unit) => ({ value: unit, label: unit })),
+      },
+      {
+        name: "efficiency",
+        label: "Efficiency (%)",
+        type: "number",
+        placeholder: "Enter efficiency percentage",
+        min: 0,
+        max: 100,
+      },
+      {
+        name: "installationYear",
+        label: "Installation Year",
+        type: "select",
+        placeholder: "Select Installation Year",
+        options: installationYears.map((year) => ({
+          value: year.toString(),
+          label: year.toString(),
+        })),
+      },
+      {
+        name: "status",
+        label: "Status",
+        type: "select",
+        required: true,
+        placeholder: "Select Status",
+        options: statusOptions.map((status) => ({
+          value: status,
+          label: status,
+        })),
+      },
+      {
+        name: "notes",
+        label: "Notes",
+        type: "textarea",
+        placeholder: "Enter additional notes",
+        rows: 3,
+      },
+      ...(!editingItem
+        ? [
+            {
+              name: "attachment",
+              label: "Attachment",
+              type: "file" as const,
+              placeholder: "Upload attachment",
+              acceptedTypes: [
+                ".pdf",
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".csv",
+                ".xlsx",
+                ".xls",
+              ],
+              maxSize: 10,
+              showAttachment: true,
+            },
+          ]
+        : []),
+    ],
+    [facilities, equipmentTypeData, editingItem]
+  );
 
   const handleFileUploadOnAPI = async (file: File) => {
     const formData = new FormData();
@@ -358,28 +376,33 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
   };
 
   const handleFormSubmit = async (data: any) => {
+    setSubmitting(true);
     try {
       const equipmentData = {
         ...data,
         // organizationId: await getOrganizationId()
       };
 
-      if(!editingItem){
-        if(formData.attachment){
-          const attachment = await handleFileUploadOnAPI(formData.attachment as File);
-          if(attachment){
+      if (!editingItem) {
+        if (formData.attachment) {
+          const attachment = await handleFileUploadOnAPI(
+            formData.attachment as File
+          );
+          if (attachment) {
             equipmentData.attachment = attachment;
-          } else{
+          } else {
             return;
           }
         }
       }
 
+      const { files, ...equipmentDataWithoutAttachment } = equipmentData;
+
       const response = await postRequest(
         editingItem
           ? `equipments/updateEquipment/${editingItem._id}`
           : "equipments/createEquipment",
-        equipmentData,
+        editingItem ? equipmentDataWithoutAttachment : equipmentData,
         editingItem
           ? "Equipment updated successfully"
           : "Equipment created successfully",
@@ -389,17 +412,25 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
 
       if (response.success) {
         const equipments = safeLocalStorage.getItem("equipments");
-        if(equipments){
-          const equipmentsData = JSON.parse(equipments)||[]
-          const index = equipmentsData.findIndex((e:any)=>e._id === response.equipment._id);
-          if(index !== -1){
+        if (equipments) {
+          const equipmentsData = JSON.parse(equipments) || [];
+          const index = equipmentsData.findIndex(
+            (e: any) => e._id === response.equipment._id
+          );
+          if (index !== -1) {
             equipmentsData[index] = response.equipment;
-          } else{
+          } else {
             equipmentsData.push(response.equipment);
           }
-          safeLocalStorage.setItem("equipments", JSON.stringify(equipmentsData));
-        } else{
-          safeLocalStorage.setItem("equipments", JSON.stringify([response.equipment]));
+          safeLocalStorage.setItem(
+            "equipments",
+            JSON.stringify(equipmentsData)
+          );
+        } else {
+          safeLocalStorage.setItem(
+            "equipments",
+            JSON.stringify([response.equipment])
+          );
         }
         // toast.success(
         //   editingItem
@@ -417,6 +448,8 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
     } catch (error: any) {
       // toast.error(error.message || (editingItem ? "Failed to update equipment" : "Failed to create equipment"));
       return;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -467,7 +500,6 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         fetchEquipments(); // Refresh the list
       } else {
         // toast.error(response.message || "Failed to delete equipment");
-        
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to delete equipment");
@@ -555,7 +587,6 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
         fetchEquipments(); // Refresh the list after adding/updating
       } else {
         // toast.error(response.message || "Operation failed");
-        
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
@@ -565,7 +596,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
 
   const startEdit = (item: any) => {
     setEditingItem(item);
-    
+
     setFormData({
       facilityId: item.facilityId?._id || "",
       equipmentTypeId: item.equipmentTypeId?._id || "",
@@ -737,21 +768,27 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
               Equipment Management
             </h3>
           </div>
-          <input type='file' className='hidden' id='uploadEquipmentsCSV' accept='.csv,.xlsx,.xls' ref={inputRef}/>
+          <input
+            type="file"
+            className="hidden"
+            id="uploadEquipmentsCSV"
+            accept=".csv,.xlsx,.xls"
+            ref={inputRef}
+          />
           <PermissionGuard permission="equipment.create">
-            <div className='flex items-center gap-3'>
+            <div className="flex items-center gap-3">
               {/* <button onClick={() => setShowFileModal(true)} className='bg-[#0D5942] text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 cursor-pointer'>
                 <Paperclip className="w-5 h-5" />
                 Import Multiple Equipments
             </button> */}
-            <button
-              onClick={() => setShowForm(true)}
-              disabled={showForm}
-              className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Equipment</span>
-            </button>
+              <button
+                onClick={() => setShowForm(true)}
+                disabled={showForm}
+                className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 px-4 py-2 bg-[#0D5942] text-white rounded-lg  transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Equipment</span>
+              </button>
             </div>
           </PermissionGuard>
         </div>
@@ -1031,15 +1068,20 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
           onSubmit={handleFormSubmit}
           onCancel={resetForm}
           initialData={formData}
-          loading={false}
+          loading={submitting}
           submitText={editingItem ? "Update Equipment" : "Save Equipment"}
           cancelText="Cancel"
           onClose={undefined}
           showCancelButton={onComplete ? false : true}
           showCloseButton={false}
-          onFileChange={(file)=>{
-            setFormData((prev)=>({ ...prev, attachment: file }))
+          onFileChange={(file) => {
+            setFormData((prev) => ({ ...prev, attachment: file }));
           }}
+          confirmationMessage={
+            editingItem
+              ? "Do you really want to update this equipment?"
+              : "Do you really want to create this equipment?"
+          }
         />
       </AppModal>
 
@@ -1052,7 +1094,7 @@ const AddEquipmentSection = ({ onComplete }: AddEquipmentSectionProps) => {
           // Here you can add logic to process the CSV/Excel file
           // For now, just showing a success message
         }}
-        acceptedTypes={['.csv', '.xlsx', '.xls']}
+        acceptedTypes={[".csv", ".xlsx", ".xls"]}
         maxSize={10}
         title="Import Multiple Equipments"
         description="Upload a CSV or Excel file with equipment data"

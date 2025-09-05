@@ -23,6 +23,7 @@ import WorkingConditionalForm, {
   ConditionalField,
 } from "@/components/forms/WorkingConditionalForm";
 import { useI18n } from "@/i18n/context";
+import { isEmptyValue, sanitizePayload, clearDependentFields, hasMeaningfulData } from "@/utils/formUtils";
 
 type baselineCategory =
   | "scopeTotals"
@@ -116,22 +117,10 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
     },
   ];
 
-  // Utilities for per-form delta updates
-  const isEmptyValue = (v: any): boolean => {
-    if (v === undefined || v === null) return true;
-    if (typeof v === 'string' && v.trim() === '') return true;
-    if (Array.isArray(v) && v.length === 0) return true;
-    return false;
-  };
-
-  const sanitizePayload = (obj: Record<string, any>) => {
-    const sanitized: Record<string, any> = {};
-    Object.keys(obj).forEach((key) => {
-      const value = obj[key];
-      if (isEmptyValue(value)) return; // omit blanks so we don't clear accidentally
-      sanitized[key] = value;
-    });
-    return sanitized;
+  // Field dependencies for clearing dependent fields when parent changes
+  const fieldDependencies: Record<string, string[]> = {
+    // Add your field dependencies here
+    // Example: 'parentField': ['childField1', 'childField2']
   };
 
   const pick = (src: Record<string, any>, keys: string[]) => {
@@ -296,24 +285,33 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
   const handleStepFormSubmit = async (step: number, data: any) => {
     console.log(`Step ${step} form submitted:`, data);
 
+    // Clear dependent fields when any field changes
+    let processedData = { ...data };
+    Object.keys(data).forEach(fieldName => {
+      if (data[fieldName] !== undefined) {
+        processedData = clearDependentFields(processedData, fieldName, fieldDependencies);
+      }
+    });
+
     // Merge this group's data into existing step state (preserve prior inputs)
     setFormData((prev) => {
-      const mergedStep = { ...(prev as any)[`step${step}`], ...(data || {}) };
+      const mergedStep = { ...(prev as any)[`step${step}`], ...processedData };
       return {
         ...prev,
         [`step${step}`]: mergedStep,
       } as typeof prev;
     });
 
-    // Mark step as completed
+    // Mark step as completed only if it has meaningful data
+    const hasMeaningfulStepData = hasMeaningfulData(processedData);
     setFormCompletionStatus((prev) => ({
       ...prev,
-      [`step${step}`]: true,
+      [`step${step}`]: hasMeaningfulStepData,
     }));
 
     // Build full aggregated payload across all steps
     // Build aggregate from latest merged state AND server snapshot so fields not returned by GET are preserved
-    const latestStep = { ...(formData as any)[`step${step}`], ...(data || {}) };
+    const latestStep = { ...(formData as any)[`step${step}`], ...processedData };
     const currentState = { ...formData, [`step${step}`]: latestStep } as typeof formData;
     const { step1, step2 } = currentState;
     const aggregate = {
@@ -330,11 +328,14 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
     const method = isUpdate && baselineData?._id ? 'put' : 'post';
     const successMessage = method === 'put' ? 'Baseline updated successfully!' : 'Baseline created successfully!';
 
+    // Sanitize the aggregate data to convert empty values to null
+    const sanitizedAggregate = sanitizePayload(aggregate);
+
     const fullPayload: any = method === 'put'
-      ? { ...aggregate }
+      ? { ...sanitizedAggregate }
       : {
           organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
-          ...aggregate,
+          ...sanitizedAggregate,
         };
 
     // Clean server-only fields
@@ -415,8 +416,9 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
         ? "Baseline setup updated successfully!"
         : "Baseline setup completed successfully!";
 
-      // Build payload from both steps
-      const payload = buildPayload(step1, step2);
+      // Build payload from both steps and sanitize it
+      const rawPayload = buildPayload(step1, step2);
+      const payload = sanitizePayload(rawPayload);
 
       const response = await postRequest(
         endpoint,
@@ -767,6 +769,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
                 title={t('emissionsSetup.titles.baselineSetup')}
                 className="bg-white p-4 rounded-lg border border-gray-200 h-full shadow-sm"
                 initialData={formData.step1}
+                confirmationMessage="Are you sure you want to save the baseline setup information?"
               />
               <WorkingConditionalForm
                 fields={step1Fields.filter(
@@ -780,6 +783,7 @@ const AddEmissionSection: React.FC<AddEmissionSectionProps> = ({ onProgressChang
                 title={t('emissionsSetup.titles.emissionConfiguration')}
                 className="bg-white p-4 rounded-lg border border-gray-200 h-full shadow-sm"
                 initialData={formData.step1}
+                confirmationMessage="Are you sure you want to save the emission configuration information?"
               />
             </div>
             {/* {formCompletionStatus.step1 && (

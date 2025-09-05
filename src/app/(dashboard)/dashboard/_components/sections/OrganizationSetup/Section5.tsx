@@ -336,6 +336,7 @@ const Section5: React.FC<Section5Props> = ({
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g1')}
+          confirmationMessage="Are you sure you want to save the core information?"
         />
       </div>
       <div data-form-id="g2">
@@ -353,6 +354,7 @@ const Section5: React.FC<Section5Props> = ({
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g2')}
+          confirmationMessage="Are you sure you want to save the removals information?"
         />
       </div>
       <div data-form-id="g3">
@@ -370,6 +372,7 @@ const Section5: React.FC<Section5Props> = ({
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g3')}
+          confirmationMessage="Are you sure you want to save the biogenic information?"
         />
       </div>
     </div>

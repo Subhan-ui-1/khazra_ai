@@ -19,6 +19,7 @@ import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import FileUploadModal from "@/components/FileUploadModal";
 import AppModal from "@/components/modal/AppModal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
 
 // Define TypeScript interfaces
 interface FacilityFormData {
@@ -160,6 +161,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [showFileModal, setShowFileModal] = useState(false);
@@ -176,6 +178,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   const [showAttachment, setShowAttachment] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const tokenData = JSON.parse(safeLocalStorage.getItem("tokens") || "{}");
   if (!tokenData.accessToken) {
@@ -221,31 +224,6 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
 
   // Get user location and organization ID on component mount
   useEffect(() => {
-    // Get user location
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ latitude, longitude });
-          setFormData((prev) => ({
-            ...prev,
-            latitude,
-            longitude,
-          }));
-        },
-        (error) => {
-          // Set default coordinates (New York)
-          const defaultLat = 40.28;
-          const defaultLng = 74.6;
-          setLocation({ latitude: defaultLat, longitude: defaultLng });
-          setFormData((prev) => ({
-            ...prev,
-            latitude: defaultLat,
-            longitude: defaultLng,
-          }));
-        }
-      );
-    } else {
       // Set default coordinates
       const defaultLat = 40.28;
       const defaultLng = 74.6;
@@ -255,7 +233,6 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         latitude: defaultLat,
         longitude: defaultLng,
       }));
-    }
 
     fetchFacilities();
   }, [filters]);
@@ -420,6 +397,11 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowConfirmModal(true);
+    return;
+  };
+  const submitFacilityConfirmed = async () => {
+    setSubmitting(true);
     // Prepare facility data
     const facilityData = {
       facilityName: formData.facilityName,
@@ -447,9 +429,10 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
       if (editingItem) {
         // Update existing facility
         const facilityId = editingItem.id || editingItem._id;
+        const { attachment, ...facilityDataWithoutAttachment } = facilityData;
         response = await postRequest(
           `facilities/updateFacilities/${facilityId}`,
-          facilityData,
+          facilityDataWithoutAttachment,
           "Facility Updated Successfully",
           tokenData.accessToken,
           "put"
@@ -523,6 +506,7 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         setEditingItem(null);
         resetForm();
         fetchFacilities(); // Refresh the list after adding/updating
+        setShowConfirmModal(false); // Close the confirmation modal
 
         // Call onComplete callback if provided (for steps page) and this is a new facility
         if (onComplete && !editingItem) {
@@ -530,11 +514,15 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         }
       } else {
         // toast.error(response.message || "Operation failed");
+        setShowConfirmModal(false); // Close the confirmation modal on error
         return;
       }
     } catch (error: any) {
       // toast.error(error.message || "An error occurred");
+      setShowConfirmModal(false); // Close the confirmation modal on error
       return;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -1315,23 +1303,50 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                disabled={loading}
-                className="bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
+                disabled={loading || submitting}
+                className="bg-[#0D5942] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2 disabled:opacity-60"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                {editingItem ? "Update Facility" : "Save Facility"}
+                {submitting ? (
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+                {submitting
+                  ? (editingItem ? "Updating..." : "Saving...")
+                  : editingItem
+                  ? "Update Facility"
+                  : "Save Facility"}
               </button>
               {onComplete ? null : (
                 <button
@@ -1396,6 +1411,37 @@ const AddFacilitySection = ({ onComplete }: AddFacilitySectionProps) => {
         maxSize={10}
         title="Upload Attachment"
         description="Drag and drop your file here or click to browse"
+      />
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title={editingItem ? "Confirm Update" : "Confirm Create"}
+        description={
+          editingItem
+            ? "Do you really want to update this facility?"
+            : "Do you really want to create this facility?"
+        }
+        confirmText={editingItem ? "Update" : "Create"}
+        cancelText="Cancel"
+        loading={submitting}
+        onConfirm={submitFacilityConfirmed}
+        size="sm"
+      />
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title={editingItem ? "Confirm Update" : "Confirm Create"}
+        description={
+          editingItem
+            ? "Do you really want to update this facility?"
+            : "Do you really want to create this facility?"
+        }
+        confirmText={editingItem ? "Update" : "Create"}
+        cancelText="Cancel"
+        loading={submitting}
+        onConfirm={submitFacilityConfirmed}
+        size="sm"
       />
     </div>
   );

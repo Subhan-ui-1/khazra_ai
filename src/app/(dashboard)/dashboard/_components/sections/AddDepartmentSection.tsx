@@ -578,6 +578,11 @@ const AddDepartmentSection = ({ onComplete }: AddDepartmentSectionProps) => {
           cancelText="Cancel"
           showCloseButton={false}
           onClose={undefined}
+          confirmationMessage={
+            editingItem
+              ? "Do you really want to update this department?"
+              : "Do you really want to create this department?"
+          }
         />
       </AppModal>
 

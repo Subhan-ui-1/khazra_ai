@@ -182,18 +182,7 @@ export default function DashboardSidebar({
           // { id: "NewReport", icon: "📝", label: "New Report Generation"},
         ],
       },
-      {
-        section: "Support",
-        items: [
-          // { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' },
-          {
-            id: "feedback",
-            icon: "📝",
-            label: "Feedback",
-            permission: "feedback.view",
-          },
-        ],
-      },
+      
       {
         section: "Configurations",
         items: [
@@ -274,7 +263,19 @@ export default function DashboardSidebar({
           { id: "add-role", icon: "🏭", label: "Role", resource: "role" },
           { id: "add-user", icon: "🏭", label: "Users", resource: "user" },
         ]
-      }
+      },
+      {
+        section: "Support",
+        items: [
+          // { id: 'chatbot', icon: '💬', label: 'Sustainability Advisory' },
+          {
+            id: "feedback",
+            icon: "📝",
+            label: "Feedback",
+            permission: "feedback.view",
+          },
+        ],
+      },
     ];
   }, [isClient, hasPermission, hasAnyPermissionForResource]);
 

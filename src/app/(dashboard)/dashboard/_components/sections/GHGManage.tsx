@@ -8,6 +8,7 @@ import { postRequest, getRequest } from "@/utils/api";
 import { safeLocalStorage } from "@/utils/localStorage";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/context";
+import { isEmptyValue, sanitizePayload, clearDependentFields, hasMeaningfulData } from "@/utils/formUtils";
 
 interface GHGManagementData {
   _id: string;
@@ -69,6 +70,13 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
   });
 
   const { t } = useI18n();
+
+  // Field dependencies for clearing dependent fields when parent changes
+  const fieldDependencies: Record<string, string[]> = {
+    // Add your field dependencies here
+    // Example: 'parentField': ['childField1', 'childField2']
+  };
+
   const steps: Step[] = [
     {
       id: 1,
@@ -107,7 +115,7 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
             responsibleOfGHGManagement: data?.responsibleOfGHGManagement,
             ghgPolicyEstablishment: data?.ghgPolicyEstablishment,
             ghgQuantification: data?.ghgQuantification,
-            trainingAssessment: data?.trainingAssessed ? "Yes" : "No",
+            trainingAssessment: data?.trainingAssessed,
             trainingAssessed: data?.trainingAssessed,
           },
           step2: {
@@ -120,7 +128,7 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
             approachForRemovals: data?.approachForRemovals,
             biogenicEmissionsPresent: data?.biogenicEmissionsPresent,
             biogenicEmissionSources: data?.biogenicEmissionSources,
-            biogenicEmissionsPlanned: data?.biogenicEmissionsPlanned ? "Yes" : "No",
+            biogenicEmissionsPlanned: data?.biogenicEmissionsPlanned === 'true'?"Yes":data?.biogenicEmissionsPlanned === 'false'?"No":"",
           },
           step3: {
             ghgProtocolScopes: data?.ghgProtocolScopes,
@@ -147,11 +155,15 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
           onProgressChange && onProgressChange(pct);
         } catch {}
         
-        // Mark all steps as completed since data exists
+        // Mark steps as completed only if they have meaningful data
+        const hasStep1Data = data?.existingEnvironmentalManagement || data?.ghgManagementIntegration || data?.responsibleOfGHGManagement || data?.ghgPolicyEstablishment || data?.ghgQuantification || data?.trainingAssessed;
+        const hasStep2Data = data?.ghgSourceInventory || data?.quantificationApproach || data?.emissionFactorsSelectionCriteria || (data?.directMeasurementCapabilities && data.directMeasurementCapabilities.length > 0) || data?.haveGHGRemoval || data?.approachForRemovals || data?.biogenicEmissionsPresent;
+        const hasStep3Data = (data?.ghgProtocolScopes && data.ghgProtocolScopes.length > 0) || (data?.directGHGEmissions && data.directGHGEmissions.length > 0) || (data?.indirectGHGEmissions && data.indirectGHGEmissions.length > 0) || data?.electricitySupplyMethod || (data?.relevantCategories && data.relevantCategories.length > 0);
+        
         setFormCompletionStatus({
-          step1: true,
-          step2: true,
-          step3: true,
+          step1: Boolean(hasStep1Data),
+          step2: Boolean(hasStep2Data),
+          step3: Boolean(hasStep3Data),
         });
       }
     } catch (error) {
@@ -189,24 +201,34 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
   const handleStepFormSubmit = async (step: number, data: any) => {
     console.log(`Step ${step} form submitted:`, data);
     
+    // Clear dependent fields when any field changes
+    let processedData = { ...data };
+    Object.keys(data).forEach(fieldName => {
+      if (data[fieldName] !== undefined) {
+        processedData = clearDependentFields(processedData, fieldName, fieldDependencies);
+      }
+    });
+    
     // Merge this group's data into existing step state (preserve prior inputs)
     setFormData((prev) => {
-      const mergedStep = { ...(prev as any)[`step${step}`], ...(data || {}) };
+      const mergedStep = { ...(prev as any)[`step${step}`], ...processedData };
       return {
       ...prev,
         [`step${step}`]: mergedStep,
       } as typeof prev;
     });
 
-    // Mark step as completed
+    // Mark step as completed only if it has meaningful data
+    const hasMeaningfulStepData = hasMeaningfulData(processedData);
+    
     setFormCompletionStatus((prev) => ({
       ...prev,
-      [`step${step}`]: true,
+      [`step${step}`]: hasMeaningfulStepData,
     }));
 
     // Build full aggregated payload across all steps
     // Build aggregate from latest merged state AND server snapshot so fields not returned by GET are preserved
-    const latestStep = { ...(formData as any)[`step${step}`], ...(data || {}) };
+    const latestStep = { ...(formData as any)[`step${step}`], ...processedData };
     const currentState = { ...formData, [`step${step}`]: latestStep } as typeof formData;
     const { step1, step2, step3 } = currentState;
     const aggregate = {
@@ -224,11 +246,14 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
     const method = isUpdate && ghgData?._id ? 'put' : 'post';
     const successMessage = method === 'put' ? 'GHG Management updated successfully!' : 'GHG Management created successfully!';
 
+    // Sanitize the aggregate data to convert empty values to null
+    const sanitizedAggregate = sanitizePayload(aggregate);
+
     const fullPayload: any = method === 'put'
-      ? { ...aggregate }
+      ? { ...sanitizedAggregate }
       : {
           organizationId: JSON.parse(safeLocalStorage.getItem("user") || "{}").organization,
-          ...aggregate,
+          ...sanitizedAggregate,
         };
 
     // Clean server-only fields
@@ -322,10 +347,15 @@ const GHGManage: React.FC<GHGManageProps> = ({ onProgressChange }) => {
       const successMessage = isEditMode 
         ? 'GHG Management updated successfully!' 
         : 'GHG Management setup completed successfully!';
+        // Sanitize each step data to convert empty values to null
+        const sanitizedStep1 = sanitizePayload(step1 || {});
+        const sanitizedStep2 = sanitizePayload(step2 || {});
+        const sanitizedStep3 = sanitizePayload(step3 || {});
+
         const payload: any = {
-          ...step1,
-          ...step2,
-          ...step3,
+          ...sanitizedStep1,
+          ...sanitizedStep2,
+          ...sanitizedStep3,
         }
         if(isEditMode){
           delete (payload as any).biogenicEmissionsPresent

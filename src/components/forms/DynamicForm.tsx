@@ -40,6 +40,8 @@ export interface FormField {
   disabled?: boolean;
   defaultValue?: any;
   className?: string;
+  min?: number;
+  max?: number;
   condition?: (formData: any) => boolean;
   onChange?: (value: any) => void;
   // File-specific properties
@@ -417,6 +419,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                   handleInputChange(field.name, numericValue);
                 }}
                 maxLength={field.maxLength || 9}
+                
                 placeholder={field.placeholder}
                 className={baseInputClasses}
                 disabled={field.disabled}
@@ -478,7 +481,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             id={field.name}
             name={field.name}
             value={value}
-            max={field.type==='date'?maxim(field.type):""}
+            min={field.min}
+            max={field.type==='date'?maxim(field.type):field.max}
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             className={baseInputClasses}
@@ -557,7 +561,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="bg-[#0D5942]  disabled:bg-green-400 text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
+              className="bg-[#0D5942]  disabled:bg-[#0A4A37] text-white px-6 py-2 rounded-md transition-colors duration-200 flex items-center gap-2"
             >
               {loading ? (
                 <>
@@ -654,7 +658,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmSubmit}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                className="bg-[#0D5942] hover:bg-[#0A4A37] text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
                 {t('boundary.yesContinue')}
               </button>

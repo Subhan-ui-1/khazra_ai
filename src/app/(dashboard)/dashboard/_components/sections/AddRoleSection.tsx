@@ -8,6 +8,7 @@ import { usePermissions, PermissionGuard } from "@/utils/permissions";
 import { safeLocalStorage } from "@/utils/localStorage";
 import DynamicForm, { FormField } from "@/components/forms/DynamicForm";
 import AppModal from "@/components/modal/AppModal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
 import { Edit3, Paperclip } from "lucide-react";
 import FileUploadModal from "@/components/FileUploadModal";
 
@@ -38,6 +39,10 @@ interface Role {
   description: string;
   permissions: Permission[];
   departments?: { _id: string; name: string }[];
+  scope?: {
+    type: string;
+    refIds: string[];
+  };
   createdAt: string;
   updatedAt: string;
   createdBy?: {
@@ -61,6 +66,7 @@ const AddRoleSection = () => {
   const [loadingPermissions, setLoadingPermissions] = useState(false);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
   const { canView, canCreate, canUpdate, canDelete } = usePermissions();
   const [selectedLevel, setSelectedLevel] = useState<string>("department");
@@ -205,7 +211,10 @@ const AddRoleSection = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setShowConfirmModal(true);
+  };
 
+  const submitRoleConfirmed = async () => {
     if (!formData.name.trim()) {
       // toast.error("Role name is required");
       return;
@@ -242,6 +251,7 @@ const AddRoleSection = () => {
           toast.success("Role updated successfully");
           resetForm();
           fetchRoles();
+          setShowConfirmModal(false);
         }
       } else {
         // Add new role
@@ -257,10 +267,12 @@ const AddRoleSection = () => {
           toast.success("Role added successfully");
           resetForm();
           fetchRoles();
+          setShowConfirmModal(false);
         }
       }
     } catch (error: any) {
       // toast.error(error.message || "Failed to save role");
+      setShowConfirmModal(false);
       return;
     } finally {
       setSubmitting(false);
@@ -670,7 +682,7 @@ const AddRoleSection = () => {
                         ) : (
                           <span className="text-gray-400">No departments</span>
                         )} */}
-                        {role?.scope?.type}
+                        {(role as any)?.scope?.type || 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1202,6 +1214,22 @@ const AddRoleSection = () => {
         maxSize={10}
         title="Import Multiple Roles"
         description="Upload a CSV or Excel file with role data"
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title={editingItem ? "Confirm Update" : "Confirm Create"}
+        description={
+          editingItem
+            ? "Do you really want to update this role?"
+            : "Do you really want to create this role?"
+        }
+        confirmText={editingItem ? "Yes, Update" : "Yes, Create"}
+        cancelText="No, Cancel"
+        loading={submitting}
+        onConfirm={submitRoleConfirmed}
       />
     </div>
   );

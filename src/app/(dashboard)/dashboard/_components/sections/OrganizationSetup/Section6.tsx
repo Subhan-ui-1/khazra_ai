@@ -451,6 +451,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g1')}
+          confirmationMessage="Are you sure you want to save the selection information?"
         />
       </div>
       <div data-form-id="g2">
@@ -466,6 +467,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g2')}
+          confirmationMessage="Are you sure you want to save the scope 1 information?"
         />
       </div>
       <div data-form-id="g3">
@@ -481,6 +483,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g3')}
+          confirmationMessage="Are you sure you want to save the scope 2 information?"
         />
       </div>
       <div data-form-id="g4">
@@ -496,6 +499,7 @@ const Section6: React.FC<Section6Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('g4')}
+          confirmationMessage="Are you sure you want to save the scope 3 information?"
         />
       </div>
     </div>

@@ -72,6 +72,9 @@ export default function StationaryCombustionSection() {
   const [dataEmissions, setDataEmissions] = useState<any>(null);
   const [showFileModal, setShowFileModal] = useState(false);
   const [showAttachment, setShowAttachment] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmMessage, setConfirmMessage] = useState("");
 
   // Add state for fuel type analysis
   const [fuelTypeAnalysis, setFuelTypeAnalysis] = useState<{
@@ -381,8 +384,39 @@ export default function StationaryCombustionSection() {
     return null;
   };
 
+  // Confirmation modal handlers
+  const showConfirmation = (message: string, action: () => void) => {
+    setConfirmMessage(message);
+    setConfirmAction(() => action);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) {
+      confirmAction();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+    setConfirmMessage("");
+  };
+
+  const handleCancel = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+    setConfirmMessage("");
+  };
+
   const handleStationarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    showConfirmation(
+      editingStationaryData 
+        ? "Are you sure you want to update this stationary combustion record?" 
+        : "Are you sure you want to add this new stationary combustion record?",
+      () => submitStationaryData()
+    );
+  };
+
+  const submitStationaryData = async () => {
     setSubmitting(true);
 
     try {
@@ -461,6 +495,13 @@ export default function StationaryCombustionSection() {
 
   const handleEditStationarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    showConfirmation(
+      "Are you sure you want to update this stationary combustion record?",
+      () => submitEditStationaryData()
+    );
+  };
+
+  const submitEditStationaryData = async () => {
     setSubmitting(true);
 
     try {
@@ -993,11 +1034,14 @@ export default function StationaryCombustionSection() {
                 >
                   Facility *
                 </label>
-                <div className="flex items-center gap-2">
                 <select
                   id="facility"
                   value={stationaryFormData.facility}
                   onChange={(e) => {
+                    if (e.target.value === "add-facility") {
+                      router.push("/dashboard?section=add-facility");
+                      return;
+                    }
                     const desc = facilities.find(
                       (f) => f._id === e.target.value
                     );
@@ -1007,7 +1051,7 @@ export default function StationaryCombustionSection() {
                       facilityDescription: desc?.facilityName || "",
                     });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0D5942] focus:border-[#0D5942]"
                   required
                 >
                   <option value="">Select Facility</option>
@@ -1016,15 +1060,10 @@ export default function StationaryCombustionSection() {
                       {facility.facilityName}
                     </option>
                   ))}
+                  <option value="add-facility" className="text-[#0D5942] font-semibold bg-green-50 border-t border-green-200 py-2">
+                     Add New Facility
+                  </option>
                 </select>
-                <button
-                  type="button"
-                  onClick={() => router.push("/dashboard?section=add-facility")}
-                  className="text-lg font-medium text-green-500 hover:text-green-600"
-                >
-                  Add
-                </button>
-                </div>
               </div>
 
               <div>
@@ -1034,17 +1073,20 @@ export default function StationaryCombustionSection() {
                 >
                   Equipment *
                 </label>
-                <div className="flex items-center gap-2">
                 <select
                   id="equipment"
                   value={stationaryFormData.equipment}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (e.target.value === "add-equipment") {
+                      router.push("/dashboard?section=add-equipment");
+                      return;
+                    }
                     setStationaryFormData({
                       ...stationaryFormData,
                       equipment: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0D5942] focus:border-[#0D5942]"
                   required
                 >
                   <option value="">Select Equipment</option>
@@ -1057,15 +1099,10 @@ export default function StationaryCombustionSection() {
                       {equipment.equipmentName}
                     </option>
                   ))}
+                  <option value="add-equipment" className="text-[#0D5942] font-semibold bg-green-50 border-t border-green-200 py-2">
+                     Add New Equipment
+                  </option>
                 </select>
-                <button
-                  type="button"
-                  onClick={() => router.push("/dashboard?section=add-equipment")}
-                  className="text-lg font-medium text-green-500 hover:text-green-600"
-                >
-                    Add
-                  </button>
-                </div>
               </div>
 
               <div>
@@ -1534,6 +1571,39 @@ export default function StationaryCombustionSection() {
         title="Upload Attachment"
         description="Drag and drop your file here or click to browse"
       />
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Confirm Action</h3>
+              </div>
+              <p className="text-gray-600 mb-6">{confirmMessage}</p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className="px-4 py-2 bg-[#0D5942] text-white rounded-md hover:bg-[#0a4a35] transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

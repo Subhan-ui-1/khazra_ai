@@ -347,6 +347,7 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
               onModalOpen={() => setCurrentOpenForm('g1')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the industry sector information?"
               {...getFormNavigationProps('g1')}
             />
           </div>
@@ -362,6 +363,7 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
               onModalOpen={() => setCurrentOpenForm('g2')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the business profile information?"
               {...getFormNavigationProps('g2')}
             />
           </div>
@@ -377,6 +379,7 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
               onModalOpen={() => setCurrentOpenForm('g3')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the scale and revenue information?"
               {...getFormNavigationProps('g3')}
             />
           </div>
@@ -392,6 +395,7 @@ const OrganizationSetupSection1: React.FC<Section1Props> = ({
               onModalOpen={() => setCurrentOpenForm('g4')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the other details information?"
               {...getFormNavigationProps('g4')}
             />
           </div>

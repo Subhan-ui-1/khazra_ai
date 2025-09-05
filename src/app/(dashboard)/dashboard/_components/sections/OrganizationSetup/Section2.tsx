@@ -281,6 +281,7 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('overview')}
+          confirmationMessage="Are you sure you want to save the overview information?"
         />
       </div>
       <div data-form-id="training">
@@ -300,6 +301,7 @@ const Section2: React.FC<Section2Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('training')}
+          confirmationMessage="Are you sure you want to save the training information?"
         />
       </div>
     </div>

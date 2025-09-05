@@ -422,6 +422,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('core')}
+          confirmationMessage="Are you sure you want to save the core information?"
             />
       </div>
       <div data-form-id="additional">
@@ -437,6 +438,7 @@ const Section9: React.FC<Section9Props> = ({ onFormSubmit, isCompleted, initialD
           onFormDataChange={handleFormDataChange}
           externalFormData={sharedFormData}
           {...getFormNavigationProps('additional')}
+          confirmationMessage="Are you sure you want to save the additional information?"
             />
       </div>
     </div>

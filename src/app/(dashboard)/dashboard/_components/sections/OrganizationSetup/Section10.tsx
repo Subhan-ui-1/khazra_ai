@@ -79,7 +79,7 @@ const Section10: React.FC<Section10Props> = ({
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
           groups={[{ title: t('steps.boundary.section10.group.financial', 'Financial Boundaries'), remaining: true }]}
                       initialData={initialData}
-
+    confirmationMessage="Are you sure you want to save the currency & financial boundaries information?"
           />
         </div>
       {/* ) : (

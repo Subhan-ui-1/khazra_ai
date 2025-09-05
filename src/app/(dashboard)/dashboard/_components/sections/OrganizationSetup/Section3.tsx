@@ -422,6 +422,7 @@ const Section3: React.FC<Section3Props> = ({
               onModalOpen={() => setCurrentOpenForm('g1')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the control and ownership information?"
               {...getFormNavigationProps('g1')}
             />
           </div>
@@ -436,6 +437,7 @@ const Section3: React.FC<Section3Props> = ({
               onModalOpen={() => setCurrentOpenForm('g2')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the joint ventures information?"
               {...getFormNavigationProps('g2')}
             />
           </div>
@@ -450,6 +452,7 @@ const Section3: React.FC<Section3Props> = ({
               onModalOpen={() => setCurrentOpenForm('g3')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the franchised operations information?"
               {...getFormNavigationProps('g3')}
             />
           </div>
@@ -464,6 +467,7 @@ const Section3: React.FC<Section3Props> = ({
               onModalOpen={() => setCurrentOpenForm('g4')}
               onFormDataChange={handleFormDataChange}
               externalFormData={sharedFormData}
+              confirmationMessage="Are you sure you want to save the other considerations information?"
               {...getFormNavigationProps('g4')}
             />
           </div>
