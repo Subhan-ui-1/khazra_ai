@@ -5,8 +5,8 @@ import toast from "react-hot-toast";
 // import { safeLocalStorage } from "./localStorage";
 
 const BASE_URLs =
-  "https://staging-branch-khazraai-production.up.railway.app/api/";
-  // "https://dev-kai-backend-production.up.railway.app/api/";
+  // "https://staging-branch-khazraai-production.up.railway.app/api/";
+  "https://dev-kai-backend-production.up.railway.app/api/";
   // "http://192.168.18.179:4000/api/";
 
 const getHeaders = (token?: string) => {
