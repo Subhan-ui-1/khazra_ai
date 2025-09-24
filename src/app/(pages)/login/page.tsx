@@ -36,7 +36,7 @@ export default function LoginPage() {
       if (user.boundary) {
         router.push("/dashboard");
       } else {
-        router.push("/dashboard?section=add-boundary");
+        router.push("/dashboard?section=boundary-setup");
       }
     }
   }, []);
