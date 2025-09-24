@@ -47,7 +47,7 @@ const Page = () => {
               <span className="text-xs font-medium px-3 py-1 rounded-full bg-white/60 backdrop-blur border border-white/40 text-gray-700">Sustainability Workspace</span>
             </div> */}
             <Image
-              src="/Logo.svg"
+              src="/Logo_1.png"
               alt="logo"
               width={100}
               height={20}

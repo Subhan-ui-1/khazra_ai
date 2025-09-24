@@ -96,9 +96,9 @@ export default function DashboardHeader() {
       {/* Logo */}
       <Link
         href="/"
-        className="xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center"
+        className="xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center justify-center"
       >
-        <Image src={"/Logo.svg"} alt="khazra logo" height={26} width={147} />
+        <Image src={"/Logo_1.png"} alt="khazra logo" height={26} width={75} />
       </Link>
 
       {/* Desktop Nav */}

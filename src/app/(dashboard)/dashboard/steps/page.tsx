@@ -90,7 +90,7 @@ export default function StepsPage() {
     <div className="min-h-screen bg-white relative">
       <GlobalHeader >
         <div className="ml-8 flex items-center space-x-4">
-          <Image src={"/Logo.svg"} alt="khazra logo" height={26} width={147} />
+          <Image src={"/Logo_1.png"} alt="khazra logo" height={26} width={85} />
           {/* <span className="text-sm text-gray-500">
             Step {currentStep + 1} of {totalSteps}
           </span> */}

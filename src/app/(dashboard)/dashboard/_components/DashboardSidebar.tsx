@@ -310,9 +310,9 @@ export default function DashboardSidebar({
     <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen no-scrollbar">
       <Link
         href="/"
-        className="xl:w-[147px] lg:w-[127px] w-[97px] h-[16px] lg:h-[26px] flex items-center mb-5 ps-5"
+        className="xl:w-[85px] lg:w-[85px] w-[85px] h-[16px] lg:h-[26px] flex items-center mb-5 ps-5"
       >
-        <Image src={"/Logo.svg"} alt="khazra logo" height={26} width={147} />
+        <Image src={"/Logo_1.png"} alt="khazra logo" height={26} width={85} />
       </Link>
       {filteredSidebarItems.map((group, i) => (
         <div key={i} className="mb-5">

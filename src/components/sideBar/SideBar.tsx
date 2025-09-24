@@ -132,7 +132,7 @@ const Sidebar = () => {
             {/* Logo */}
             <div className='xl:py-6 lg:px-6 md:px-5 px-4 lg:py-5 py-4'>
                 <Link href={'/'}>
-                    <Image src={'/Logo.svg'} alt='logo' width={130} height={24} className='xl:w-[130px] xl:h-[24px] lg:w-[110px] lg:h-[20px] w-[80px] h-[18px]' />
+                    <Image src={'/Logo_1.png'} alt='logo' width={85} height={24} className='xl:w-[85px] xl:h-[24px] lg:w-[85px] lg:h-[20px] w-[85px] h-[18px]' />
                 </Link>
             </div>
 
