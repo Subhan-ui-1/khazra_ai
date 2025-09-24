@@ -200,9 +200,9 @@ export default function DashboardPage() {
     'add-facility': <PermissionGuard permission="facilities.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view facilities.</div>}>
       <AddFacilitySection />
     </PermissionGuard>,
-    'add-boundary': <PermissionGuard permission="boundaries.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view boundaries.</div>}>
-      <AddBoundarySection />
-    </PermissionGuard>,
+    // 'add-boundary': <PermissionGuard permission="boundaries.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view boundaries.</div>}>
+    //   <AddBoundarySection />
+    // </PermissionGuard>,
     'add-vehicle': <PermissionGuard permission="vehicle.view" fallback={<div className="p-8 text-center text-gray-500">You don't have permission to view vehicles.</div>}>
       <AddVehicleSection />
     </PermissionGuard>,
