@@ -2,12 +2,13 @@
 
 import axios from "axios";
 import toast from "react-hot-toast";
+import { safeLocalStorage } from "./localStorage";
 // import { safeLocalStorage } from "./localStorage";
 
 const BASE_URLs =
   "https://staging-branch-khazraai-production.up.railway.app/api/";
-  // "https://dev-kai-backend-production.up.railway.app/api/";
-  // "http://192.168.18.179:4000/api/";
+// "https://dev-kai-backend-production.up.railway.app/api/";
+// "http://192.168.18.179:4000/api/";
 
 const getHeaders = (token?: string) => {
   const headers = {
@@ -20,13 +21,16 @@ const getHeaders = (token?: string) => {
 };
 
 const handleError = (error: any) => {
+  if(error.status === 401){
+    safeLocalStorage.clear();
+    return;
+  }
   if (axios.isAxiosError(error)) {
     const message =
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.message ||
       "Something went wrong.";
-
     toast.error(message); // 🔥 Show toast
     throw new Error(message); // Still throw for catching
   } else {
@@ -71,7 +75,8 @@ export const postRequest = async (
   try {
     let response;
     const headers = getHeaders(token);
-    const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+    const isFormData =
+      typeof FormData !== "undefined" && data instanceof FormData;
     if (isFormData) {
       // Let the browser set the multipart boundary automatically
       // Axios will honor this header for FormData payloads
@@ -85,7 +90,9 @@ export const postRequest = async (
       });
     } else {
       // For POST, PUT, PATCH requests
-      response = await axios[method](`${BASE_URLs}${endPoint}`, data, { headers });
+      response = await axios[method](`${BASE_URLs}${endPoint}`, data, {
+        headers,
+      });
     }
 
     if (response.status >= 200 && response.status < 300) {

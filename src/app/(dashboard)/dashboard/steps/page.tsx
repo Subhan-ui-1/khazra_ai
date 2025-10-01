@@ -1,14 +1,21 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowRight, Building2, Shield, TrendingUp, CheckCircle } from 'lucide-react';
-import { useI18n } from '@/i18n/context';
-import GlobalHeader from '@/components/GlobalHeader/GlobalHeader';
-import BoundarySetupSteps from '../_components/sections/BoundarySetupSteps';
-import GHGManage from '../_components/sections/GHGManage';
-import AddEmissionSection from '../_components/sections/AddEmissionSection';
-import Image from 'next/image';
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Building2,
+  Shield,
+  TrendingUp,
+  CheckCircle,
+} from "lucide-react";
+import { useI18n } from "@/i18n/context";
+import GlobalHeader from "@/components/GlobalHeader/GlobalHeader";
+import BoundarySetupSteps from "../_components/sections/BoundarySetupSteps";
+import GHGManage from "../_components/sections/GHGManage";
+import AddEmissionSection from "../_components/sections/AddEmissionSection";
+import Image from "next/image";
+import { safeLocalStorage } from "@/utils/localStorage";
 
 interface Step {
   id: string;
@@ -21,22 +28,22 @@ interface Step {
 
 const steps: Step[] = [
   {
-    id: 'boundary',
-    title: '',
+    id: "boundary",
+    title: "",
     // description: 'Set up your organization boundaries and baseline information',
     icon: <Building2 className="w-5 h-5" />,
     component: BoundarySetupSteps,
   },
   {
-    id: 'ghg',
-    title: '',
+    id: "ghg",
+    title: "",
     // description: 'Define policies, training, and inventory practices for robust GHG governance',
     icon: <Shield className="w-5 h-5" />,
     component: GHGManage,
   },
   {
-    id: 'emissions',
-    title: '',
+    id: "emissions",
+    title: "",
     // description: 'Select baseline year, define reporting periods, and enter scope-wise data',
     icon: <TrendingUp className="w-5 h-5" />,
     component: AddEmissionSection,
@@ -51,8 +58,8 @@ export default function StepsPage() {
   const router = useRouter();
 
   const handleStepComplete = (stepId: string) => {
-    setCompletedSteps(prev => new Set([...prev, stepId]));
-    setStepProgress(prev => ({ ...prev, [stepId]: 100 }));
+    setCompletedSteps((prev) => new Set([...prev, stepId]));
+    setStepProgress((prev) => ({ ...prev, [stepId]: 100 }));
   };
 
   const handleStepClick = (index: number) => {
@@ -61,15 +68,19 @@ export default function StepsPage() {
 
   const handleProgressChange = (stepId: string, percent: number) => {
     const clamped = Math.max(0, Math.min(100, Math.round(percent)));
-    setStepProgress(prev => ({ ...prev, [stepId]: clamped }));
+    setStepProgress((prev) => ({ ...prev, [stepId]: clamped }));
   };
 
-  const localizedSteps = steps.map(s => ({
+  const localizedSteps = steps.map((s) => ({
     ...s,
     title:
-      s.id === 'boundary' ? t('steps.nav.boundary') :
-      s.id === 'ghg' ? t('steps.nav.ghg') :
-      s.id === 'emissions' ? t('steps.nav.baseline') : s.title,
+      s.id === "boundary"
+        ? t("steps.nav.boundary")
+        : s.id === "ghg"
+        ? t("steps.nav.ghg")
+        : s.id === "emissions"
+        ? t("steps.nav.baseline")
+        : s.title,
   }));
   const CurrentStepComponent = localizedSteps[currentStep].component;
   const completedCount = completedSteps.size;
@@ -77,26 +88,44 @@ export default function StepsPage() {
   const progressPercentage = useMemo(() => {
     // Only average across steps that have reported progress or are completed
     const considered = steps
-      .map(s => ({ id: s.id, value: stepProgress[s.id], completed: completedSteps.has(s.id) }))
-      .filter(s => typeof s.value === 'number' || s.completed);
+      .map((s) => ({
+        id: s.id,
+        value: stepProgress[s.id],
+        completed: completedSteps.has(s.id),
+      }))
+      .filter((s) => typeof s.value === "number" || s.completed);
 
     if (considered.length === 0) return 0;
 
-    const sum = considered.reduce((acc, s) => acc + (typeof s.value === 'number' ? s.value! : 100), 0);
+    const sum = considered.reduce(
+      (acc, s) => acc + (typeof s.value === "number" ? s.value! : 100),
+      0
+    );
     return Math.round(sum / considered.length);
   }, [stepProgress, completedSteps]);
 
-    return (
+  const getTokens = () => {
+    const token = safeLocalStorage.getItem("tokens");
+    const tokenData = JSON.parse(token || "{}");
+    return tokenData.accessToken;
+  };
+
+  if (!getTokens()) {
+    router.push("/login");
+    return;
+  }
+
+  return (
     <div className="min-h-screen bg-white relative">
-      <GlobalHeader >
+      <GlobalHeader>
         <div className="ml-8 flex items-center space-x-4">
           <Image src={"/Logo_1.png"} alt="khazra logo" height={26} width={85} />
           {/* <span className="text-sm text-gray-500">
             Step {currentStep + 1} of {totalSteps}
           </span> */}
-        </div> 
+        </div>
       </GlobalHeader>
-      
+
       <div className="flex pt-12">
         {/* Sidebar */}
         <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen fixed left-0 top-16 z-10">
@@ -105,14 +134,14 @@ export default function StepsPage() {
             <div className="bg-white/10 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-white">
-                  {t('steps.sidebar.setupProgress')}
+                  {t("steps.sidebar.setupProgress")}
                 </span>
                 <span className="text-sm font-medium text-white">
                   {progressPercentage}%
                 </span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
-                <div 
+                <div
                   className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
@@ -126,14 +155,14 @@ export default function StepsPage() {
           {/* Steps Navigation */}
           <div className="px-2">
             <p className="px-3 py-2 text-xs font-semibold text-white opacity-60 uppercase tracking-wider mb-3">
-              {t('steps.sidebar.setupSteps')}
+              {t("steps.sidebar.setupSteps")}
             </p>
             <div className="space-y-1">
               {localizedSteps.map((step, index) => {
                 const isCompleted = completedSteps.has(step.id);
                 const isCurrent = index === currentStep;
                 const pct = stepProgress[step.id] ?? (isCompleted ? 100 : 0);
-                
+
                 return (
                   <button
                     key={step.id}
@@ -142,9 +171,11 @@ export default function StepsPage() {
                       isCurrent ? "bg-[#10694e] font-semibold" : ""
                     }`}
                   >
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
-                      isCurrent ? 'bg-white/20' : 'bg-white/10'
-                    }`}>
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isCurrent ? "bg-white/20" : "bg-white/10"
+                      }`}
+                    >
                       {step.icon}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
@@ -188,7 +219,9 @@ export default function StepsPage() {
             <div className="p-6">
               <CurrentStepComponent
                 onComplete={() => handleStepComplete(steps[currentStep].id)}
-                onProgressChange={(p: number) => handleProgressChange(steps[currentStep].id, p)}
+                onProgressChange={(p: number) =>
+                  handleProgressChange(steps[currentStep].id, p)
+                }
               />
             </div>
           </div>
@@ -199,20 +232,20 @@ export default function StepsPage() {
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => {
-            router.push('/dashboard')
-            setLocale('en')
+            router.push("/dashboard");
+            setLocale("en");
           }}
           className="inline-flex items-center px-6 py-3 bg-[#8c3738] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
         >
-          <span>{t('steps.nav.addLater')}</span>
+          <span>{t("steps.nav.addLater")}</span>
           <ArrowRight className="w-4 h-4 ml-2" />
         </button>
       </div>
       <div className="fixed bottom-6 right-46 z-40">
         <button
           onClick={() => {
-            router.push('/dashboard')
-            setLocale('en')
+            router.push("/dashboard");
+            setLocale("en");
           }}
           className="inline-flex items-center px-6 py-3 bg-[#8c3738] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-white"
         >
