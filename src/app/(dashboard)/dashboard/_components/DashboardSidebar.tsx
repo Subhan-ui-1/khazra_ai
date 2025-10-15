@@ -292,7 +292,7 @@ export default function DashboardSidebar({
   // Don't render anything until client-side hydration is complete
   if (!isClient) {
     return (
-      <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen absolute top-0">
+      <aside className="w-72 bg-[#161326] text-white border-r border-green-100 py-6 overflow-y-auto h-screen absolute top-0">
         <div className="animate-pulse">
           <div className="mb-12">
             <div className="px-6 py-2 h-4 bg-white opacity-20 rounded mb-4"></div>
@@ -307,7 +307,7 @@ export default function DashboardSidebar({
   }
 
   return (
-    <aside className="w-72 bg-[#0D5942] text-white border-r border-green-100 py-6 overflow-y-auto h-screen no-scrollbar">
+    <aside className="w-72 bg-[#161326] text-white border-r border-green-100 py-6 overflow-y-auto h-screen no-scrollbar">
       <Link
         href="/"
         className="xl:w-[85px] lg:w-[85px] w-[85px] h-[16px] lg:h-[26px] flex items-center mb-5 ps-5"
